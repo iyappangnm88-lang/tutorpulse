@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/auth-context'
 import { ToastProvider } from '@/contexts/toast-context'
 import { ToastContainer } from '@/components/ui/toast'
+import { Analytics } from '@vercel/analytics/next'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
             <ToastContainer />
           </ToastProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   )
