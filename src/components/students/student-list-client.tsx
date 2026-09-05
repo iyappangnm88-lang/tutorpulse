@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Plus, UserX, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGuide } from '@/components/help/empty-state-guide'
 import { Dialog } from '@/components/ui/dialog'
 import { useToast } from '@/contexts/toast-context'
 import { StudentFilters } from './student-filters'
@@ -68,18 +69,17 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
 
   if (students.length === 0) {
     return (
-      <EmptyState
-        icon={<Users className="h-8 w-8 text-indigo-500" />}
-        title="No students yet"
-        description="Enroll your first student to start managing attendance, fees, tests, and homework."
-        action={
-          <Link href="/dashboard/students/new">
-            <Button size="md" className="gap-2">
-              <Plus className="h-4 w-4" />
-              <span>Add Your First Student</span>
-            </Button>
-          </Link>
-        }
+      <EmptyStateGuide
+        icon={<Users className="h-7 w-7 text-indigo-600" />}
+        title="Your Student Roster is Empty"
+        whatIsMissing="You haven't added any students to TutorPulse yet."
+        whyItMatters="Every attendance sheet, homework assignment, test result, and fee record is linked to a student."
+        whatToDoNext="Click 'Add Student' below. Enter their name and grade to get started immediately."
+        primaryAction={{
+          label: 'Add Your First Student',
+          href: '/dashboard/students/new',
+        }}
+        helpTopicId="students"
       />
     )
   }

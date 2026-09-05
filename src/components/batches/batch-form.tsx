@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
+import { FieldHelp } from '@/components/help/field-help'
 import { useToast } from '@/contexts/toast-context'
 import { createBatchAction, updateBatchAction } from '@/app/(dashboard)/dashboard/batches/actions'
 import { WorkingDaysSelector } from './working-days-selector'
@@ -150,9 +151,16 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
         </CardHeader>
         <CardBody className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label htmlFor="name" required>
-              Batch Name
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="name" required>
+                Batch Name
+              </Label>
+              <FieldHelp
+                description="A recognizable name for this tutoring group so you and parents can identify it."
+                example="Class 10 ICSE Mathematics"
+                tip="Include the grade level and subject for clarity."
+              />
+            </div>
             <Input
               id="name"
               placeholder="e.g. Class 10 Board Prep - Batch A"

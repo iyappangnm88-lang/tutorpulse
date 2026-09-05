@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { BatchListClient } from '@/components/batches/batch-list-client'
 import { getBatches } from '@/lib/batches'
+import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -18,6 +19,8 @@ export default async function BatchesPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PageGuide topicId="batches" defaultCollapsed={Boolean(batches && batches.length > 0)} />
+
       <PageHeader
         title="Batches"
         description="Organize students by subject, grade level, and weekly schedules."

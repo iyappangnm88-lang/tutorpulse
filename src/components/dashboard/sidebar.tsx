@@ -16,6 +16,7 @@ import {
   MessageSquare,
   BarChart3,
   Settings,
+  HelpCircle,
   Activity,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,7 @@ const navItems: NavItem[] = [
   { label: 'Communication', href: '/dashboard/communication', icon: MessageSquare },
   { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { label: 'Help & Guides', href: '/dashboard/help', icon: HelpCircle },
 ]
 
 function NavLink({ item }: { item: NavItem }) {

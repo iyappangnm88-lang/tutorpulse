@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { StudentListClient } from '@/components/students/student-list-client'
 import { getStudents } from '@/lib/students'
+import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -18,6 +19,8 @@ export default async function StudentsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PageGuide topicId="students" defaultCollapsed={Boolean(students && students.length > 0)} />
+
       <PageHeader
         title="Students"
         description="Manage your enrolled students, contact info, and academic records."

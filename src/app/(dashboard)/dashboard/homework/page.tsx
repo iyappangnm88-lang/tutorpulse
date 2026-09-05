@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { HomeworkSummaryCards } from '@/components/homework/homework-summary-cards'
 import { HomeworkListClient } from '@/components/homework/homework-list-client'
+import { PageGuide } from '@/components/help/page-guide'
 import { getHomeworkList, getHomeworkSummary } from '@/lib/homework'
 import type { Metadata } from 'next'
 
@@ -31,6 +32,8 @@ export default async function HomeworkPage({ searchParams }: HomeworkPageProps) 
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PageGuide topicId="homework" defaultCollapsed={homeworkRes.data.length > 0} />
+
       <PageHeader
         title="Homework & Assignments"
         description="Assign exercises to batches and track student completion progress."

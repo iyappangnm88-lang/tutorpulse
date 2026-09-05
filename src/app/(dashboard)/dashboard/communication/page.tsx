@@ -7,6 +7,7 @@ import {
 import { getBatches } from '@/lib/batches'
 import { getStudents } from '@/lib/students'
 import { CommunicationClient } from '@/components/communication/communication-client'
+import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -29,6 +30,8 @@ export default async function CommunicationPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
+      <PageGuide topicId="communication" defaultCollapsed={announcements.length > 0} />
+
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Communication Center</h1>
         <p className="text-xs text-gray-500 mt-0.5">

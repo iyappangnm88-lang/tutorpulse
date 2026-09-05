@@ -192,6 +192,14 @@ export default function LoginPage() {
           {loading ? 'Signing in...' : 'Sign in'}
         </Button>
       </form>
+
+      {/* Helpful Guidance for Users */}
+      <div className="mt-6 rounded-2xl bg-gray-50 border border-gray-100 p-3.5 text-center text-xs text-gray-500">
+        <p className="font-semibold text-gray-700">Tutors & Parents use the same sign-in</p>
+        <p className="mt-1 text-[11px] text-gray-500 leading-normal">
+          Tutors are automatically directed to their Teaching Dashboard. Parents using their registered email are directed straight to their child&apos;s Parent Portal.
+        </p>
+      </div>
     </>
   )
 }

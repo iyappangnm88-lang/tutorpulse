@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { TestSummaryCards } from '@/components/tests/test-summary-cards'
 import { TestListClient } from '@/components/tests/test-list-client'
+import { PageGuide } from '@/components/help/page-guide'
 import { getTests, getTestSummary } from '@/lib/tests'
 import type { Metadata } from 'next'
 
@@ -31,6 +32,8 @@ export default async function TestsPage({ searchParams }: TestsPageProps) {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PageGuide topicId="tests" defaultCollapsed={testsRes.data.length > 0} />
+
       <PageHeader
         title="Tests & Examinations"
         description="Schedule tests for batches, enter marks, and track student performance analytics."

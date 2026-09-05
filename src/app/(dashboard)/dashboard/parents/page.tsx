@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { ParentListClient } from '@/components/parents/parent-list-client'
 import { getParents } from '@/lib/parents'
+import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -18,6 +19,8 @@ export default async function ParentsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PageGuide topicId="parents" defaultCollapsed={Boolean(parents && parents.length > 0)} />
+
       <PageHeader
         title="Parents & Guardians"
         description="Manage parent contacts, link children, and maintain guardian communication records."

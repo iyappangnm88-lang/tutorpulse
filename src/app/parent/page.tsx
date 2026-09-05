@@ -9,6 +9,8 @@ import {
   Clock,
   ChevronRight,
   Sparkles,
+  ShieldCheck,
+  Eye,
 } from 'lucide-react'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -84,6 +86,24 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
               ) : null}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Parent Transparency & Privacy Guide */}
+      <div className="rounded-2xl border border-indigo-100/90 bg-indigo-50/40 p-4 text-xs text-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start gap-2.5">
+          <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+              <span>Secure Parent Portal</span>
+              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
+                Read-Only Access
+              </span>
+            </p>
+            <p className="text-gray-600 text-[11px] mt-0.5 leading-relaxed">
+              You have secure, direct access to {selectedChild.full_name}&apos;s attendance, test scores, homework, class schedules, and fee receipts. Records are updated in real time by your tutor.
+            </p>
+          </div>
         </div>
       </div>
 

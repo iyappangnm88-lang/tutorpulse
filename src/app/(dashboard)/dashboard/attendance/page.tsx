@@ -1,6 +1,7 @@
 import React from 'react'
 import { PageHeader } from '@/components/ui/page-header'
 import { AttendanceSheet } from '@/components/attendance/attendance-sheet'
+import { PageGuide } from '@/components/help/page-guide'
 import { getBatches, getBatchEnrolledStudents } from '@/lib/batches'
 import { getBatchAttendanceForDate } from '@/lib/attendance'
 import type { Metadata } from 'next'
@@ -40,6 +41,8 @@ export default async function AttendancePage({ searchParams }: AttendancePagePro
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
+      <PageGuide topicId="attendance" defaultCollapsed={existingAttendance.length > 0} />
+
       <PageHeader
         title="Daily Attendance"
         description="Mark and review student presence, absences, and late arrivals per batch."

@@ -3,8 +3,9 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LogOut, Menu, X, Settings } from 'lucide-react'
+import { LogOut, Menu, X, Settings, HelpCircle } from 'lucide-react'
 import { NotificationBell } from '@/components/communication/notification-bell'
+import { GlobalHelpButton } from '@/components/help/global-help-button'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
@@ -62,6 +63,9 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
 
       {/* Right actions */}
       <div className="flex items-center gap-2.5">
+        {/* Global In-App Help Button */}
+        <GlobalHelpButton />
+
         {/* Notifications Bell */}
         <NotificationBell />
 
@@ -90,6 +94,14 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
                   <p className="text-xs font-bold text-gray-900 truncate">{displayName}</p>
                   <p className="text-[11px] text-gray-500 truncate mt-0.5">{user?.email}</p>
                 </div>
+                <Link
+                  href="/dashboard/help"
+                  onClick={() => setProfileMenuOpen(false)}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                >
+                  <HelpCircle className="h-4 w-4 text-gray-400" />
+                  <span>Help Center & Guides</span>
+                </Link>
                 <Link
                   href="/dashboard/settings"
                   onClick={() => setProfileMenuOpen(false)}

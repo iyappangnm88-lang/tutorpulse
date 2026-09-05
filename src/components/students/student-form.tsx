@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
+import { FieldHelp } from '@/components/help/field-help'
 import { useToast } from '@/contexts/toast-context'
 import { createStudentAction, updateStudentAction } from '@/app/(dashboard)/dashboard/students/actions'
 import type { Student, StudentStatus, Gender } from '@/types'
@@ -125,9 +126,16 @@ export function StudentForm({ initialData, mode }: StudentFormProps) {
         </CardHeader>
         <CardBody className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label htmlFor="full_name" required>
-              Full Name
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="full_name" required>
+                Full Name
+              </Label>
+              <FieldHelp
+                description="Enter the student's legal or official name used for school and exam records."
+                example="Rahul Sharma"
+                tip="This name appears on all report cards, attendance records, and fee receipts."
+              />
+            </div>
             <Input
               id="full_name"
               placeholder="e.g. Rahul Sharma"
@@ -139,7 +147,13 @@ export function StudentForm({ initialData, mode }: StudentFormProps) {
           </div>
 
           <div>
-            <Label htmlFor="class_name">Grade / Class / Standard</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="class_name">Grade / Class / Standard</Label>
+              <FieldHelp
+                description="The academic level or school year of the student."
+                example="Class 10, Grade 8, or 12th Standard"
+              />
+            </div>
             <Input
               id="class_name"
               placeholder="e.g. Class 10, Grade 8, B.Sc Physics"
@@ -187,7 +201,13 @@ export function StudentForm({ initialData, mode }: StudentFormProps) {
           </div>
 
           <div>
-            <Label htmlFor="status">Enrollment Status</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="status">Enrollment Status</Label>
+              <FieldHelp
+                description="Active students appear in attendance sheets and reports. Inactive students are kept for historical records."
+                example="Active"
+              />
+            </div>
             <Select
               id="status"
               value={formData.status}

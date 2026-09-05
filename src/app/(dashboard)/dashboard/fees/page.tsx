@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { FeeSummaryCards } from '@/components/fees/fee-summary-cards'
 import { FeeListClient } from '@/components/fees/fee-list-client'
+import { PageGuide } from '@/components/help/page-guide'
 import { getFees, getFeeSummary } from '@/lib/fees'
 import type { Metadata } from 'next'
 
@@ -31,6 +32,8 @@ export default async function FeesPage({ searchParams }: FeesPageProps) {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PageGuide topicId="fees" defaultCollapsed={feesRes.data.length > 0} />
+
       <PageHeader
         title="Fees & Payments"
         description="Track fee charges, outstanding dues, and collection receipts across all students."

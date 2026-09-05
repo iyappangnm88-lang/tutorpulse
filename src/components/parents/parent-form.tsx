@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
+import { FieldHelp } from '@/components/help/field-help'
 import { useToast } from '@/contexts/toast-context'
 import { createParentAction, updateParentAction } from '@/app/(dashboard)/dashboard/parents/actions'
 import type { Parent } from '@/types'
@@ -151,7 +152,14 @@ export function ParentForm({ initialData, mode }: ParentFormProps) {
           </div>
 
           <div className="sm:col-span-2">
-            <Label htmlFor="email">Email Address</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="email">Email Address</Label>
+              <FieldHelp
+                description="Required if the parent will log into the Parent Portal. When they register with this email, their children are linked automatically."
+                example="rajesh.sharma@example.com"
+                tip="Parents can only see their own children's attendance, marks, and fees."
+              />
+            </div>
             <Input
               id="email"
               type="email"

@@ -2,6 +2,7 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SettingsClient } from '@/components/settings/settings-client'
+import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -35,6 +36,8 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
+      <PageGuide topicId="settings" defaultCollapsed={true} />
+
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Settings</h1>
         <p className="text-xs text-gray-500 mt-0.5">

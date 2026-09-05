@@ -27,6 +27,8 @@ import { getTodaySessions, getUpcomingSessions } from '@/lib/class-sessions'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/fee-utils'
+import { PageGuide } from '@/components/help/page-guide'
+import { OnboardingChecklist } from '@/components/help/onboarding-checklist'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -188,6 +190,15 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Tutor Getting Started Checklist */}
+      <OnboardingChecklist
+        studentsCount={studentsCount}
+        batchesCount={batchesCount}
+      />
+
+      {/* Context-Aware Dashboard Guide Banner */}
+      <PageGuide topicId="dashboard" defaultCollapsed={batchesCount > 0 && studentsCount > 0} />
 
       {/* KPI Overview Cards */}
       <section aria-labelledby="metrics-heading">
