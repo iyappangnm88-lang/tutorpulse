@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getAppBaseUrl } from '@/lib/auth-url'
 
 export interface ActionResult<T = unknown> {
   success: boolean
@@ -65,7 +66,7 @@ export async function triggerPasswordResetAction(): Promise<ActionResult> {
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`,
+      redirectTo: `${getAppBaseUrl()}/login`,
     })
 
     if (error) {

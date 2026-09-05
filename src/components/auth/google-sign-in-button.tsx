@@ -34,18 +34,8 @@ export function GoogleIcon({ className = 'h-5 w-5' }: { className?: string }) {
   )
 }
 
-/**
- * Returns environment-aware redirect URL for OAuth callback
- */
-export function getOAuthRedirectUrl(): string {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin}/auth/callback`
-  }
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
-  }
-  return 'http://localhost:3000/auth/callback'
-}
+import { getOAuthRedirectUrl } from '@/lib/auth-url'
+export { getOAuthRedirectUrl }
 
 export function GoogleSignInButton({
   onError,
