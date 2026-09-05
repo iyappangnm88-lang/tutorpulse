@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
 import { MobileNav } from '@/components/dashboard/mobile-nav'
+import { MobileDrawer } from '@/components/dashboard/mobile-drawer'
 import { cn } from '@/lib/utils'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -11,24 +12,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar (visible on lg screens, hidden on mobile) */}
       <Sidebar />
 
-      {/* Mobile overlay sidebar */}
-      {mobileMenuOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl lg:hidden">
-            <Sidebar />
-          </div>
-        </>
-      )}
+      {/* Mobile Navigation Drawer (contains complete desktop sidebar content) */}
+      <MobileDrawer isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
+        <Sidebar mobile onClose={() => setMobileMenuOpen(false)} />
+      </MobileDrawer>
 
-      {/* Main content */}
+      {/* Main content area */}
       <div className={cn('lg:pl-64 flex flex-col min-h-screen')}>
         <Header
           onMenuToggle={() => setMobileMenuOpen((v) => !v)}
@@ -39,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
       </div>
 
-      {/* Mobile bottom navigation */}
+      {/* Mobile bottom navigation for quick actions */}
       <MobileNav />
     </div>
   )

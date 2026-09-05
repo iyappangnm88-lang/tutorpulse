@@ -51,9 +51,12 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
     <header className="sticky top-0 z-30 flex h-16 items-center border-b border-gray-200/70 bg-white/80 backdrop-blur-md px-4 sm:px-6">
       {/* Mobile menu toggle */}
       <button
-        className="lg:hidden mr-3 flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors"
+        id="mobile-menu-toggle"
+        className="lg:hidden mr-3 flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
         onClick={onMenuToggle}
-        aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+        aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        aria-expanded={mobileMenuOpen}
+        aria-controls="mobile-navigation-drawer"
       >
         {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
