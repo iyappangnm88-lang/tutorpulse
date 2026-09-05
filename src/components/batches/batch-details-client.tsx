@@ -26,6 +26,7 @@ import { Dialog } from '@/components/ui/dialog'
 import { useToast } from '@/contexts/toast-context'
 import { AddStudentsDialog } from './add-students-dialog'
 import { removeStudentFromBatchAction } from '@/app/(dashboard)/dashboard/batches/actions'
+import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import {
   WORKING_DAYS_ORDER,
   DAY_METADATA,
@@ -35,18 +36,20 @@ import {
   CLASS_MODE_METADATA,
   type WorkingDay,
 } from '@/lib/scheduling'
-import type { BatchWithCount, EnrolledStudent, Student } from '@/types'
+import type { BatchWithCount, EnrolledStudent, Student, ClassSessionWithBatch } from '@/types'
 
 interface BatchDetailsClientProps {
   batch: BatchWithCount
   enrolledStudents: EnrolledStudent[]
   availableStudents: Student[]
+  upcomingSessions?: ClassSessionWithBatch[]
 }
 
 export function BatchDetailsClient({
   batch,
   enrolledStudents: initialEnrolled,
   availableStudents,
+  upcomingSessions = [],
 }: BatchDetailsClientProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -217,6 +220,84 @@ export function BatchDetailsClient({
                 Syllabus Goal / Description
               </span>
               <p className="text-xs text-gray-600 leading-relaxed">{batch.description}</p>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Upcoming Class Sessions */}
+      <Card className="border-gray-200">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-indigo-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Upcoming Class Sessions</h3>
+          </div>
+          <Link
+            href="/dashboard/calendar"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+          >
+            <span>Full Calendar →</span>
+          </Link>
+        </CardHeader>
+        <CardBody className="p-0">
+          {!upcomingSessions || upcomingSessions.length === 0 ? (
+            <div className="p-6 text-center text-xs text-gray-400">
+              No upcoming sessions scheduled for this batch in the next 30 days.
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {upcomingSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="p-3.5 sm:px-5 flex items-center justify-between hover:bg-gray-50/60 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-center justify-center h-10 w-10 rounded-xl bg-indigo-50 text-indigo-700 font-bold shrink-0">
+                      <span className="text-[10px] uppercase font-semibold leading-none text-indigo-400">
+                        {new Date(session.session_date).toLocaleDateString('en-US', { month: 'short' })}
+                      </span>
+                      <span className="text-sm leading-tight">
+                        {new Date(session.session_date).getDate()}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-900">
+                          {new Date(session.session_date).toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
+                        <SessionStatusBadge status={session.status} className="text-[10px] px-1.5 py-0" />
+                        {session.is_overridden && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                            Rescheduled
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-gray-500 flex items-center gap-2 mt-0.5">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-gray-400" />
+                          {formatTimeRange(session.start_time, session.end_time)}
+                        </span>
+                        <span>•</span>
+                        <span className="capitalize">{session.class_mode}</span>
+                        {session.location && <span>• {session.location}</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link
+                      href={`/dashboard/attendance?batchId=${batch.id}&date=${session.session_date}&sessionId=${session.id}`}
+                      className="text-xs font-semibold px-2.5 py-1 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    >
+                      Attendance
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardBody>

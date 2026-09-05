@@ -2,7 +2,7 @@
 // TutorPulse Shared Types
 // ==================================================
 
-import type { Batch, Student, Parent, Fee, Payment, Homework, HomeworkStudent, Test, TestMark, Announcement } from './database'
+import type { Batch, Student, Parent, Fee, Payment, Homework, HomeworkStudent, Test, TestMark, Announcement, ClassSession } from './database'
 export * from './database'
 
 export type UserRole = 'tutor' | 'parent'
@@ -44,6 +44,15 @@ export interface BatchSchedule {
   end_time: string | null
   class_mode: ClassMode
   location: string | null
+}
+
+// Class Session types
+export type ClassSessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+export type CalendarViewMode = 'month' | 'week' | 'day'
+
+export interface ClassSessionWithBatch extends ClassSession {
+  batch: Batch
+  student_count?: number
 }
 
 // Attendance status
@@ -246,6 +255,9 @@ export interface ParentDashboardData {
     batch_name: string
     subject: string | null
     schedule: string | null
+    next_session_date?: string | null
+    next_session_time?: string | null
+    next_session_mode?: string | null
   } | null
   recent_activity: Array<{
     id: string

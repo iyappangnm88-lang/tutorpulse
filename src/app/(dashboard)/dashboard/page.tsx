@@ -23,6 +23,8 @@ import { getReportAggregatedData } from '@/lib/reports'
 import { getStudents } from '@/lib/students'
 import { getBatches } from '@/lib/batches'
 import { isBatchScheduledOnDate, formatTimeRange } from '@/lib/scheduling'
+import { getTodaySessions, getUpcomingSessions } from '@/lib/class-sessions'
+import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/fee-utils'
 import type { Metadata } from 'next'
@@ -106,15 +108,19 @@ export default async function DashboardPage() {
   let reportData: Awaited<ReturnType<typeof getReportAggregatedData>> | null = null
   let studentsRes: Awaited<ReturnType<typeof getStudents>> = { data: [], error: null }
   let batchesRes: Awaited<ReturnType<typeof getBatches>> = { data: [], error: null }
+  let todaySessionsRes: Awaited<ReturnType<typeof getTodaySessions>> = { data: [], error: null }
+  let upcomingSessionsRes: Awaited<ReturnType<typeof getUpcomingSessions>> = { data: [], error: null }
 
   try { await syncSystemAlerts() } catch { /* ignore alerts errors on fresh accounts */ }
 
   try {
-    [notifications, reportData, studentsRes, batchesRes] = await Promise.all([
+    [notifications, reportData, studentsRes, batchesRes, todaySessionsRes, upcomingSessionsRes] = await Promise.all([
       getTutorNotifications().catch(() => []),
       getReportAggregatedData({ range: 'this_month' }).catch(() => null),
       getStudents().catch(() => ({ data: [], error: null })),
       getBatches().catch(() => ({ data: [], error: null })),
+      getTodaySessions().catch(() => ({ data: [], error: null })),
+      getUpcomingSessions(5).catch(() => ({ data: [], error: null })),
     ])
   } catch {
     // Fallback: all empty — fresh account, no data yet
@@ -123,6 +129,8 @@ export default async function DashboardPage() {
   const activeAlerts = notifications.filter((n) => !n.read)
   const studentsCount = studentsRes.data?.length || 0
   const batchesCount = batchesRes.data?.length || 0
+  const todaySessions = todaySessionsRes.data || []
+  const upcomingSessions = upcomingSessionsRes.data || []
   const todayDate = new Date()
   const todayBatches = (batchesRes.data || []).filter(
     (b) => b.status === 'active' && isBatchScheduledOnDate(b, todayDate)
@@ -163,6 +171,13 @@ export default async function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/calendar"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-semibold shadow-xs transition-all"
+            >
+              <Calendar className="h-3.5 w-3.5 text-indigo-600" />
+              <span>Calendar</span>
+            </Link>
             <Link
               href="/dashboard/reports"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white border border-white/10 backdrop-blur-xs transition-all"
@@ -264,8 +279,84 @@ export default async function DashboardPage() {
 
       {/* Main Content Grid: Batches overview & Action center */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Active Batches */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Left Column: Today's Schedule & Active Batches */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Today's Schedule Card */}
+          {todaySessions.length > 0 && (
+            <Card className="border-indigo-100 shadow-xs">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-white">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-indigo-600" />
+                  <h2 className="text-sm font-bold text-gray-900">Today&apos;s Class Sessions</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="success">
+                    {todaySessions.length} {todaySessions.length === 1 ? 'class' : 'classes'} scheduled
+                  </Badge>
+                  <Link
+                    href="/dashboard/calendar"
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-1"
+                  >
+                    Calendar →
+                  </Link>
+                </div>
+              </div>
+              <CardBody className="p-0">
+                <div className="divide-y divide-gray-100">
+                  {todaySessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-gray-50/60 transition-colors"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 font-bold text-sm shrink-0">
+                          {session.batch.name.charAt(0)}
+                        </div>
+                        <div className="min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-gray-900 text-xs truncate">
+                              {session.batch.name}
+                            </span>
+                            <SessionStatusBadge status={session.status} className="text-[10px] px-1.5 py-0" />
+                            {session.is_overridden && (
+                              <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                Overridden
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-gray-500 flex items-center gap-2">
+                            <span className="font-medium text-gray-700">
+                              {formatTimeRange(session.start_time, session.end_time)}
+                            </span>
+                            <span>•</span>
+                            <span className="capitalize">{session.class_mode}</span>
+                            <span>•</span>
+                            <span>{session.student_count ?? 0} Students</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                        <Link
+                          href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
+                          className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors border border-emerald-200"
+                        >
+                          Attendance
+                        </Link>
+                        <Link
+                          href="/dashboard/calendar"
+                          className="text-xs font-medium text-gray-500 hover:text-indigo-600 px-2 py-1"
+                        >
+                          Manage →
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
           <Card>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
@@ -366,8 +457,62 @@ export default async function DashboardPage() {
           </Card>
         </div>
 
-        {/* Action Center Alerts */}
+        {/* Right Column: Upcoming Classes & Action Center */}
         <div className="space-y-4">
+          {/* Upcoming Classes Card */}
+          <Card>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-indigo-600" />
+                <h2 className="text-sm font-bold text-gray-900">Upcoming Classes</h2>
+              </div>
+              <Link
+                href="/dashboard/calendar"
+                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+              >
+                Calendar →
+              </Link>
+            </div>
+            <CardBody className="p-0">
+              {upcomingSessions.length === 0 ? (
+                <div className="p-5 text-center text-xs text-gray-400">
+                  No upcoming classes scheduled.
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {upcomingSessions.slice(0, 4).map((session) => (
+                    <Link
+                      key={session.id}
+                      href="/dashboard/calendar"
+                      className="p-3.5 flex items-center justify-between hover:bg-gray-50/70 transition-colors group block"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-bold text-gray-900 group-hover:text-indigo-600 transition-colors truncate">
+                            {session.batch.name}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            • {new Date(session.session_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-gray-500 flex items-center gap-1.5">
+                          <span>{formatTimeRange(session.start_time, session.end_time)}</span>
+                          <span>•</span>
+                          <span className="capitalize">{session.class_mode}</span>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 ml-2">
+                        <SessionStatusBadge status={session.status} className="text-[10px] px-1.5 py-0" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
+          {/* Action Center Alerts */}
           <Card>
             <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
               <AlertCircle className="h-4 w-4 text-amber-500" aria-hidden="true" />

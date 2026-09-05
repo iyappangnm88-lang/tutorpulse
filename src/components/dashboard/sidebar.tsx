@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
+  Calendar,
   Users,
   Layers,
   HeartHandshake,
@@ -28,6 +29,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
   { label: 'Students', href: '/dashboard/students', icon: Users },
   { label: 'Batches', href: '/dashboard/batches', icon: Layers },
   { label: 'Parents', href: '/dashboard/parents', icon: HeartHandshake },

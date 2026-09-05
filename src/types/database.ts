@@ -164,12 +164,63 @@ export interface Database {
           created_at?: string
         }
       }
+      class_sessions: {
+        Row: {
+          id: string
+          tutor_id: string
+          batch_id: string
+          session_date: string
+          start_time: string
+          end_time: string
+          status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+          class_mode: 'offline' | 'online' | 'hybrid'
+          location: string | null
+          meeting_link: string | null
+          notes: string | null
+          is_overridden: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tutor_id: string
+          batch_id: string
+          session_date: string
+          start_time: string
+          end_time: string
+          status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+          class_mode?: 'offline' | 'online' | 'hybrid'
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          is_overridden?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tutor_id?: string
+          batch_id?: string
+          session_date?: string
+          start_time?: string
+          end_time?: string
+          status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+          class_mode?: 'offline' | 'online' | 'hybrid'
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          is_overridden?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
       attendance: {
         Row: {
           id: string
           tutor_id: string
           batch_id: string
           student_id: string
+          session_id: string | null
           attendance_date: string
           status: 'present' | 'absent' | 'late'
           note: string | null
@@ -181,6 +232,7 @@ export interface Database {
           tutor_id: string
           batch_id: string
           student_id: string
+          session_id?: string | null
           attendance_date: string
           status: 'present' | 'absent' | 'late'
           note?: string | null
@@ -192,6 +244,7 @@ export interface Database {
           tutor_id?: string
           batch_id?: string
           student_id?: string
+          session_id?: string | null
           attendance_date?: string
           status?: 'present' | 'absent' | 'late'
           note?: string | null
@@ -588,6 +641,10 @@ export type BatchUpdate = Database['public']['Tables']['batches']['Update']
 export type BatchStudent = Database['public']['Tables']['batch_students']['Row']
 export type BatchStudentInsert = Database['public']['Tables']['batch_students']['Insert']
 export type BatchStudentUpdate = Database['public']['Tables']['batch_students']['Update']
+
+export type ClassSession = Database['public']['Tables']['class_sessions']['Row']
+export type ClassSessionInsert = Database['public']['Tables']['class_sessions']['Insert']
+export type ClassSessionUpdate = Database['public']['Tables']['class_sessions']['Update']
 
 export type Attendance = Database['public']['Tables']['attendance']['Row']
 export type AttendanceInsert = Database['public']['Tables']['attendance']['Insert']

@@ -71,9 +71,17 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
                 <span>Enrolled Batch</span>
               </div>
               <p className="font-semibold text-sm mt-0.5">{upcoming_class.batch_name}</p>
-              {upcoming_class.schedule && (
+              {upcoming_class.next_session_date ? (
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-emerald-300 font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>
+                    Next: {new Date(upcoming_class.next_session_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {upcoming_class.next_session_time ? ` • ${upcoming_class.next_session_time}` : ''}
+                  </span>
+                </div>
+              ) : upcoming_class.schedule ? (
                 <p className="text-xs text-indigo-200 mt-0.5">{upcoming_class.schedule}</p>
-              )}
+              ) : null}
             </div>
           )}
         </div>

@@ -19,7 +19,8 @@ export interface ActionResult<T = unknown> {
 export async function saveAttendanceAction(
   batchId: string,
   attendanceDate: string,
-  entries: AttendanceEntryInput[]
+  entries: AttendanceEntryInput[],
+  sessionId?: string
 ): Promise<ActionResult<number>> {
   try {
     const supabase = await createClient()
@@ -49,6 +50,7 @@ export async function saveAttendanceAction(
       tutor_id: user.id,
       batch_id: batchId,
       student_id: entry.student_id,
+      session_id: sessionId || null,
       attendance_date: attendanceDate,
       status: entry.status,
       note: entry.note?.trim() || null,

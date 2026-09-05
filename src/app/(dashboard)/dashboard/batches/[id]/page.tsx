@@ -11,6 +11,7 @@ import { BatchTestsSection } from '@/components/tests/batch-tests-section'
 import { getBatchById, getBatchEnrolledStudents, getAvailableStudentsForBatch } from '@/lib/batches'
 import { getBatchHomework } from '@/lib/homework'
 import { getBatchTests } from '@/lib/tests'
+import { getBatchUpcomingSessions } from '@/lib/class-sessions'
 import type { Metadata } from 'next'
 
 interface BatchDetailPageProps {
@@ -29,12 +30,13 @@ export async function generateMetadata({ params }: BatchDetailPageProps): Promis
 
 export default async function BatchDetailPage({ params }: BatchDetailPageProps) {
   const { id } = await params
-  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes] = await Promise.all([
+  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes] = await Promise.all([
     getBatchById(id),
     getBatchEnrolledStudents(id),
     getAvailableStudentsForBatch(id),
     getBatchHomework(id),
     getBatchTests(id),
+    getBatchUpcomingSessions(id, 5),
   ])
 
   const batch = batchRes.data
@@ -72,6 +74,7 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
         batch={batch}
         enrolledStudents={enrolledRes.data}
         availableStudents={availableRes.data}
+        upcomingSessions={upcomingSessionsRes.data || []}
       />
 
       {/* Batch Homework Section */}

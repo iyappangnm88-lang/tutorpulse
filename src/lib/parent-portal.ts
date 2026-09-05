@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { calculatePercentage, calculateGrade } from '@/lib/test-utils'
 import { calculateCompletionRate } from '@/lib/homework-utils'
 import { roundCurrency, deriveFeeStatus } from '@/lib/fee-utils'
+import { formatTimeRange } from '@/lib/scheduling'
 import type {
   Parent,
   Student,
@@ -343,6 +344,33 @@ export async function getParentDashboard(childId?: string): Promise<ParentDashbo
   // Sort activities by date DESC
   recentActivities.sort((a, b) => b.date.localeCompare(a.date))
 
+  let nextSessionInfo: { next_session_date: string; next_session_time: string; next_session_mode: string } | null = null
+  if (child.batch) {
+    try {
+      const todayStr = new Date().toISOString().split('T')[0]
+      const { data: sessionData } = await supabase
+        .from('class_sessions')
+        .select('session_date, start_time, end_time, class_mode')
+        .eq('batch_id', child.batch.id)
+        .gte('session_date', todayStr)
+        .neq('status', 'cancelled')
+        .order('session_date', { ascending: true })
+        .order('start_time', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+
+      if (sessionData) {
+        nextSessionInfo = {
+          next_session_date: sessionData.session_date,
+          next_session_time: formatTimeRange(sessionData.start_time, sessionData.end_time),
+          next_session_mode: sessionData.class_mode,
+        }
+      }
+    } catch {
+      // graceful fallback if table not yet migrated
+    }
+  }
+
   return {
     parent,
     children: allChildren,
@@ -378,6 +406,9 @@ export async function getParentDashboard(childId?: string): Promise<ParentDashbo
           batch_name: child.batch.name,
           subject: child.batch.subject,
           schedule: child.batch.schedule,
+          next_session_date: nextSessionInfo?.next_session_date || null,
+          next_session_time: nextSessionInfo?.next_session_time || null,
+          next_session_mode: nextSessionInfo?.next_session_mode || null,
         }
       : null,
     recent_activity: recentActivities,

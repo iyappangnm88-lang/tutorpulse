@@ -135,19 +135,33 @@ export function getDurationMinutes(start: string, end: string): number {
 
 /**
  * Formats minutes into human-readable duration (e.g. '1 hr', '1 hr 30 mins', '45 mins')
+ * Accepts either minutes directly: formatDuration(60)
+ * Or start and end time strings: formatDuration('17:00', '18:00')
  */
-export function formatDuration(durationMinutes: number): string {
-  if (durationMinutes <= 0) return ''
-  const hrs = Math.floor(durationMinutes / 60)
-  const mins = durationMinutes % 60
+export function formatDuration(durationMinutes: number): string
+export function formatDuration(startTime?: string | null, endTime?: string | null): string
+export function formatDuration(
+  durationOrStart?: number | string | null,
+  endTime?: string | null
+): string {
+  let mins = 0
+  if (typeof durationOrStart === 'number') {
+    mins = durationOrStart
+  } else if (typeof durationOrStart === 'string' && endTime) {
+    mins = getDurationMinutes(durationOrStart, endTime)
+  }
 
-  if (hrs > 0 && mins > 0) {
-    return `${hrs} hr ${mins} mins`
+  if (mins <= 0) return ''
+  const hrs = Math.floor(mins / 60)
+  const remMins = mins % 60
+
+  if (hrs > 0 && remMins > 0) {
+    return `${hrs} hr ${remMins} mins`
   }
   if (hrs > 0) {
     return `${hrs} ${hrs === 1 ? 'hr' : 'hrs'}`
   }
-  return `${mins} mins`
+  return `${remMins} mins`
 }
 
 /**
