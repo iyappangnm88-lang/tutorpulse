@@ -12,6 +12,12 @@ import {
   Calendar,
   ClipboardCheck,
   UserCheck,
+  Clock,
+  MapPin,
+  Building2,
+  Video,
+  Globe2,
+  Edit2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
@@ -20,6 +26,15 @@ import { Dialog } from '@/components/ui/dialog'
 import { useToast } from '@/contexts/toast-context'
 import { AddStudentsDialog } from './add-students-dialog'
 import { removeStudentFromBatchAction } from '@/app/(dashboard)/dashboard/batches/actions'
+import {
+  WORKING_DAYS_ORDER,
+  DAY_METADATA,
+  formatTimeRange,
+  getDurationMinutes,
+  formatDuration,
+  CLASS_MODE_METADATA,
+  type WorkingDay,
+} from '@/lib/scheduling'
 import type { BatchWithCount, EnrolledStudent, Student } from '@/types'
 
 interface BatchDetailsClientProps {
@@ -94,6 +109,116 @@ export function BatchDetailsClient({
               </Button>
             </Link>
           </div>
+        </CardBody>
+      </Card>
+
+      {/* Schedule & Timing Card */}
+      <Card className="border-gray-200">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-indigo-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Batch Routine & Schedule</h3>
+          </div>
+          <Link
+            href={`/dashboard/batches/${batch.id}/edit`}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+          >
+            <Edit2 className="h-3 w-3" />
+            <span>Edit Schedule</span>
+          </Link>
+        </CardHeader>
+        <CardBody className="space-y-4 pt-1">
+          {/* Days of Week Display */}
+          <div>
+            <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-2">
+              Class Days
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {WORKING_DAYS_ORDER.map((day) => {
+                const isActive = (batch.working_days || []).includes(day)
+                const meta = DAY_METADATA[day]
+                return (
+                  <span
+                    key={day}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                      isActive
+                        ? 'bg-indigo-600 text-white shadow-2xs shadow-indigo-500/20'
+                        : 'bg-gray-100/70 text-gray-400 opacity-60'
+                    }`}
+                  >
+                    <span>{meta.short}</span>
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Timing, Mode, Location Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-100">
+            {/* Timing */}
+            <div className="space-y-1">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                Session Time
+              </span>
+              <p className="text-xs font-bold text-gray-900">
+                {formatTimeRange(batch.start_time, batch.end_time) || batch.schedule || 'Timing not set'}
+              </p>
+              {batch.start_time && batch.end_time && (
+                <span className="text-[10px] text-gray-500 font-medium">
+                  {formatDuration(getDurationMinutes(batch.start_time, batch.end_time))} per class
+                </span>
+              )}
+            </div>
+
+            {/* Mode */}
+            <div className="space-y-1">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                Class Mode
+              </span>
+              <div className="flex items-center gap-1.5">
+                {batch.class_mode === 'online' ? (
+                  <Video className="h-3.5 w-3.5 text-blue-600" />
+                ) : batch.class_mode === 'hybrid' ? (
+                  <Globe2 className="h-3.5 w-3.5 text-purple-600" />
+                ) : (
+                  <Building2 className="h-3.5 w-3.5 text-gray-700" />
+                )}
+                <span className="text-xs font-bold text-gray-900 capitalize">
+                  {batch.class_mode || 'Offline'}
+                </span>
+              </div>
+              <p className="text-[10px] text-gray-500">
+                {CLASS_MODE_METADATA[batch.class_mode || 'offline']?.description}
+              </p>
+            </div>
+
+            {/* Location */}
+            <div className="space-y-1">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                Class Location
+              </span>
+              {batch.class_mode === 'online' ? (
+                <p className="text-xs text-gray-500 italic">Virtual Classroom</p>
+              ) : batch.location ? (
+                <div className="flex items-start gap-1 text-xs text-gray-900 font-medium">
+                  <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
+                  <span>{batch.location}</span>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 italic">No physical location specified</p>
+              )}
+            </div>
+          </div>
+
+          {/* Description if present */}
+          {batch.description && (
+            <div className="pt-3 border-t border-gray-100">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+                Syllabus Goal / Description
+              </span>
+              <p className="text-xs text-gray-600 leading-relaxed">{batch.description}</p>
+            </div>
+          )}
         </CardBody>
       </Card>
 

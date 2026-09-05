@@ -2,9 +2,10 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Users, Clock, Eye, Edit2, Archive, ClipboardCheck } from 'lucide-react'
+import { Users, Eye, Edit2, Archive, ClipboardCheck } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { BatchScheduleBadge } from './batch-schedule-badge'
 import type { BatchWithCount } from '@/types'
 
 interface BatchCardProps {
@@ -38,12 +39,9 @@ export function BatchCard({ batch, onArchive }: BatchCardProps) {
           </Badge>
         </div>
 
-        {batch.schedule && (
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <Clock className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-            <span className="truncate">{batch.schedule}</span>
-          </div>
-        )}
+        <div className="pt-0.5">
+          <BatchScheduleBadge batch={batch} />
+        </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs text-gray-600">
           <div className="flex items-center gap-1.5 font-medium">

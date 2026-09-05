@@ -26,6 +26,26 @@ export type StudentStatus = 'active' | 'inactive' | 'archived'
 export type BatchStatus = 'active' | 'archived'
 export type Gender = 'male' | 'female' | 'other'
 
+// Batch Scheduling types
+export type WorkingDay =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday'
+
+export type ClassMode = 'offline' | 'online' | 'hybrid'
+
+export interface BatchSchedule {
+  working_days: WorkingDay[]
+  start_time: string | null
+  end_time: string | null
+  class_mode: ClassMode
+  location: string | null
+}
+
 // Attendance status
 export type AttendanceStatus = 'present' | 'absent' | 'late'
 

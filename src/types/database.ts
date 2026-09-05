@@ -93,6 +93,11 @@ export interface Database {
           subject: string | null
           class_name: string | null
           schedule: string | null
+          working_days: string[] | null
+          start_time: string | null
+          end_time: string | null
+          class_mode: 'offline' | 'online' | 'hybrid'
+          location: string | null
           description: string | null
           status: 'active' | 'archived'
           created_at: string
@@ -105,6 +110,11 @@ export interface Database {
           subject?: string | null
           class_name?: string | null
           schedule?: string | null
+          working_days?: string[] | null
+          start_time?: string | null
+          end_time?: string | null
+          class_mode?: 'offline' | 'online' | 'hybrid'
+          location?: string | null
           description?: string | null
           status?: 'active' | 'archived'
           created_at?: string
@@ -117,6 +127,11 @@ export interface Database {
           subject?: string | null
           class_name?: string | null
           schedule?: string | null
+          working_days?: string[] | null
+          start_time?: string | null
+          end_time?: string | null
+          class_mode?: 'offline' | 'online' | 'hybrid'
+          location?: string | null
           description?: string | null
           status?: 'active' | 'archived'
           created_at?: string

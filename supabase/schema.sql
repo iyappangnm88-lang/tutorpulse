@@ -140,8 +140,20 @@ CREATE TABLE IF NOT EXISTS public.batches (
     subject TEXT,
     class_name TEXT,
     schedule TEXT,
+    working_days TEXT[] DEFAULT '{}',
+    start_time TIME,
+    end_time TIME,
+    class_mode TEXT DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online', 'hybrid')),
+    location TEXT,
     description TEXT,
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived')),
+    CONSTRAINT check_valid_working_days CHECK (
+        working_days <@ ARRAY['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']::TEXT[]
+    ),
+    CONSTRAINT check_schedule_times CHECK (
+        (start_time IS NULL AND end_time IS NULL) OR
+        (start_time IS NOT NULL AND end_time IS NOT NULL AND end_time > start_time)
+    ),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

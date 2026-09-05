@@ -2,8 +2,9 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Eye, Edit2, Archive, Users, Clock, ClipboardCheck } from 'lucide-react'
+import { Eye, Edit2, Archive, Users, ClipboardCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { BatchScheduleBadge } from './batch-schedule-badge'
 import type { BatchWithCount } from '@/types'
 
 interface BatchTableProps {
@@ -19,7 +20,7 @@ export function BatchTable({ batches, onArchive }: BatchTableProps) {
           <tr>
             <th scope="col" className="px-5 py-3.5">Batch Name & Subject</th>
             <th scope="col" className="px-4 py-3.5">Class / Standard</th>
-            <th scope="col" className="px-4 py-3.5">Schedule</th>
+            <th scope="col" className="px-4 py-3.5">Schedule & Mode</th>
             <th scope="col" className="px-4 py-3.5 text-center">Students</th>
             <th scope="col" className="px-4 py-3.5">Status</th>
             <th scope="col" className="px-5 py-3.5 text-right">Actions</th>
@@ -43,14 +44,7 @@ export function BatchTable({ batches, onArchive }: BatchTableProps) {
                 {batch.class_name || '—'}
               </td>
               <td className="px-4 py-4 text-gray-600 text-xs">
-                {batch.schedule ? (
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-gray-400" />
-                    <span>{batch.schedule}</span>
-                  </div>
-                ) : (
-                  '—'
-                )}
+                <BatchScheduleBadge batch={batch} showLocation={false} />
               </td>
               <td className="px-4 py-4 text-center">
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">

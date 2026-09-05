@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { validateBatchSchedule } from '@/lib/scheduling'
 import type { Batch, BatchInsert, BatchUpdate } from '@/types'
 
 export interface ActionResult<T = unknown> {
@@ -25,12 +26,31 @@ export async function createBatchAction(
       return { success: false, error: 'Batch name is required.' }
     }
 
+    // Server-side validation of recurring batch schedule
+    const scheduleValidation = validateBatchSchedule({
+      working_days: input.working_days,
+      start_time: input.start_time,
+      end_time: input.end_time,
+      class_mode: input.class_mode,
+      location: input.location,
+    })
+
+    if (!scheduleValidation.isValid) {
+      const firstError = Object.values(scheduleValidation.errors)[0]
+      return { success: false, error: firstError || 'Invalid schedule.' }
+    }
+
     const newBatch: BatchInsert = {
       tutor_id: user.id,
       name: input.name.trim(),
       subject: input.subject?.trim() || null,
       class_name: input.class_name?.trim() || null,
-      schedule: input.schedule?.trim() || null,
+      working_days: scheduleValidation.normalizedData.working_days,
+      start_time: scheduleValidation.normalizedData.start_time,
+      end_time: scheduleValidation.normalizedData.end_time,
+      class_mode: scheduleValidation.normalizedData.class_mode,
+      location: scheduleValidation.normalizedData.location,
+      schedule: scheduleValidation.normalizedData.schedule,
       description: input.description?.trim() || null,
       status: input.status || 'active',
     }
@@ -46,6 +66,7 @@ export async function createBatchAction(
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/dashboard')
     revalidatePath('/dashboard/batches')
     revalidatePath('/dashboard/attendance')
     return { success: true, data: data as Batch }
@@ -75,9 +96,37 @@ export async function updateBatchAction(
       name: input.name?.trim(),
       subject: input.subject?.trim() || null,
       class_name: input.class_name?.trim() || null,
-      schedule: input.schedule?.trim() || null,
       description: input.description?.trim() || null,
       status: input.status,
+    }
+
+    // If schedule fields are provided, validate and normalize them
+    if (
+      input.working_days !== undefined ||
+      input.start_time !== undefined ||
+      input.end_time !== undefined ||
+      input.class_mode !== undefined ||
+      input.location !== undefined
+    ) {
+      const scheduleValidation = validateBatchSchedule({
+        working_days: input.working_days,
+        start_time: input.start_time,
+        end_time: input.end_time,
+        class_mode: input.class_mode,
+        location: input.location,
+      })
+
+      if (!scheduleValidation.isValid) {
+        const firstError = Object.values(scheduleValidation.errors)[0]
+        return { success: false, error: firstError || 'Invalid schedule.' }
+      }
+
+      updateData.working_days = scheduleValidation.normalizedData.working_days
+      updateData.start_time = scheduleValidation.normalizedData.start_time
+      updateData.end_time = scheduleValidation.normalizedData.end_time
+      updateData.class_mode = scheduleValidation.normalizedData.class_mode
+      updateData.location = scheduleValidation.normalizedData.location
+      updateData.schedule = scheduleValidation.normalizedData.schedule
     }
 
     const { data, error } = await supabase
@@ -93,6 +142,7 @@ export async function updateBatchAction(
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/dashboard')
     revalidatePath('/dashboard/batches')
     revalidatePath(`/dashboard/batches/${id}`)
     revalidatePath('/dashboard/attendance')

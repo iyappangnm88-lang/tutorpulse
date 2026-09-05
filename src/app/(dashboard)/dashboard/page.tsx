@@ -22,6 +22,7 @@ import { syncSystemAlerts, getTutorNotifications } from '@/lib/communication'
 import { getReportAggregatedData } from '@/lib/reports'
 import { getStudents } from '@/lib/students'
 import { getBatches } from '@/lib/batches'
+import { isBatchScheduledOnDate, formatTimeRange } from '@/lib/scheduling'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/fee-utils'
 import type { Metadata } from 'next'
@@ -122,6 +123,10 @@ export default async function DashboardPage() {
   const activeAlerts = notifications.filter((n) => !n.read)
   const studentsCount = studentsRes.data?.length || 0
   const batchesCount = batchesRes.data?.length || 0
+  const todayDate = new Date()
+  const todayBatches = (batchesRes.data || []).filter(
+    (b) => b.status === 'active' && isBatchScheduledOnDate(b, todayDate)
+  )
 
   const tutorName = user?.user_metadata?.name || 'Tutor'
 
@@ -265,9 +270,15 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
                 <h2 className="text-sm font-bold text-gray-900">Active Batches</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Your current tutoring cohorts</p>
+                <p className="text-xs text-gray-400 mt-0.5">Your current tutoring cohorts & schedule</p>
               </div>
-              <Badge variant="default">{batchesCount} active</Badge>
+              {todayBatches.length > 0 ? (
+                <Badge variant="success">
+                  {todayBatches.length} class{todayBatches.length > 1 ? 'es' : ''} today
+                </Badge>
+              ) : (
+                <Badge variant="default">{batchesCount} active</Badge>
+              )}
             </div>
             <CardBody className="p-0">
               {batchesCount === 0 ? (
@@ -286,30 +297,69 @@ export default async function DashboardPage() {
                 />
               ) : (
                 <div className="divide-y divide-gray-100">
-                  {batchesRes.data?.slice(0, 5).map((batch) => (
-                    <Link
-                      key={batch.id}
-                      href={`/dashboard/batches/${batch.id}`}
-                      className="p-4 flex items-center justify-between hover:bg-gray-50/80 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 font-bold text-xs">
-                          {batch.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 text-xs group-hover:text-indigo-600 transition-colors">
-                            {batch.name}
-                          </p>
-                          <p className="text-[11px] text-gray-400">
-                            {batch.subject || 'General'} {batch.class_name ? `• Class ${batch.class_name}` : ''}
-                          </p>
+                  {batchesRes.data?.slice(0, 5).map((batch) => {
+                    const isScheduledToday = isBatchScheduledOnDate(batch, todayDate)
+                    return (
+                      <div
+                        key={batch.id}
+                        className="p-4 flex items-center justify-between hover:bg-gray-50/80 transition-colors group"
+                      >
+                        <Link
+                          href={`/dashboard/batches/${batch.id}`}
+                          className="flex items-center gap-3 min-w-0 flex-1"
+                        >
+                          <div
+                            className={`flex h-9 w-9 items-center justify-center rounded-xl font-bold text-xs shrink-0 ${
+                              isScheduledToday
+                                ? 'bg-indigo-600 text-white shadow-2xs shadow-indigo-500/30'
+                                : 'bg-indigo-50 text-indigo-600'
+                            }`}
+                          >
+                            {batch.name.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-gray-900 text-xs group-hover:text-indigo-600 transition-colors truncate">
+                                {batch.name}
+                              </p>
+                              {isScheduledToday && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  Class Today
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                              {batch.subject || 'General'}
+                              {batch.class_name ? ` • Class ${batch.class_name}` : ''}
+                              {batch.start_time && batch.end_time
+                                ? ` • ${formatTimeRange(batch.start_time, batch.end_time)}`
+                                : batch.schedule
+                                ? ` • ${batch.schedule}`
+                                : ''}
+                            </p>
+                          </div>
+                        </Link>
+
+                        <div className="flex items-center gap-2 shrink-0 ml-3">
+                          {isScheduledToday && (
+                            <Link
+                              href={`/dashboard/attendance?batch=${batch.id}`}
+                              className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors border border-emerald-200"
+                            >
+                              Attendance
+                            </Link>
+                          )}
+                          <Link
+                            href={`/dashboard/batches/${batch.id}`}
+                            className="text-xs font-semibold text-gray-400 group-hover:text-indigo-600 transition-colors"
+                          >
+                            View →
+                          </Link>
                         </div>
                       </div>
-                      <span className="text-xs font-semibold text-gray-400 group-hover:text-indigo-600 transition-colors">
-                        View Batch →
-                      </span>
-                    </Link>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </CardBody>
