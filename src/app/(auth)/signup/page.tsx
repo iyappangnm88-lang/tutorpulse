@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { useToast } from '@/contexts/toast-context'
 import { createClient } from '@/lib/supabase/client'
+import { getOAuthRedirectUrl } from '@/lib/auth-url'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -68,7 +69,7 @@ export default function SignupPage() {
         password,
         options: {
           data: { name },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: getOAuthRedirectUrl(),
         },
       })
 

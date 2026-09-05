@@ -7,29 +7,42 @@
  */
 
 export function getAppBaseUrl(request?: Request): string {
-  // 1. Client-side browser execution (always honors active domain: localhost or production)
+  // 1. Client-side browser execution (always honors active browser domain)
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin
   }
 
-  // 2. Route Handler / Server execution with request headers
+  // 2. Route Handler / Server execution with request headers (e.g. Vercel proxy headers)
   if (request) {
     const forwardedHost = request.headers.get('x-forwarded-host')
     const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
     if (forwardedHost) {
-      return `${forwardedProto}://${forwardedHost}`
+      const hostUrl = `${forwardedProto}://${forwardedHost}`
+      if (process.env.NODE_ENV === 'production') {
+        if (!forwardedHost.includes('localhost') && !forwardedHost.includes('127.0.0.1')) {
+          return hostUrl
+        }
+      } else {
+        return hostUrl
+      }
     }
     try {
       const url = new URL(request.url)
       if (url.origin && !url.origin.includes('0.0.0.0')) {
-        return url.origin
+        if (process.env.NODE_ENV === 'production') {
+          if (!url.origin.includes('localhost') && !url.origin.includes('127.0.0.1')) {
+            return url.origin
+          }
+        } else {
+          return url.origin
+        }
       }
     } catch {
       // fallback to environment checks
     }
   }
 
-  // 3. In development mode without a specific request, default to localhost:3000
+  // 3. In development mode without a request, default to localhost:3000
   if (process.env.NODE_ENV === 'development') {
     const devUrl = process.env.NEXT_PUBLIC_DEV_URL || 'http://localhost:3000'
     return devUrl.replace(/\/+$/, '')
@@ -38,10 +51,16 @@ export function getAppBaseUrl(request?: Request): string {
   // 4. Explicitly configured production app or site URL
   const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL
   if (envUrl) {
-    return envUrl.replace(/\/+$/, '')
+    const trimmed = envUrl.replace(/\/+$/, '')
+    // In production, guard against accidental localhost env values
+    if (process.env.NODE_ENV === 'production' && (trimmed.includes('localhost') || trimmed.includes('127.0.0.1'))) {
+      // ignore misconfigured localhost in production
+    } else {
+      return trimmed
+    }
   }
 
-  // 5. Vercel deployment URL
+  // 5. Vercel system deployment URL
   if (process.env.NEXT_PUBLIC_VERCEL_URL) {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL.replace(/\/+$/, '')}`
   }
