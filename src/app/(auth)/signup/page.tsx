@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { useToast } from '@/contexts/toast-context'
 import { createClient } from '@/lib/supabase/client'
 
@@ -24,6 +25,20 @@ export default function SignupPage() {
     password?: string
     general?: string
   }>({})
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const err = params.get('error')
+      if (err) {
+        if (err === 'auth_callback_error') {
+          setErrors({ general: 'Authentication was cancelled or could not be verified. Please try again.' })
+        } else {
+          setErrors({ general: decodeURIComponent(err) })
+        }
+      }
+    }
+  }, [])
 
   function validate() {
     const e: typeof errors = {}
@@ -115,6 +130,25 @@ export default function SignupPage() {
           {errors.general}
         </div>
       )}
+
+      {/* Google Sign Up / In */}
+      <GoogleSignInButton
+        onError={(msg) => setErrors({ general: msg })}
+        disabled={loading}
+        text="Sign up with Google"
+      />
+
+      {/* Divider */}
+      <div className="relative my-5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-3 text-gray-400 font-medium tracking-wider">
+            Or sign up with email
+          </span>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <div>
