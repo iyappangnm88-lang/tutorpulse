@@ -18,6 +18,7 @@ import {
   Activity,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SidebarInstallButton } from '@/components/pwa/install-prompt'
 
 interface NavItem {
   label: string
@@ -99,7 +100,8 @@ export function Sidebar() {
       </nav>
 
       {/* Clean Footer Status */}
-      <div className="border-t border-gray-100 p-4">
+      <div className="border-t border-gray-100 p-4 space-y-2">
+        <SidebarInstallButton />
         <div className="rounded-xl bg-gray-50/80 border border-gray-100 p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
