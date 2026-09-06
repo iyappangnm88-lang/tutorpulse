@@ -176,6 +176,10 @@ export interface Database {
           class_mode: 'offline' | 'online' | 'hybrid'
           location: string | null
           meeting_link: string | null
+          meeting_provider: string | null
+          meeting_room_id: string | null
+          started_at: string | null
+          ended_at: string | null
           notes: string | null
           is_overridden: boolean
           created_at: string
@@ -192,6 +196,10 @@ export interface Database {
           class_mode?: 'offline' | 'online' | 'hybrid'
           location?: string | null
           meeting_link?: string | null
+          meeting_provider?: string | null
+          meeting_room_id?: string | null
+          started_at?: string | null
+          ended_at?: string | null
           notes?: string | null
           is_overridden?: boolean
           created_at?: string
@@ -208,6 +216,10 @@ export interface Database {
           class_mode?: 'offline' | 'online' | 'hybrid'
           location?: string | null
           meeting_link?: string | null
+          meeting_provider?: string | null
+          meeting_room_id?: string | null
+          started_at?: string | null
+          ended_at?: string | null
           notes?: string | null
           is_overridden?: boolean
           created_at?: string

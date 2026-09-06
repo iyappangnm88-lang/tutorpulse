@@ -274,6 +274,10 @@ CREATE TABLE IF NOT EXISTS public.class_sessions (
     class_mode TEXT NOT NULL DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online', 'hybrid')),
     location TEXT,
     meeting_link TEXT,
+    meeting_provider TEXT DEFAULT 'daily',
+    meeting_room_id TEXT,
+    started_at TIMESTAMPTZ,
+    ended_at TIMESTAMPTZ,
     notes TEXT,
     is_overridden BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -287,6 +291,7 @@ CREATE INDEX IF NOT EXISTS idx_class_sessions_batch_date ON public.class_session
 CREATE INDEX IF NOT EXISTS idx_class_sessions_date ON public.class_sessions(session_date);
 CREATE INDEX IF NOT EXISTS idx_class_sessions_status ON public.class_sessions(status);
 CREATE INDEX IF NOT EXISTS idx_class_sessions_tutor_date ON public.class_sessions(tutor_id, session_date);
+CREATE INDEX IF NOT EXISTS idx_class_sessions_room_id ON public.class_sessions(meeting_room_id);
 
 DROP TRIGGER IF EXISTS set_class_sessions_updated_at ON public.class_sessions;
 CREATE TRIGGER set_class_sessions_updated_at

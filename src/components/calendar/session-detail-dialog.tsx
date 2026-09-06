@@ -167,11 +167,26 @@ export function SessionDetailDialog({
               )}
             </div>
 
-            {session.meeting_link && (
+            {(session.class_mode === 'online' || session.class_mode === 'hybrid') && (
+              <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-xs">
+                <span className="text-gray-700 flex items-center gap-1.5 font-medium">
+                  <Video className="h-3.5 w-3.5 text-indigo-600" />
+                  Online Classroom:
+                </span>
+                <Link
+                  href={`/dashboard/classroom/${session.id}`}
+                  className="font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors"
+                >
+                  Enter Classroom →
+                </Link>
+              </div>
+            )}
+
+            {session.meeting_link && !['online', 'hybrid'].includes(session.class_mode) && (
               <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-xs">
                 <span className="text-gray-500 flex items-center gap-1.5">
                   <Video className="h-3.5 w-3.5 text-indigo-600" />
-                  Online Class Link:
+                  Custom Meeting Link:
                 </span>
                 <a
                   href={session.meeting_link}
@@ -179,7 +194,7 @@ export function SessionDetailDialog({
                   rel="noopener noreferrer"
                   className="font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                 >
-                  Join Meeting <ExternalLink className="h-3 w-3" />
+                  Join Link <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
             )}

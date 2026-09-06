@@ -255,9 +255,11 @@ export interface ParentDashboardData {
     batch_name: string
     subject: string | null
     schedule: string | null
+    next_session_id?: string | null
     next_session_date?: string | null
     next_session_time?: string | null
     next_session_mode?: string | null
+    next_session_status?: string | null
   } | null
   recent_activity: Array<{
     id: string

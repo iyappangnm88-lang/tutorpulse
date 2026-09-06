@@ -344,13 +344,20 @@ export async function getParentDashboard(childId?: string): Promise<ParentDashbo
   // Sort activities by date DESC
   recentActivities.sort((a, b) => b.date.localeCompare(a.date))
 
-  let nextSessionInfo: { next_session_date: string; next_session_time: string; next_session_mode: string } | null = null
+  let nextSessionInfo: {
+    next_session_id: string
+    next_session_date: string
+    next_session_time: string
+    next_session_mode: string
+    next_session_status: string
+  } | null = null
+
   if (child.batch) {
     try {
       const todayStr = new Date().toISOString().split('T')[0]
       const { data: sessionData } = await supabase
         .from('class_sessions')
-        .select('session_date, start_time, end_time, class_mode')
+        .select('id, session_date, start_time, end_time, class_mode, status')
         .eq('batch_id', child.batch.id)
         .gte('session_date', todayStr)
         .neq('status', 'cancelled')
@@ -361,9 +368,11 @@ export async function getParentDashboard(childId?: string): Promise<ParentDashbo
 
       if (sessionData) {
         nextSessionInfo = {
+          next_session_id: sessionData.id,
           next_session_date: sessionData.session_date,
           next_session_time: formatTimeRange(sessionData.start_time, sessionData.end_time),
           next_session_mode: sessionData.class_mode,
+          next_session_status: sessionData.status,
         }
       }
     } catch {
@@ -406,9 +415,11 @@ export async function getParentDashboard(childId?: string): Promise<ParentDashbo
           batch_name: child.batch.name,
           subject: child.batch.subject,
           schedule: child.batch.schedule,
+          next_session_id: nextSessionInfo?.next_session_id || null,
           next_session_date: nextSessionInfo?.next_session_date || null,
           next_session_time: nextSessionInfo?.next_session_time || null,
           next_session_mode: nextSessionInfo?.next_session_mode || null,
+          next_session_status: nextSessionInfo?.next_session_status || null,
         }
       : null,
     recent_activity: recentActivities,

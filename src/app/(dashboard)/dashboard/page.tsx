@@ -13,6 +13,7 @@ import {
   Receipt,
   GraduationCap,
   Sparkles,
+  Video,
 } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -347,7 +348,26 @@ export default async function DashboardPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
+                        {(session.class_mode === 'online' || session.class_mode === 'hybrid') && (
+                          session.status === 'in_progress' ? (
+                            <Link
+                              href={`/dashboard/classroom/${session.id}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-xl shadow-xs transition-colors"
+                            >
+                              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                              Live • Enter Class
+                            </Link>
+                          ) : session.status === 'scheduled' ? (
+                            <Link
+                              href={`/dashboard/classroom/${session.id}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 transition-colors"
+                            >
+                              <Video className="h-3.5 w-3.5 text-indigo-600" />
+                              Enter Classroom
+                            </Link>
+                          ) : null
+                        )}
                         <Link
                           href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
                           className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors border border-emerald-200"

@@ -11,6 +11,7 @@ import {
   Sparkles,
   ShieldCheck,
   Eye,
+  Video,
 } from 'lucide-react'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -67,7 +68,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
           </div>
 
           {upcoming_class && (
-            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-xs border border-white/10 max-w-xs">
+            <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs border border-white/10 max-w-xs">
               <div className="flex items-center gap-1.5 text-xs text-indigo-200 font-medium">
                 <Clock className="h-3.5 w-3.5" />
                 <span>Enrolled Batch</span>
@@ -84,6 +85,18 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
               ) : upcoming_class.schedule ? (
                 <p className="text-xs text-indigo-200 mt-0.5">{upcoming_class.schedule}</p>
               ) : null}
+
+              {upcoming_class.next_session_id && ['online', 'hybrid'].includes(upcoming_class.next_session_mode || '') && (
+                <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between">
+                  <Link
+                    href={`/parent/classroom/${upcoming_class.next_session_id}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-indigo-900 hover:bg-indigo-50 shadow-xs transition-colors"
+                  >
+                    <Video className="h-3.5 w-3.5 text-indigo-600" />
+                    <span>{upcoming_class.next_session_status === 'in_progress' ? 'Join Live Class' : 'Enter Classroom'}</span>
+                  </Link>
+                </div>
+              )}
             </div>
           )}
         </div>
