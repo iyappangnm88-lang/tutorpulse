@@ -18,6 +18,7 @@ import {
   Award,
   Bell,
   User,
+  Video,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -34,6 +35,7 @@ export interface NavItem {
 export const TUTOR_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
+  { label: 'Classroom', href: '/dashboard/classroom', icon: Video },
   { label: 'Students', href: '/dashboard/students', icon: Users },
   { label: 'Batches', href: '/dashboard/batches', icon: Layers },
   { label: 'Parents', href: '/dashboard/parents', icon: HeartHandshake },
