@@ -65,7 +65,7 @@ export function BatchScheduleBadge({
               : 'bg-gray-100 text-gray-700 border-gray-200/80'
           )}
         >
-          <ModeIcon className="h-3 w-3" />
+          <ModeIcon className="h-3 w-3" aria-hidden="true" />
           <span>{modeMeta.label}</span>
         </span>
       )}

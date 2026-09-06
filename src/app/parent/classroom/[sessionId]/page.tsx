@@ -60,6 +60,7 @@ export default async function ParentClassroomPage({ params }: ParentClassroomPag
       session={authResult.session}
       initialRole="participant"
       currentUserName={authResult.user.name}
+      currentUserId={authResult.user.id}
       portalType="parent"
     />
   )

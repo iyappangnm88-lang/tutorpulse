@@ -96,7 +96,7 @@ export function ClassModeSelector({
                     : 'bg-gray-100 text-gray-500 group-hover:text-gray-700'
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
               </div>
 
               <div>
@@ -151,9 +151,9 @@ export function ClassModeSelector({
 
       {mode === 'online' && (
         <div className="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 text-xs text-indigo-800 flex items-start gap-2 animate-fade-in">
-          <Video className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+          <Video className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" aria-hidden="true" />
           <p>
-            Online classes do not require a physical location. In a future Phase 2 update, your online classroom video link will be generated automatically for this batch.
+            Online classes do not require a physical location. An integrated browser-native video classroom is automatically generated for every session in this batch.
           </p>
         </div>
       )}

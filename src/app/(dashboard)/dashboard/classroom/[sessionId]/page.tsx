@@ -60,6 +60,7 @@ export default async function TutorClassroomPage({ params }: ClassroomPageProps)
       session={authResult.session}
       initialRole="host"
       currentUserName={authResult.user.name}
+      currentUserId={authResult.user.id}
       portalType="tutor"
     />
   )

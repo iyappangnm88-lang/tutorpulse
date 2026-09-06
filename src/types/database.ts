@@ -226,6 +226,38 @@ export interface Database {
           updated_at?: string
         }
       }
+      classroom_participants: {
+        Row: {
+          id: string
+          session_id: string
+          user_id: string
+          user_name: string
+          role: 'host' | 'participant' | 'spectator'
+          joined_at: string
+          left_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          user_id: string
+          user_name: string
+          role?: 'host' | 'participant' | 'spectator'
+          joined_at?: string
+          left_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          user_id?: string
+          user_name?: string
+          role?: 'host' | 'participant' | 'spectator'
+          joined_at?: string
+          left_at?: string | null
+          created_at?: string
+        }
+      }
       attendance: {
         Row: {
           id: string
@@ -657,6 +689,10 @@ export type BatchStudentUpdate = Database['public']['Tables']['batch_students'][
 export type ClassSession = Database['public']['Tables']['class_sessions']['Row']
 export type ClassSessionInsert = Database['public']['Tables']['class_sessions']['Insert']
 export type ClassSessionUpdate = Database['public']['Tables']['class_sessions']['Update']
+
+export type ClassroomParticipantRow = Database['public']['Tables']['classroom_participants']['Row']
+export type ClassroomParticipantInsert = Database['public']['Tables']['classroom_participants']['Insert']
+export type ClassroomParticipantUpdate = Database['public']['Tables']['classroom_participants']['Update']
 
 export type Attendance = Database['public']['Tables']['attendance']['Row']
 export type AttendanceInsert = Database['public']['Tables']['attendance']['Insert']

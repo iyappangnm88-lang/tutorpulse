@@ -11,7 +11,6 @@ import {
   Sparkles,
   Layers,
   ArrowRight,
-  ExternalLink,
   CheckCircle2,
   Plus,
 } from 'lucide-react'
@@ -20,7 +19,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getTodaySessions, getUpcomingSessions } from '@/lib/class-sessions'
 import { getBatches } from '@/lib/batches'
-import { classroomService } from '@/lib/classroom/service'
 import { formatTimeRange } from '@/lib/scheduling'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import type { Metadata } from 'next'
@@ -32,8 +30,6 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function ClassroomHubPage() {
-  const isConfigured = classroomService.isConfigured()
-
   const [todayRes, upcomingRes, batchesRes] = await Promise.all([
     getTodaySessions().catch(() => ({ data: [], error: null })),
     getUpcomingSessions(10).catch(() => ({ data: [], error: null })),
@@ -79,54 +75,12 @@ export default async function ClassroomHubPage() {
 
         {/* Video Service Status Badge */}
         <div className="shrink-0">
-          {isConfigured ? (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Video Service Active (Daily.co)</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-              <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
-              <span>Setup Required (Add DAILY_API_KEY)</span>
-            </div>
-          )}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>WebRTC Classroom Active (Free & Self-Hosted)</span>
+          </div>
         </div>
       </div>
-
-      {/* 2. Provider Missing Warning Banner */}
-      {!isConfigured && (
-        <div className="rounded-2xl border border-amber-200/80 bg-amber-50/60 p-4 sm:p-5 text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-bold text-sm text-amber-950">
-                Daily.co Video Credentials Needed
-              </p>
-              <p className="text-xs text-amber-800 leading-relaxed">
-                To launch live video classrooms, add your free <code className="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-bold">DAILY_API_KEY</code> from{' '}
-                <a
-                  href="https://dashboard.daily.co/signup"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold underline hover:text-amber-950"
-                >
-                  dashboard.daily.co
-                </a>{' '}
-                to your environment variables.
-              </p>
-            </div>
-          </div>
-          <a
-            href="https://dashboard.daily.co/signup"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition-colors"
-          >
-            <span>Get Free API Key</span>
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        </div>
-      )}
 
       {/* 3. Active Live Class Banner (if any session is currently live) */}
       {activeLiveSession && (

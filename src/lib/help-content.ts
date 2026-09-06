@@ -232,7 +232,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
       },
       {
         term: 'Online Mode',
-        explanation: 'Classes occur virtually via video link (Google Meet, Zoom, etc.). You can save the meeting link in the batch or session.',
+        explanation: 'Classes occur virtually via TutorPulse’s integrated browser-native WebRTC classroom with video, microphone, screen sharing, and live chat.',
       },
       {
         term: 'Hybrid Mode',

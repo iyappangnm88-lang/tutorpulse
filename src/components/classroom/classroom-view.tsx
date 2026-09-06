@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -11,104 +11,478 @@ import {
   MicOff,
   Share2,
   Users,
+  MessageSquare,
   Clock,
   CheckCircle2,
   AlertCircle,
   Play,
   LogOut,
-  RefreshCw,
-  Sparkles,
+  Send,
+  X,
   ClipboardCheck,
+  Shield,
+  Radio,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardBody } from '@/components/ui/card'
 import { useToast } from '@/contexts/toast-context'
 import { formatTimeRange } from '@/lib/scheduling'
-import { UnconfiguredGuide } from './unconfigured-guide'
 import { EndClassDialog } from './end-class-dialog'
 import {
   startClassSessionAction,
   endClassSessionAction,
+  recordClassroomJoinAction,
+  recordClassroomLeaveAction,
   getClassroomTokenAction,
 } from '@/app/(dashboard)/dashboard/classroom/actions'
+import { ClassroomSignalingChannel } from '@/lib/classroom/signaling'
+import { WebRtcPeerPool } from '@/lib/classroom/webrtc'
+import {
+  requestMediaPermissions,
+  requestScreenShare,
+  stopAllTracks,
+} from '@/lib/classroom/permissions'
 import type { ClassSessionWithBatch, ClassSessionStatus } from '@/types'
-import type { ClassroomRole } from '@/lib/classroom/types'
+import type {
+  ClassroomRole,
+  ClassroomParticipant,
+  ClassroomChatMessage,
+  ClassroomConnectionState,
+} from '@/lib/classroom/types'
 
 interface ClassroomViewProps {
   session: ClassSessionWithBatch
   initialRole: ClassroomRole
   currentUserName: string
+  currentUserId?: string
   portalType: 'tutor' | 'parent'
+}
+
+/**
+ * Individual participant video tile with stream attachment, camera-off avatar fallback,
+ * role badge, audio indicator, and live connection status.
+ */
+function ParticipantTile({
+  participantId,
+  name,
+  role,
+  isLocal,
+  stream,
+  isAudioMuted,
+  isVideoMuted,
+  isScreenSharing,
+  connectionState,
+}: {
+  participantId: string
+  name: string
+  role: ClassroomRole
+  isLocal?: boolean
+  stream?: MediaStream | null
+  isAudioMuted?: boolean
+  isVideoMuted?: boolean
+  isScreenSharing?: boolean
+  connectionState?: string
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (stream && stream.getVideoTracks().length > 0) {
+        videoRef.current.srcObject = stream
+      } else {
+        videoRef.current.srcObject = null
+      }
+    }
+  }, [stream])
+
+  const initials = name
+    .split(' ')
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'P'
+
+  const hasActiveVideo = Boolean(stream && stream.getVideoTracks().length > 0 && !isVideoMuted)
+
+  return (
+    <div className="relative w-full h-full min-h-[180px] sm:min-h-[220px] rounded-2xl overflow-hidden bg-gray-900 border border-gray-800/90 flex items-center justify-center shadow-lg group">
+      {/* 1. Video Element */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={isLocal} // Always mute local video element to avoid self-echo
+        className={`w-full h-full object-cover transition-opacity duration-300 ${
+          hasActiveVideo ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        } ${isLocal && !isScreenSharing ? '-scale-x-100' : ''}`}
+      />
+
+      {/* 2. Fallback Avatar (when video is muted or absent) */}
+      {!hasActiveVideo && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-gray-950 to-gray-900">
+          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-gradient-to-tr from-indigo-700 to-teal-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-xl ring-2 ring-white/10">
+            {initials}
+          </div>
+          <p className="mt-3 text-xs sm:text-sm font-semibold text-gray-200 truncate max-w-[80%]">
+            {name}
+          </p>
+          <span className="text-[10px] text-gray-500 capitalize">{role}</span>
+        </div>
+      )}
+
+      {/* 3. Top Status Pill (Screen share / Local indicator) */}
+      <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
+        {isLocal && (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/60 text-indigo-300 backdrop-blur-md border border-white/10">
+            You
+          </span>
+        )}
+        {isScreenSharing && (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-400 backdrop-blur-md border border-emerald-800/80 flex items-center gap-1">
+            <Share2 className="h-2.5 w-2.5" />
+            Screen
+          </span>
+        )}
+      </div>
+
+      {/* 4. Bottom Info Overlay */}
+      <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 z-10">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white min-w-0">
+          <span className="text-xs font-semibold truncate max-w-[130px] sm:max-w-[180px]">
+            {name}
+          </span>
+          <span
+            className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md ${
+              role === 'host'
+                ? 'bg-indigo-600/80 text-white'
+                : 'bg-gray-800/80 text-gray-300'
+            }`}
+          >
+            {role === 'host' ? 'Tutor' : 'Student'}
+          </span>
+        </div>
+
+        {/* Audio Mute Icon */}
+        <div
+          className={`h-7 w-7 rounded-xl flex items-center justify-center backdrop-blur-md transition-colors ${
+            isAudioMuted
+              ? 'bg-rose-950/90 text-rose-400 border border-rose-800/80'
+              : 'bg-black/60 text-emerald-400 border border-white/10'
+          }`}
+          title={isAudioMuted ? 'Microphone muted' : 'Microphone active'}
+          aria-label={isAudioMuted ? 'Microphone muted' : 'Microphone active'}
+        >
+          {isAudioMuted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function ClassroomView({
   session,
   initialRole,
   currentUserName,
+  currentUserId,
   portalType,
 }: ClassroomViewProps) {
   const router = useRouter()
   const { toast } = useToast()
 
+  const userId = currentUserId || `user-${Math.random().toString(36).slice(2, 9)}`
+
+  // State Management
   const [status, setStatus] = useState<ClassSessionStatus>(session.status)
-  const [tokenLoading, setTokenLoading] = useState(true)
-  const [providerConfigured, setProviderConfigured] = useState<boolean>(false)
-  const [roomUrl, setRoomUrl] = useState<string | null>(null)
+  const [connectionState, setConnectionState] = useState<ClassroomConnectionState>('idle')
   const [isStarting, setIsStarting] = useState(false)
   const [isEnding, setIsEnding] = useState(false)
   const [showEndDialog, setShowEndDialog] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
+  const [mediaWarning, setMediaWarning] = useState<string | null>(null)
 
-  // Fetch or mint short-lived meeting token
-  const loadClassroomToken = useCallback(async () => {
-    setTokenLoading(true)
-    setErrorMessage(null)
-    try {
-      const res = await getClassroomTokenAction(session.id)
-      if (!res.success) {
-        if (res.isCompleted) {
-          setStatus('completed')
-        } else {
-          setErrorMessage(res.error || 'Failed to initialize online classroom.')
-        }
-        setTokenLoading(false)
-        return
-      }
+  // Media Track States
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null)
+  const [isAudioMuted, setIsAudioMuted] = useState(false)
+  const [isVideoMuted, setIsVideoMuted] = useState(false)
+  const [isScreenSharing, setIsScreenSharing] = useState(false)
 
-      setProviderConfigured(res.providerConfigured)
-      if (res.providerConfigured && res.roomUrl) {
-        setRoomUrl(res.roomUrl)
-      }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to connect to classroom service.')
-    } finally {
-      setTokenLoading(false)
-      setRefreshing(false)
+  // Participants & Signaling
+  const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map())
+  const [participants, setParticipants] = useState<ClassroomParticipant[]>([])
+  const [messages, setMessages] = useState<ClassroomChatMessage[]>([])
+  const [chatDraft, setChatDraft] = useState('')
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // Side Drawer UI
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
+  const [sidePanelTab, setSidePanelTab] = useState<'participants' | 'chat'>('participants')
+  const chatScrollRef = useRef<HTMLDivElement | null>(null)
+
+  // References to Engine Instances
+  const signalingRef = useRef<ClassroomSignalingChannel | null>(null)
+  const peerPoolRef = useRef<WebRtcPeerPool | null>(null)
+  const participantLogIdRef = useRef<string | null>(null)
+
+  // Scroll chat to bottom
+  const scrollToBottom = useCallback(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
     }
-  }, [session.id])
+  }, [])
 
   useEffect(() => {
-    loadClassroomToken()
-  }, [loadClassroomToken])
+    if (isSidePanelOpen && sidePanelTab === 'chat') {
+      scrollToBottom()
+      setUnreadCount(0)
+    }
+  }, [messages, isSidePanelOpen, sidePanelTab, scrollToBottom])
 
-  // Polling for students/parents when waiting for tutor to start
+  // =========================================================================
+  // WebRTC & Signaling Initialization
+  // =========================================================================
+  const initializeClassroom = useCallback(async () => {
+    if (status !== 'in_progress') return
+
+    setConnectionState('connecting')
+    setErrorMessage(null)
+
+    // 1. Acquire Local Camera & Microphone
+    const mediaResult = await requestMediaPermissions({
+      preferVideo: true,
+      preferAudio: true,
+    })
+
+    if (mediaResult.error) {
+      setMediaWarning(mediaResult.error)
+    }
+
+    const stream = mediaResult.stream
+    setLocalStream(stream)
+    setIsAudioMuted(!mediaResult.audioAvailable)
+    setIsVideoMuted(!mediaResult.videoAvailable)
+
+    // 2. Instantiate WebRTC Peer Connection Pool
+    const peerPool = new WebRtcPeerPool(userId, {
+      onRemoteStream: (peerId, remoteStream) => {
+        setRemoteStreams((prev) => {
+          const next = new Map(prev)
+          next.set(peerId, remoteStream)
+          return next
+        })
+      },
+      onPeerConnectionStateChange: (peerId, state) => {
+        if (state === 'connected') {
+          setConnectionState('connected')
+        } else if (state === 'disconnected' || state === 'failed') {
+          setConnectionState('reconnecting')
+        }
+      },
+      onSendSignal: (type, data, targetId) => {
+        signalingRef.current?.sendSignal(type, data, targetId)
+      },
+      onPeerDisconnected: (peerId) => {
+        setRemoteStreams((prev) => {
+          const next = new Map(prev)
+          next.delete(peerId)
+          return next
+        })
+      },
+    })
+
+    peerPool.setLocalStream(stream)
+    peerPoolRef.current = peerPool
+
+    // 3. Connect to Supabase Realtime Signaling Channel
+    const signaling = new ClassroomSignalingChannel(
+      session.id,
+      {
+        id: userId,
+        name: currentUserName,
+        role: initialRole,
+        audioEnabled: mediaResult.audioAvailable,
+        videoEnabled: mediaResult.videoAvailable,
+        isScreenSharing: false,
+      },
+      {
+        onParticipantsSync: (list) => {
+          setParticipants(list)
+          // Initiate peer connection with all discovered participants
+          list.forEach((p) => {
+            if (p.id !== userId) {
+              peerPool.getOrCreatePeer(p.id)
+            }
+          })
+          setConnectionState('connected')
+        },
+        onParticipantJoin: (participant) => {
+          setParticipants((prev) => {
+            const exists = prev.some((p) => p.id === participant.id)
+            return exists ? prev : [...prev, participant]
+          })
+          toast('info', `${participant.name} joined the class`)
+          peerPool.getOrCreatePeer(participant.id)
+        },
+        onParticipantLeave: (peerId) => {
+          setParticipants((prev) => prev.filter((p) => p.id !== peerId))
+          peerPool.removePeer(peerId)
+        },
+        onSignal: (msg) => {
+          if (msg.type === 'offer' || msg.type === 'answer' || msg.type === 'ice-candidate') {
+            peerPool.handleIncomingSignal(msg)
+          } else if (msg.type === 'state-change') {
+            // Update remote participant state
+            setParticipants((prev) =>
+              prev.map((p) => (p.id === msg.senderId ? { ...p, ...msg.data } : p))
+            )
+          }
+        },
+        onChatMessage: (chatMsg) => {
+          setMessages((prev) => [...prev, chatMsg])
+          if (!isSidePanelOpen || sidePanelTab !== 'chat') {
+            setUnreadCount((c) => c + 1)
+          }
+        },
+        onClassEnded: () => {
+          setStatus('completed')
+          toast('info', 'Class Ended', 'The tutor has concluded the class session.')
+        },
+        onError: (err) => {
+          console.error('Signaling channel error:', err)
+          setConnectionState('reconnecting')
+        },
+      }
+    )
+
+    signalingRef.current = signaling
+
+    try {
+      await signaling.connect()
+      setConnectionState('connected')
+
+      // Record attendance join log
+      recordClassroomJoinAction(session.id, currentUserName, initialRole).then((res) => {
+        if (res.success && res.participantLogId) {
+          participantLogIdRef.current = res.participantLogId
+        }
+      })
+    } catch (err: any) {
+      console.error('Failed to establish signaling connection:', err)
+      setErrorMessage('Unable to connect to the classroom channel. Please check your internet connection.')
+      setConnectionState('failed')
+    }
+  }, [status, session.id, userId, currentUserName, initialRole, isSidePanelOpen, sidePanelTab, toast])
+
+  // Lifecycle trigger when status becomes in_progress
+  useEffect(() => {
+    if (status === 'in_progress') {
+      initializeClassroom()
+    }
+
+    return () => {
+      // Teardown connections on unmount or status change
+      peerPoolRef.current?.closeAll()
+      signalingRef.current?.disconnect()
+      stopAllTracks(localStream)
+      stopAllTracks(screenStream)
+      if (participantLogIdRef.current) {
+        recordClassroomLeaveAction(participantLogIdRef.current)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
+  // Polling for students when waiting for tutor to start
   useEffect(() => {
     if (initialRole === 'participant' && status === 'scheduled') {
       const interval = setInterval(async () => {
         const res = await getClassroomTokenAction(session.id)
-        if (res.success && res.roomUrl) {
+        if (res.success && res.sessionStatus === 'in_progress') {
           setStatus('in_progress')
-          setRoomUrl(res.roomUrl)
+          toast('success', 'Class Started', 'Your tutor has started the session!')
         }
-      }, 8000)
+      }, 5000)
       return () => clearInterval(interval)
     }
-  }, [initialRole, status, session.id])
+  }, [initialRole, status, session.id, toast])
+
+  // =========================================================================
+  // Media Control Actions (Camera, Mic, Screen Share)
+  // =========================================================================
+  const toggleAudio = () => {
+    if (!localStream) return
+    const audioTrack = localStream.getAudioTracks()[0]
+    if (audioTrack) {
+      const nextMuted = audioTrack.enabled
+      audioTrack.enabled = !nextMuted
+      setIsAudioMuted(nextMuted)
+      signalingRef.current?.updateState({ audioEnabled: !nextMuted })
+    }
+  }
+
+  const toggleVideo = () => {
+    if (!localStream) return
+    const videoTrack = localStream.getVideoTracks()[0]
+    if (videoTrack) {
+      const nextMuted = videoTrack.enabled
+      videoTrack.enabled = !nextMuted
+      setIsVideoMuted(nextMuted)
+      signalingRef.current?.updateState({ videoEnabled: !nextMuted })
+    }
+  }
+
+  const toggleScreenShare = async () => {
+    if (isScreenSharing) {
+      // Stop screen sharing -> restore camera track
+      stopAllTracks(screenStream)
+      setScreenStream(null)
+      setIsScreenSharing(false)
+      const cameraTrack = localStream?.getVideoTracks()[0] || null
+      await peerPoolRef.current?.replaceVideoTrack(cameraTrack)
+      signalingRef.current?.updateState({ isScreenSharing: false })
+    } else {
+      // Start screen sharing
+      const res = await requestScreenShare()
+      if (res.cancelled) return
+      if (res.error) {
+        toast('error', 'Screen Share Error', res.error)
+        return
+      }
+
+      const displayTrack = res.stream?.getVideoTracks()[0]
+      if (displayTrack) {
+        setScreenStream(res.stream)
+        setIsScreenSharing(true)
+        await peerPoolRef.current?.replaceVideoTrack(displayTrack)
+        signalingRef.current?.updateState({ isScreenSharing: true })
+
+        // Handle native browser "Stop Sharing" button
+        displayTrack.onended = async () => {
+          setIsScreenSharing(false)
+          setScreenStream(null)
+          const cameraTrack = localStream?.getVideoTracks()[0] || null
+          await peerPoolRef.current?.replaceVideoTrack(cameraTrack)
+          signalingRef.current?.updateState({ isScreenSharing: false })
+        }
+      }
+    }
+  }
+
+  // Send in-session chat
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!chatDraft.trim()) return
+    const sent = await signalingRef.current?.sendChatMessage(chatDraft)
+    if (sent) {
+      setChatDraft('')
+      scrollToBottom()
+    }
+  }
 
   // Tutor starts the class
-  async function handleStartClass() {
+  const handleStartClass = async () => {
     setIsStarting(true)
     try {
       const res = await startClassSessionAction(session.id)
@@ -118,7 +492,6 @@ export function ClassroomView({
       }
       setStatus('in_progress')
       toast('success', 'Class Started', 'Your online session is now live!')
-      await loadClassroomToken()
     } catch (err: any) {
       toast('error', 'Error', err.message || 'Could not start class')
     } finally {
@@ -127,9 +500,10 @@ export function ClassroomView({
   }
 
   // Tutor ends the class
-  async function handleConfirmEndClass() {
+  const handleConfirmEndClass = async () => {
     setIsEnding(true)
     try {
+      await signalingRef.current?.broadcastClassEnded()
       const res = await endClassSessionAction(session.id)
       if (!res.success) {
         toast('error', 'Failed to end class', res.error)
@@ -146,16 +520,38 @@ export function ClassroomView({
     }
   }
 
+  // Student leaves class
+  const handleLeaveClass = async () => {
+    peerPoolRef.current?.closeAll()
+    await signalingRef.current?.disconnect()
+    stopAllTracks(localStream)
+    stopAllTracks(screenStream)
+    if (participantLogIdRef.current) {
+      await recordClassroomLeaveAction(participantLogIdRef.current)
+    }
+    router.push(portalType === 'tutor' ? '/dashboard' : '/parent')
+  }
+
   const backHref = portalType === 'tutor' ? '/dashboard' : '/parent'
   const timeRangeDisplay = formatTimeRange(session.start_time, session.end_time)
 
+  // Determine active screen share in room
+  const activeScreenSharingPeer = participants.find((p) => p.isScreenSharing && p.id !== userId)
+  const isLocalScreenSharing = isScreenSharing && screenStream
+
+  // Remote participants list
+  const remoteParticipants = participants.filter((p) => p.id !== userId)
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col select-none">
-      {/* 1. Header Bar */}
-      <header className="h-16 bg-gray-950/80 border-b border-gray-800/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 z-20">
+    <div className="h-screen w-screen bg-gray-950 text-white flex flex-col overflow-hidden select-none">
+      {/* ===================================================================== */}
+      {/* 1. TOP HEADER BAR                                                     */}
+      {/* ===================================================================== */}
+      <header className="h-16 bg-gray-950/90 border-b border-gray-800/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 shrink-0 z-30">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             href={backHref}
+            onClick={handleLeaveClass}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
             title="Leave classroom"
             aria-label="Leave classroom"
@@ -169,7 +565,7 @@ export function ClassroomView({
                 {session.batch.name}
               </h1>
               {session.batch.subject && (
-                <span className="text-[10px] font-semibold text-indigo-300 bg-indigo-950/80 border border-indigo-800/60 px-2 py-0.2 rounded-full hidden sm:inline-block">
+                <span className="text-[10px] font-semibold text-indigo-300 bg-indigo-950/80 border border-indigo-800/60 px-2 py-0.5 rounded-full hidden sm:inline-block">
                   {session.batch.subject}
                 </span>
               )}
@@ -183,11 +579,36 @@ export function ClassroomView({
           </div>
         </div>
 
-        {/* Live / Status Indicator & Actions */}
+        {/* Status Indicators & Control Buttons */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* WebRTC Connection State Pill */}
+          {status === 'in_progress' && (
+            <div
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                connectionState === 'connected'
+                  ? 'bg-emerald-950/70 text-emerald-400 border-emerald-800/80'
+                  : connectionState === 'reconnecting' || connectionState === 'connecting'
+                  ? 'bg-amber-950/70 text-amber-400 border-amber-800/80'
+                  : 'bg-gray-800 text-gray-400 border-gray-700'
+              }`}
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  connectionState === 'connected'
+                    ? 'bg-emerald-500 animate-pulse'
+                    : connectionState === 'reconnecting'
+                    ? 'bg-amber-500 animate-ping'
+                    : 'bg-gray-500'
+                }`}
+              />
+              <span className="capitalize">{connectionState}</span>
+            </div>
+          )}
+
+          {/* Session Status Pill */}
           {status === 'in_progress' ? (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 shadow-xs">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-950/80 text-rose-400 border border-rose-800/80 shadow-xs">
+              <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
               <span>Live Class</span>
             </span>
           ) : status === 'scheduled' ? (
@@ -200,171 +621,559 @@ export function ClassroomView({
             </span>
           )}
 
-          {/* Tutor Controls */}
-          {initialRole === 'host' && (
+          {/* Host Start Class Action */}
+          {initialRole === 'host' && status === 'scheduled' && (
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={handleStartClass}
+              loading={isStarting}
+              className="h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs"
+            >
+              <Play className="h-3.5 w-3.5 mr-1.5 fill-current" />
+              Start Class
+            </Button>
+          )}
+
+          {/* Host End Class Action */}
+          {initialRole === 'host' && status === 'in_progress' && (
             <>
-              {status === 'scheduled' && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={handleStartClass}
-                  loading={isStarting}
-                  className="h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs"
-                >
-                  <Play className="h-3.5 w-3.5 mr-1.5 fill-current" />
-                  Start Class
-                </Button>
-              )}
-
-              {status === 'in_progress' && (
-                <>
-                  <Link
-                    href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
-                    target="_blank"
-                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-colors"
-                  >
-                    <ClipboardCheck className="h-3.5 w-3.5 text-emerald-400" />
-                    Attendance
-                  </Link>
-
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => setShowEndDialog(true)}
-                    className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white"
-                  >
-                    End Class
-                  </Button>
-                </>
-              )}
+              <Link
+                href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
+                target="_blank"
+                className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-colors"
+              >
+                <ClipboardCheck className="h-3.5 w-3.5 text-emerald-400" />
+                Attendance
+              </Link>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => setShowEndDialog(true)}
+                className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white"
+              >
+                End Class
+              </Button>
             </>
           )}
 
-          {/* Parent/Student Leave Control */}
-          {initialRole === 'participant' && (
-            <Link
-              href="/parent"
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
+          {/* Participant Leave Action */}
+          {initialRole === 'participant' && status === 'in_progress' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleLeaveClass}
+              className="h-8 text-xs border-gray-700 bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white"
             >
-              Exit
-            </Link>
+              <LogOut className="h-3.5 w-3.5 mr-1.5" />
+              Leave
+            </Button>
           )}
         </div>
       </header>
 
-      {/* 2. Main Content Canvas */}
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-gray-950 p-2 sm:p-4">
-        {tokenLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center space-y-3">
-            <div className="h-9 w-9 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-medium text-gray-400">Connecting to classroom engine...</p>
-          </div>
-        ) : errorMessage ? (
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 text-center space-y-4">
-              <div className="h-12 w-12 rounded-2xl bg-rose-950/80 border border-rose-800/80 text-rose-400 flex items-center justify-center mx-auto">
-                <AlertCircle className="h-6 w-6" />
+      {/* ===================================================================== */}
+      {/* 2. MAIN BODY AREA (Video Stage + Drawer)                              */}
+      {/* ===================================================================== */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Main Stage Canvas */}
+        <main className="flex-1 flex flex-col p-2 sm:p-4 overflow-hidden relative">
+          {/* Media Permission Warning Banner */}
+          {mediaWarning && (
+            <div className="mb-2 px-3 py-2 rounded-xl bg-amber-950/80 border border-amber-800/80 text-amber-300 text-xs flex items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+                <span>{mediaWarning}</span>
               </div>
-              <h2 className="text-sm font-bold text-white">Classroom Access Error</h2>
-              <p className="text-xs text-gray-400">{errorMessage}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadClassroomToken}
-                className="text-xs border-gray-700 text-gray-300 hover:bg-gray-800"
+              <button
+                onClick={() => setMediaWarning(null)}
+                className="text-amber-400 hover:text-white p-1"
+                aria-label="Dismiss warning"
               >
-                Retry Connection
-              </Button>
+                <X className="h-3.5 w-3.5" />
+              </button>
             </div>
-          </div>
-        ) : !providerConfigured ? (
-          /* Provider is unconfigured: Show clean developer setup guide */
-          <div className="flex-1 overflow-y-auto">
-            <UnconfiguredGuide session={session} role={initialRole} />
-          </div>
-        ) : status === 'completed' ? (
-          /* Session Completed State */
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 sm:p-8 text-center space-y-4">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <h2 className="text-base font-bold text-white">Class Session Completed</h2>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                This online session for <span className="text-gray-200 font-semibold">{session.batch.name}</span> has concluded. Attendance and session history have been recorded.
-              </p>
-              <div className="pt-2 flex items-center justify-center gap-2">
-                <Link
-                  href={backHref}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
-                >
-                  Return to {portalType === 'tutor' ? 'Dashboard' : 'Portal'}
-                </Link>
-              </div>
-            </div>
-          </div>
-        ) : initialRole === 'participant' && status === 'scheduled' ? (
-          /* Student / Parent Waiting Screen */
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 sm:p-8 text-center space-y-4">
-              <div className="h-14 w-14 rounded-2xl bg-indigo-950/80 border border-indigo-800/80 text-indigo-400 flex items-center justify-center mx-auto relative">
-                <Video className="h-7 w-7" />
-                <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-indigo-500 animate-ping" />
-              </div>
+          )}
 
-              <div className="space-y-1">
-                <h2 className="text-base font-bold text-white">
-                  Your tutor hasn&apos;t started the class yet
-                </h2>
-                <p className="text-xs text-gray-400">
-                  Please stay on this page. The classroom will automatically open the moment your tutor begins teaching.
+          {/* State A: Session Completed */}
+          {status === 'completed' ? (
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 sm:p-8 text-center space-y-4 shadow-2xl">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <h2 className="text-base font-bold text-white">Class Session Completed</h2>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  This online class for <span className="text-gray-200 font-semibold">{session.batch.name}</span> has concluded. Attendance timestamps and participation records have been preserved.
                 </p>
-              </div>
-
-              <div className="rounded-xl border border-gray-800 bg-gray-950/60 p-3 text-xs text-left space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Batch:</span>
-                  <span className="font-semibold text-gray-300">{session.batch.name}</span>
-                </div>
-                {session.batch.subject && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Subject:</span>
-                    <span className="text-gray-300">{session.batch.subject}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Scheduled Time:</span>
-                  <span className="text-gray-300">{timeRangeDisplay}</span>
+                <div className="pt-2 flex items-center justify-center gap-2">
+                  <Link
+                    href={backHref}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow-xs"
+                  >
+                    Return to {portalType === 'tutor' ? 'Dashboard' : 'Portal'}
+                  </Link>
                 </div>
               </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setRefreshing(true)
-                  loadClassroomToken()
-                }}
-                loading={refreshing}
-                className="text-xs border-gray-700 text-gray-300 hover:bg-gray-800 w-full"
-              >
-                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                Check Now
-              </Button>
             </div>
-          </div>
-        ) : roomUrl ? (
-          /* 3. Live Active Video Classroom (Daily.co iframe container) */
-          <div className="flex-1 w-full h-full rounded-2xl overflow-hidden border border-gray-800 bg-black relative flex flex-col shadow-2xl">
-            <iframe
-              src={roomUrl}
-              allow="camera; microphone; fullscreen; display-capture; autoplay"
-              title={`Online Classroom - ${session.batch.name}`}
-              className="w-full h-full border-0 rounded-2xl"
-            />
-          </div>
-        ) : null}
-      </main>
+          ) : status === 'scheduled' && initialRole === 'participant' ? (
+            /* State B: Student Waiting Room */
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 sm:p-8 text-center space-y-4 shadow-2xl">
+                <div className="h-14 w-14 rounded-2xl bg-indigo-950/80 border border-indigo-800/80 text-indigo-400 flex items-center justify-center mx-auto relative">
+                  <Video className="h-7 w-7" />
+                  <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-indigo-500 animate-ping" />
+                </div>
+
+                <div className="space-y-1">
+                  <h2 className="text-base font-bold text-white">
+                    Your tutor hasn&apos;t started the class yet
+                  </h2>
+                  <p className="text-xs text-gray-400">
+                    Please stay on this page. The virtual classroom will automatically launch the instant your tutor starts teaching.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-gray-800 bg-gray-950/60 p-3 text-xs text-left space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Batch:</span>
+                    <span className="font-semibold text-gray-300">{session.batch.name}</span>
+                  </div>
+                  {session.batch.subject && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Subject:</span>
+                      <span className="text-gray-300">{session.batch.subject}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Scheduled:</span>
+                    <span className="text-gray-300">{timeRangeDisplay}</span>
+                  </div>
+                </div>
+
+                <div className="pt-1 flex items-center justify-center gap-2 text-[11px] text-gray-500">
+                  <Radio className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+                  <span>Listening for tutor launch signal...</span>
+                </div>
+              </div>
+            </div>
+          ) : status === 'scheduled' && initialRole === 'host' ? (
+            /* State C: Tutor Pre-Class Stage */
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 sm:p-8 text-center space-y-4 shadow-2xl">
+                <div className="h-14 w-14 rounded-2xl bg-indigo-950/80 border border-indigo-800/80 text-indigo-400 flex items-center justify-center mx-auto">
+                  <Play className="h-7 w-7 fill-current ml-1" />
+                </div>
+
+                <div className="space-y-1">
+                  <h2 className="text-base font-bold text-white">Ready to Teach?</h2>
+                  <p className="text-xs text-gray-400">
+                    Click &quot;Start Class&quot; to open the online room. Enrolled students waiting in the lobby will connect automatically.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-gray-800 bg-gray-950/60 p-3 text-xs text-left space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Batch:</span>
+                    <span className="font-semibold text-gray-300">{session.batch.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Class Mode:</span>
+                    <span className="text-indigo-300 font-semibold capitalize">{session.class_mode}</span>
+                  </div>
+                </div>
+
+                <Button
+                  variant="primary"
+                  onClick={handleStartClass}
+                  loading={isStarting}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-md font-semibold text-sm py-2.5"
+                >
+                  <Play className="h-4 w-4 mr-2 fill-current" />
+                  Start Live Class Now
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* State D: Active Live WebRTC Video Grid */
+            <div className="flex-1 flex flex-col gap-2 sm:gap-3 overflow-hidden">
+              {/* Screen Share Spotlight (if active) */}
+              {(isLocalScreenSharing || activeScreenSharingPeer) && (
+                <div className="flex-[3] min-h-[260px] rounded-2xl overflow-hidden bg-black border border-indigo-500/50 relative shadow-2xl flex items-center justify-center">
+                  <video
+                    ref={(el) => {
+                      if (el) {
+                        if (isLocalScreenSharing && screenStream) {
+                          el.srcObject = screenStream
+                        } else if (activeScreenSharingPeer) {
+                          const remote = remoteStreams.get(activeScreenSharingPeer.id)
+                          el.srcObject = remote || null
+                        }
+                      }
+                    }}
+                    autoPlay
+                    playsInline
+                    muted={Boolean(isLocalScreenSharing)}
+                    className="w-full h-full object-contain"
+                  />
+                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-indigo-950/90 text-indigo-300 border border-indigo-700/80 backdrop-blur-md flex items-center gap-1.5">
+                    <Share2 className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>
+                      {isLocalScreenSharing
+                        ? 'You are sharing your screen'
+                        : `${activeScreenSharingPeer?.name || 'Presenter'} is sharing screen`}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Participant Video Grid */}
+              <div
+                className={`flex-1 grid gap-2 sm:gap-3 overflow-y-auto p-1 ${
+                  isLocalScreenSharing || activeScreenSharingPeer
+                    ? 'flex-1 max-h-[160px] sm:max-h-[190px] grid-flow-col auto-cols-[220px] sm:auto-cols-[260px] overflow-x-auto'
+                    : remoteParticipants.length === 0
+                    ? 'grid-cols-1'
+                    : remoteParticipants.length === 1
+                    ? 'grid-cols-1 md:grid-cols-2'
+                    : remoteParticipants.length <= 3
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
+                    : 'grid-cols-2 sm:grid-cols-3'
+                }`}
+              >
+                {/* 1. Local Participant Tile */}
+                <ParticipantTile
+                  participantId={userId}
+                  name={currentUserName}
+                  role={initialRole}
+                  isLocal={true}
+                  stream={localStream}
+                  isAudioMuted={isAudioMuted}
+                  isVideoMuted={isVideoMuted}
+                  isScreenSharing={isScreenSharing}
+                  connectionState="connected"
+                />
+
+                {/* 2. Remote Participants Tiles */}
+                {remoteParticipants.map((p) => {
+                  const remoteStream = remoteStreams.get(p.id)
+                  return (
+                    <ParticipantTile
+                      key={p.id}
+                      participantId={p.id}
+                      name={p.name}
+                      role={p.role}
+                      isLocal={false}
+                      stream={remoteStream}
+                      isAudioMuted={p.isAudioMuted}
+                      isVideoMuted={p.isVideoMuted}
+                      isScreenSharing={p.isScreenSharing}
+                      connectionState={p.connectionState}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* =================================================================== */}
+        {/* 3. COLLAPSIBLE SIDE DRAWER (Participants & Chat)                    */}
+        {/* =================================================================== */}
+        {isSidePanelOpen && status === 'in_progress' && (
+          <aside className="w-80 sm:w-88 border-l border-gray-800/80 bg-gray-950 flex flex-col shrink-0 z-20 shadow-2xl animate-fade-in">
+            {/* Drawer Tabs */}
+            <div className="h-12 border-b border-gray-800 px-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1 bg-gray-900 p-0.5 rounded-xl border border-gray-800">
+                <button
+                  onClick={() => setSidePanelTab('participants')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                    sidePanelTab === 'participants'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Participants ({participants.length})
+                </button>
+                <button
+                  onClick={() => {
+                    setSidePanelTab('chat')
+                    setUnreadCount(0)
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all relative ${
+                    sidePanelTab === 'chat'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Chat
+                  {unreadCount > 0 && (
+                    <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              <button
+                onClick={() => setIsSidePanelOpen(false)}
+                className="h-7 w-7 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 flex items-center justify-center"
+                aria-label="Close panel"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* TAB 1: PARTICIPANTS */}
+            {sidePanelTab === 'participants' && (
+              <div className="flex-1 p-3 overflow-y-auto space-y-2">
+                {/* Local user row */}
+                <div className="p-2.5 rounded-xl bg-gray-900/90 border border-gray-800 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      {currentUserName[0]?.toUpperCase() || 'U'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">
+                        {currentUserName}{' '}
+                        <span className="text-[10px] text-indigo-400 font-normal">(You)</span>
+                      </p>
+                      <span className="text-[10px] text-gray-400 capitalize">{initialRole}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isAudioMuted ? (
+                      <MicOff className="h-3.5 w-3.5 text-rose-400" />
+                    ) : (
+                      <Mic className="h-3.5 w-3.5 text-emerald-400" />
+                    )}
+                    {isVideoMuted ? (
+                      <VideoOff className="h-3.5 w-3.5 text-rose-400" />
+                    ) : (
+                      <Video className="h-3.5 w-3.5 text-emerald-400" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Remote participants list */}
+                {remoteParticipants.map((p) => (
+                  <div
+                    key={p.id}
+                    className="p-2.5 rounded-xl bg-gray-900/50 border border-gray-800/80 flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-gray-800 text-gray-300 flex items-center justify-center font-bold text-xs shrink-0">
+                        {p.name[0]?.toUpperCase() || 'P'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-200 truncate">{p.name}</p>
+                        <span className="text-[10px] text-gray-500 capitalize">{p.role}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {p.isAudioMuted ? (
+                        <MicOff className="h-3.5 w-3.5 text-rose-400" />
+                      ) : (
+                        <Mic className="h-3.5 w-3.5 text-emerald-400" />
+                      )}
+                      {p.isVideoMuted ? (
+                        <VideoOff className="h-3.5 w-3.5 text-rose-400" />
+                      ) : (
+                        <Video className="h-3.5 w-3.5 text-emerald-400" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* TAB 2: IN-SESSION CHAT */}
+            {sidePanelTab === 'chat' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div ref={chatScrollRef} className="flex-1 p-3 overflow-y-auto space-y-3">
+                  {messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-4 text-gray-500 text-xs">
+                      <MessageSquare className="h-8 w-8 text-gray-700 mb-2" />
+                      <p className="font-semibold text-gray-400">Classroom Chat</p>
+                      <p className="text-[11px] mt-1 text-gray-500">
+                        Messages sent here are visible to active class participants.
+                      </p>
+                    </div>
+                  ) : (
+                    messages.map((m) => {
+                      const isMe = m.senderId === userId
+                      return (
+                        <div
+                          key={m.id}
+                          className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                        >
+                          <div className="flex items-center gap-1.5 mb-0.5 text-[10px] text-gray-400">
+                            <span className="font-bold text-gray-300">{m.senderName}</span>
+                            <span>•</span>
+                            <span>
+                              {new Date(m.timestamp).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                          <div
+                            className={`px-3 py-2 rounded-2xl text-xs max-w-[85%] break-words ${
+                              isMe
+                                ? 'bg-indigo-600 text-white rounded-tr-xs'
+                                : 'bg-gray-800 text-gray-200 rounded-tl-xs border border-gray-700'
+                            }`}
+                          >
+                            {m.text}
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+
+                {/* Message Input Form */}
+                <form
+                  onSubmit={handleSendMessage}
+                  className="p-2 border-t border-gray-800 bg-gray-900/60 flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    value={chatDraft}
+                    onChange={(e) => setChatDraft(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!chatDraft.trim()}
+                    className="h-8 w-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center transition-colors"
+                    aria-label="Send message"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                  </button>
+                </form>
+              </div>
+            )}
+          </aside>
+        )}
+      </div>
+
+      {/* ===================================================================== */}
+      {/* 4. BOTTOM ACTION CONTROL BAR (Touch-Friendly, 44px+ targets)          */}
+      {/* ===================================================================== */}
+      {status === 'in_progress' && (
+        <footer className="h-18 bg-gray-950/95 border-t border-gray-800/80 backdrop-blur-md px-4 flex items-center justify-center gap-2 sm:gap-4 shrink-0 z-30">
+          {/* Microphone Toggle */}
+          <button
+            type="button"
+            onClick={toggleAudio}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
+              isAudioMuted
+                ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title={isAudioMuted ? 'Unmute microphone' : 'Mute microphone'}
+            aria-label={isAudioMuted ? 'Unmute microphone' : 'Mute microphone'}
+          >
+            {isAudioMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+          </button>
+
+          {/* Camera Toggle */}
+          <button
+            type="button"
+            onClick={toggleVideo}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
+              isVideoMuted
+                ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title={isVideoMuted ? 'Turn video on' : 'Turn video off'}
+            aria-label={isVideoMuted ? 'Turn video on' : 'Turn video off'}
+          >
+            {isVideoMuted ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+          </button>
+
+          {/* Screen Share Toggle (Tutor Host) */}
+          {initialRole === 'host' && (
+            <button
+              type="button"
+              onClick={toggleScreenShare}
+              className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
+                isScreenSharing
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg'
+                  : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+              }`}
+              title={isScreenSharing ? 'Stop sharing screen' : 'Share your screen'}
+              aria-label={isScreenSharing ? 'Stop sharing screen' : 'Share your screen'}
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+          )}
+
+          {/* Participants Panel Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isSidePanelOpen && sidePanelTab === 'participants') {
+                setIsSidePanelOpen(false)
+              } else {
+                setIsSidePanelOpen(true)
+                setSidePanelTab('participants')
+              }
+            }}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
+              isSidePanelOpen && sidePanelTab === 'participants'
+                ? 'bg-indigo-600 text-white shadow-lg'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title="View participants"
+            aria-label="View participants"
+          >
+            <Users className="h-5 w-5" />
+            <span className="text-[9px] font-bold mt-0.5">{participants.length}</span>
+          </button>
+
+          {/* Chat Panel Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isSidePanelOpen && sidePanelTab === 'chat') {
+                setIsSidePanelOpen(false)
+              } else {
+                setIsSidePanelOpen(true)
+                setSidePanelTab('chat')
+                setUnreadCount(0)
+              }
+            }}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
+              isSidePanelOpen && sidePanelTab === 'chat'
+                ? 'bg-indigo-600 text-white shadow-lg'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title="Classroom chat"
+            aria-label="Classroom chat"
+          >
+            <MessageSquare className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-gray-950">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Leave Button */}
+          <button
+            type="button"
+            onClick={initialRole === 'host' ? () => setShowEndDialog(true) : handleLeaveClass}
+            className="flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-lg cursor-pointer ml-1"
+            title={initialRole === 'host' ? 'End class for all' : 'Leave classroom'}
+            aria-label={initialRole === 'host' ? 'End class for all' : 'Leave classroom'}
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </footer>
+      )}
 
       {/* Confirmation Dialog for Tutor Ending Class */}
       {showEndDialog && (

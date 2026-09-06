@@ -47,6 +47,8 @@ export async function startClassSessionAction(
       .update({
         status: 'in_progress',
         started_at: startedAt,
+        meeting_provider: 'webrtc',
+        meeting_room_id: `room-${sessionId}`,
         updated_at: new Date().toISOString(),
       })
       .eq('id', sessionId)
@@ -127,8 +129,71 @@ export async function endClassSessionAction(
 }
 
 /**
- * Server Action: Mint a short-lived classroom token for an authorized tutor, parent, or student.
- * Verifies authorization and IDOR protections before contacting the video provider.
+ * Server Action: Record participant attendance log when joining a live session.
+ */
+export async function recordClassroomJoinAction(
+  sessionId: string,
+  userName: string,
+  role: 'host' | 'participant' | 'spectator'
+): Promise<{ success: boolean; participantLogId?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { success: false, error: 'Authentication required' }
+    }
+
+    const { data, error } = await supabase
+      .from('classroom_participants')
+      .insert({
+        session_id: sessionId,
+        user_id: user.id,
+        user_name: userName,
+        role,
+        joined_at: new Date().toISOString(),
+      })
+      .select('id')
+      .maybeSingle()
+
+    if (error) {
+      console.warn('Could not insert classroom_participants record:', error.message)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, participantLogId: data?.id }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+}
+
+/**
+ * Server Action: Record participant leave timestamp.
+ */
+export async function recordClassroomLeaveAction(
+  participantLogId?: string
+): Promise<{ success: boolean }> {
+  if (!participantLogId) return { success: true }
+  try {
+    const supabase = await createClient()
+    await supabase
+      .from('classroom_participants')
+      .update({
+        left_at: new Date().toISOString(),
+      })
+      .eq('id', participantLogId)
+    return { success: true }
+  } catch {
+    return { success: false }
+  }
+}
+
+/**
+ * Server Action: Verifies session authorization, returns session status and role details.
+ * Protects against IDOR and checks role separation.
  */
 export async function getClassroomTokenAction(sessionId: string): Promise<{
   success: boolean
@@ -138,6 +203,7 @@ export async function getClassroomTokenAction(sessionId: string): Promise<{
   token?: string
   roomUrl?: string
   isCompleted?: boolean
+  sessionStatus?: ClassSessionStatus
   error?: string
 }> {
   try {
@@ -156,24 +222,16 @@ export async function getClassroomTokenAction(sessionId: string): Promise<{
     if (session.status === 'completed') {
       return {
         success: false,
-        providerConfigured: false,
+        providerConfigured: true,
         isCompleted: true,
+        sessionStatus: 'completed',
         error: 'This class session has already ended.',
       }
     }
 
     const providerConfigured = classroomService.isConfigured()
 
-    if (!providerConfigured) {
-      return {
-        success: true,
-        providerConfigured: false,
-        providerName: classroomService.getProviderName(),
-        role: authResult.role,
-      }
-    }
-
-    // Provider is configured: generate real token
+    // Generate room token
     const tokenResult = await classroomService.generateToken(
       session,
       {
@@ -185,28 +243,20 @@ export async function getClassroomTokenAction(sessionId: string): Promise<{
       authResult.role
     )
 
-    if (!tokenResult.success) {
-      return {
-        success: false,
-        providerConfigured: true,
-        providerName: classroomService.getProviderName(),
-        error: tokenResult.error || 'Failed to generate classroom token.',
-      }
-    }
-
     return {
       success: true,
-      providerConfigured: true,
+      providerConfigured,
       providerName: classroomService.getProviderName(),
       role: authResult.role,
       token: tokenResult.token,
       roomUrl: tokenResult.roomUrl,
+      sessionStatus: session.status,
     }
   } catch (err: any) {
     return {
       success: false,
       providerConfigured: false,
-      error: err.message || 'Classroom token generation failed.',
+      error: err.message || 'Classroom initialization failed.',
     }
   }
 }

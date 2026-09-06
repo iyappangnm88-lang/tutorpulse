@@ -180,11 +180,11 @@ export function BatchDetailsClient({
               </span>
               <div className="flex items-center gap-1.5">
                 {batch.class_mode === 'online' ? (
-                  <Video className="h-3.5 w-3.5 text-blue-600" />
+                  <Video className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
                 ) : batch.class_mode === 'hybrid' ? (
-                  <Globe2 className="h-3.5 w-3.5 text-purple-600" />
+                  <Globe2 className="h-3.5 w-3.5 text-purple-600" aria-hidden="true" />
                 ) : (
-                  <Building2 className="h-3.5 w-3.5 text-gray-700" />
+                  <Building2 className="h-3.5 w-3.5 text-gray-700" aria-hidden="true" />
                 )}
                 <span className="text-xs font-bold text-gray-900 capitalize">
                   {batch.class_mode || 'Offline'}

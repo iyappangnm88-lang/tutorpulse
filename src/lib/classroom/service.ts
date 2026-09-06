@@ -7,39 +7,39 @@ export class ClassroomService {
   private provider = getVideoProvider()
 
   /**
-   * Checks if video provider credentials are configured.
+   * Checks if video provider is configured and available.
+   * For the default WebRTC engine, this is always true.
    */
   isConfigured(): boolean {
     return this.provider.isConfigured()
   }
 
   /**
-   * Gets provider name
+   * Gets active provider name (e.g. 'webrtc').
    */
   getProviderName(): string {
     return this.provider.name
   }
 
   /**
-   * Creates or retrieves a video room for a class session.
-   * If a room was already created in a previous connection, returns it.
+   * Creates or retrieves a video room identifier for a class session.
    */
   async getOrCreateRoom(session: ClassSessionWithBatch): Promise<ClassRoomResult> {
     if (!this.provider.isConfigured()) {
       return {
         success: false,
-        error: 'Video provider is not configured. Please add DAILY_API_KEY to enable live classrooms.',
+        error: 'Video provider is not configured.',
       }
     }
 
-    // If session already has a recorded room ID, check if it's active
+    // If session already has a recorded room ID, verify it
     if (session.meeting_room_id) {
       const existing = await this.provider.getClassRoom(session.meeting_room_id)
-      if (existing && existing.url) {
+      if (existing) {
         return {
           success: true,
-          roomId: existing.name,
-          roomUrl: existing.url,
+          roomId: existing.id,
+          roomUrl: `/dashboard/classroom/${session.id}`,
         }
       }
     }
@@ -68,7 +68,7 @@ export class ClassroomService {
   }
 
   /**
-   * Generates a short-lived, role-based meeting token for an authorized user.
+   * Generates a session token / authorization payload for an authorized user.
    */
   async generateToken(
     session: ClassSessionWithBatch,
@@ -79,15 +79,6 @@ export class ClassroomService {
       return {
         success: false,
         error: 'Video provider is not configured on the server.',
-      }
-    }
-
-    // Ensure room exists first
-    const roomRes = await this.getOrCreateRoom(session)
-    if (!roomRes.success) {
-      return {
-        success: false,
-        error: roomRes.error || 'Failed to ensure classroom room exists.',
       }
     }
 

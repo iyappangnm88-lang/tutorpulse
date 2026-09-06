@@ -36,7 +36,7 @@ export const CLASS_MODE_METADATA: Record<
   },
   online: {
     label: 'Online',
-    description: 'Live interactive virtual classroom (video link in V2)',
+    description: 'Live interactive virtual classroom with browser-native video and screen share',
     badgeVariant: 'info',
   },
   hybrid: {

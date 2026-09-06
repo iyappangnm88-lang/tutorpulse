@@ -274,7 +274,7 @@ CREATE TABLE IF NOT EXISTS public.class_sessions (
     class_mode TEXT NOT NULL DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online', 'hybrid')),
     location TEXT,
     meeting_link TEXT,
-    meeting_provider TEXT DEFAULT 'daily',
+    meeting_provider TEXT DEFAULT 'webrtc',
     meeting_room_id TEXT,
     started_at TIMESTAMPTZ,
     ended_at TIMESTAMPTZ,
@@ -986,6 +986,49 @@ DROP POLICY IF EXISTS "Users can delete notifications" ON public.notifications;
 CREATE POLICY "Users can delete notifications"
     ON public.notifications FOR DELETE
     USING (auth.uid() = user_id);
+
+-- ==============================================================================
+-- Classroom Participants (Online Classroom Attendance Tracking)
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.classroom_participants (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL REFERENCES public.class_sessions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_name TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'participant' CHECK (role IN ('host', 'participant', 'spectator')),
+    joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    left_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_classroom_participants_session ON public.classroom_participants(session_id);
+CREATE INDEX IF NOT EXISTS idx_classroom_participants_user ON public.classroom_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_classroom_participants_joined_at ON public.classroom_participants(joined_at);
+
+ALTER TABLE public.classroom_participants ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Tutors can view classroom participants for their sessions" ON public.classroom_participants;
+CREATE POLICY "Tutors can view classroom participants for their sessions"
+    ON public.classroom_participants FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.class_sessions cs
+            WHERE cs.id = classroom_participants.session_id
+            AND cs.tutor_id = auth.uid()
+        )
+        OR auth.uid() = user_id
+    );
+
+DROP POLICY IF EXISTS "Authenticated users can insert their own participation" ON public.classroom_participants;
+CREATE POLICY "Authenticated users can insert their own participation"
+    ON public.classroom_participants FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Authenticated users can update their own participation" ON public.classroom_participants;
+CREATE POLICY "Authenticated users can update their own participation"
+    ON public.classroom_participants FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
 
 -- ==============================================================================
 -- Grant schema permissions to API roles and reload PostgREST cache
