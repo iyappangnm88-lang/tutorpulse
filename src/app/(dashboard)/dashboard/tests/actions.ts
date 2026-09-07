@@ -42,10 +42,10 @@ export async function createTestAction(input: {
       return { success: false, error: 'Maximum marks must be greater than zero.' }
     }
 
-    // Verify batch belongs to tutor
+    // Verify batch belongs to tutor and retrieve workspace_id
     const { data: batch, error: batchError } = await supabase
       .from('batches')
-      .select('id, name')
+      .select('id, name, workspace_id')
       .eq('id', input.batch_id)
       .eq('tutor_id', user.id)
       .single()
@@ -59,6 +59,7 @@ export async function createTestAction(input: {
       .from('tests')
       .insert({
         tutor_id: user.id,
+        workspace_id: batch.workspace_id || null,
         batch_id: input.batch_id,
         title: input.title.trim(),
         description: input.description?.trim() || null,

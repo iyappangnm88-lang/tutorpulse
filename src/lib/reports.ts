@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import { calculatePercentage, calculateGrade } from '@/lib/test-utils'
 import { calculateCompletionRate } from '@/lib/homework-utils'
 import { roundCurrency, deriveFeeStatus } from '@/lib/fee-utils'
@@ -67,6 +68,9 @@ export async function getReportAggregatedData(filters: ReportFilters): Promise<R
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  const activeWs = await getActiveWorkspace()
+  const wsId = activeWs.activeWorkspace?.id
+
   const { startDate, endDate } = resolveDateFilterBounds(filters)
 
   // 1. Fetch Students
@@ -86,6 +90,10 @@ export async function getReportAggregatedData(filters: ReportFilters): Promise<R
     .eq('tutor_id', user.id)
     .neq('status', 'archived')
 
+  if (wsId) {
+    studentsQuery = studentsQuery.eq('workspace_id', wsId)
+  }
+
   if (filters.studentId && filters.studentId !== 'all') {
     studentsQuery = studentsQuery.eq('id', filters.studentId)
   }
@@ -97,6 +105,10 @@ export async function getReportAggregatedData(filters: ReportFilters): Promise<R
     .eq('tutor_id', user.id)
     .eq('status', 'active')
 
+  if (wsId) {
+    batchesQuery = batchesQuery.eq('workspace_id', wsId)
+  }
+
   if (filters.batchId && filters.batchId !== 'all') {
     batchesQuery = batchesQuery.eq('id', filters.batchId)
   }
@@ -106,6 +118,10 @@ export async function getReportAggregatedData(filters: ReportFilters): Promise<R
     .from('attendance')
     .select('id, student_id, batch_id, status, attendance_date')
     .eq('tutor_id', user.id)
+
+  if (wsId) {
+    attQuery = attQuery.eq('workspace_id', wsId)
+  }
 
   if (startDate) attQuery = attQuery.gte('attendance_date', startDate)
   if (endDate) attQuery = attQuery.lte('attendance_date', endDate)
@@ -151,6 +167,7 @@ export async function getReportAggregatedData(filters: ReportFilters): Promise<R
     `)
     .eq('tutor_id', user.id)
 
+  if (wsId) feesQuery = feesQuery.eq('workspace_id', wsId)
   if (startDate) feesQuery = feesQuery.gte('due_date', startDate)
   if (endDate) feesQuery = feesQuery.lte('due_date', endDate)
   if (filters.studentId && filters.studentId !== 'all') feesQuery = feesQuery.eq('student_id', filters.studentId)

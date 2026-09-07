@@ -35,9 +35,36 @@ export interface Database {
           updated_at?: string
         }
       }
+      workspaces: {
+        Row: {
+          id: string
+          tutor_id: string
+          type: 'offline' | 'online'
+          name: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tutor_id: string
+          type: 'offline' | 'online'
+          name: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tutor_id?: string
+          type?: 'offline' | 'online'
+          name?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
       students: {
         Row: {
           id: string
+          workspace_id: string | null
           tutor_id: string
           full_name: string
           phone: string | null
@@ -54,6 +81,7 @@ export interface Database {
         }
         Insert: {
           id?: string
+          workspace_id?: string | null
           tutor_id: string
           full_name: string
           phone?: string | null
@@ -70,6 +98,7 @@ export interface Database {
         }
         Update: {
           id?: string
+          workspace_id?: string | null
           tutor_id?: string
           full_name?: string
           phone?: string | null
@@ -89,6 +118,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           name: string
           subject: string | null
           class_name: string | null
@@ -106,6 +136,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           name: string
           subject?: string | null
           class_name?: string | null
@@ -123,6 +154,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           name?: string
           subject?: string | null
           class_name?: string | null
@@ -168,6 +200,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           batch_id: string
           session_date: string
           start_time: string
@@ -188,6 +221,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           batch_id: string
           session_date: string
           start_time: string
@@ -208,6 +242,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           batch_id?: string
           session_date?: string
           start_time?: string
@@ -262,6 +297,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           batch_id: string
           student_id: string
           session_id: string | null
@@ -274,6 +310,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           batch_id: string
           student_id: string
           session_id?: string | null
@@ -286,6 +323,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           batch_id?: string
           student_id?: string
           session_id?: string | null
@@ -300,6 +338,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           user_id: string | null
           portal_enabled: boolean
           full_name: string
@@ -314,6 +353,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           user_id?: string | null
           portal_enabled?: boolean
           full_name: string
@@ -328,6 +368,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           user_id?: string | null
           portal_enabled?: boolean
           full_name?: string
@@ -370,6 +411,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           student_id: string
           title: string
           description: string | null
@@ -383,6 +425,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           student_id: string
           title: string
           description?: string | null
@@ -396,6 +439,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           student_id?: string
           title?: string
           description?: string | null
@@ -452,6 +496,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           batch_id: string
           title: string
           description: string | null
@@ -465,6 +510,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           batch_id: string
           title: string
           description?: string | null
@@ -478,6 +524,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           batch_id?: string
           title?: string
           description?: string | null
@@ -528,6 +575,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           batch_id: string
           title: string
           description: string | null
@@ -540,6 +588,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           batch_id: string
           title: string
           description?: string | null
@@ -552,6 +601,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           batch_id?: string
           title?: string
           description?: string | null
@@ -601,6 +651,7 @@ export interface Database {
         Row: {
           id: string
           tutor_id: string
+          workspace_id: string | null
           batch_id: string | null
           student_id: string | null
           target_type: 'all' | 'batch' | 'student'
@@ -612,6 +663,7 @@ export interface Database {
         Insert: {
           id?: string
           tutor_id: string
+          workspace_id?: string | null
           batch_id?: string | null
           student_id?: string | null
           target_type?: 'all' | 'batch' | 'student'
@@ -623,6 +675,7 @@ export interface Database {
         Update: {
           id?: string
           tutor_id?: string
+          workspace_id?: string | null
           batch_id?: string | null
           student_id?: string | null
           target_type?: 'all' | 'batch' | 'student'
@@ -673,6 +726,10 @@ export interface Database {
     }
   }
 }
+
+export type Workspace = Database['public']['Tables']['workspaces']['Row']
+export type WorkspaceInsert = Database['public']['Tables']['workspaces']['Insert']
+export type WorkspaceUpdate = Database['public']['Tables']['workspaces']['Update']
 
 export type Student = Database['public']['Tables']['students']['Row']
 export type StudentInsert = Database['public']['Tables']['students']['Insert']

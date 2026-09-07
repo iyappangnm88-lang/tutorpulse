@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import { validateBatchSchedule } from '@/lib/scheduling'
 import type { Batch, BatchInsert, BatchUpdate } from '@/types'
 
@@ -26,13 +27,21 @@ export async function createBatchAction(
       return { success: false, error: 'Batch name is required.' }
     }
 
+    const activeWs = await getActiveWorkspace()
+    const targetWorkspace = activeWs.activeWorkspace
+    const workspaceType = activeWs.workspaceType
+
+    // Enforce class mode and location according to workspace type
+    const enforcedMode = workspaceType === 'offline' ? 'offline' : 'online'
+    const targetLocation = workspaceType === 'offline' ? input.location : null
+
     // Server-side validation of recurring batch schedule
     const scheduleValidation = validateBatchSchedule({
       working_days: input.working_days,
       start_time: input.start_time,
       end_time: input.end_time,
-      class_mode: input.class_mode,
-      location: input.location,
+      class_mode: enforcedMode,
+      location: targetLocation,
     })
 
     if (!scheduleValidation.isValid) {
@@ -42,13 +51,14 @@ export async function createBatchAction(
 
     const newBatch: BatchInsert = {
       tutor_id: user.id,
+      workspace_id: input.workspace_id || targetWorkspace?.id || null,
       name: input.name.trim(),
       subject: input.subject?.trim() || null,
       class_name: input.class_name?.trim() || null,
       working_days: scheduleValidation.normalizedData.working_days,
       start_time: scheduleValidation.normalizedData.start_time,
       end_time: scheduleValidation.normalizedData.end_time,
-      class_mode: scheduleValidation.normalizedData.class_mode,
+      class_mode: enforcedMode,
       location: scheduleValidation.normalizedData.location,
       schedule: scheduleValidation.normalizedData.schedule,
       description: input.description?.trim() || null,
@@ -92,6 +102,25 @@ export async function updateBatchAction(
       return { success: false, error: 'Batch name cannot be empty.' }
     }
 
+    const { data: existingBatch } = await supabase
+      .from('batches')
+      .select('id, workspace_id, class_mode')
+      .eq('id', id)
+      .eq('tutor_id', user.id)
+      .single()
+
+    if (!existingBatch) {
+      return { success: false, error: 'Batch not found or unauthorized.' }
+    }
+
+    // Changing teaching mode between offline and online is strictly prohibited
+    if (input.class_mode !== undefined && input.class_mode !== existingBatch.class_mode) {
+      return {
+        success: false,
+        error: 'Changing teaching mode between Offline and Online is not permitted. Batches belong to a specific workspace.',
+      }
+    }
+
     const updateData: BatchUpdate = {
       name: input.name?.trim(),
       subject: input.subject?.trim() || null,
@@ -108,12 +137,15 @@ export async function updateBatchAction(
       input.class_mode !== undefined ||
       input.location !== undefined
     ) {
+      const targetMode = existingBatch.class_mode // Mode cannot be mutated
+      const targetLocation = targetMode === 'offline' ? (input.location ?? null) : null
+
       const scheduleValidation = validateBatchSchedule({
         working_days: input.working_days,
         start_time: input.start_time,
         end_time: input.end_time,
-        class_mode: input.class_mode,
-        location: input.location,
+        class_mode: targetMode,
+        location: targetLocation,
       })
 
       if (!scheduleValidation.isValid) {
@@ -124,7 +156,7 @@ export async function updateBatchAction(
       updateData.working_days = scheduleValidation.normalizedData.working_days
       updateData.start_time = scheduleValidation.normalizedData.start_time
       updateData.end_time = scheduleValidation.normalizedData.end_time
-      updateData.class_mode = scheduleValidation.normalizedData.class_mode
+      updateData.class_mode = targetMode
       updateData.location = scheduleValidation.normalizedData.location
       updateData.schedule = scheduleValidation.normalizedData.schedule
     }
@@ -227,16 +259,32 @@ export async function addStudentsToBatchAction(
       return { success: false, error: 'No students selected.' }
     }
 
-    // Verify batch ownership
+    // Verify batch ownership and workspace_id
     const { data: batch } = await supabase
       .from('batches')
-      .select('id')
+      .select('id, workspace_id')
       .eq('id', batchId)
       .eq('tutor_id', user.id)
       .single()
 
     if (!batch) {
       return { success: false, error: 'Batch not found or unauthorized.' }
+    }
+
+    // Verify all students belong to the same workspace as the batch
+    if (batch.workspace_id) {
+      const { data: students } = await supabase
+        .from('students')
+        .select('id, workspace_id')
+        .in('id', studentIds)
+
+      const invalidStudent = (students || []).find((s) => s.workspace_id !== batch.workspace_id)
+      if (invalidStudent) {
+        return {
+          success: false,
+          error: 'Cross-workspace enrollment is forbidden. Students must belong to the same teaching workspace as the batch.',
+        }
+      }
     }
 
     const rows = studentIds.map((student_id) => ({

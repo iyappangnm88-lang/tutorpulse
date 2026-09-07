@@ -1,5 +1,6 @@
 export * from './homework-utils'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import {
   calculateCompletionRate,
   deriveHomeworkDisplayStatus,
@@ -18,9 +19,16 @@ import type {
 export async function getHomeworkList(options?: {
   batchId?: string
   status?: string
+  workspaceId?: string
 }): Promise<{ data: HomeworkWithDetails[]; error: string | null }> {
   try {
     const supabase = await createClient()
+
+    let wsId = options?.workspaceId
+    if (!wsId) {
+      const activeWs = await getActiveWorkspace()
+      wsId = activeWs.activeWorkspace?.id
+    }
 
     let query = supabase
       .from('homework')
@@ -30,6 +38,10 @@ export async function getHomeworkList(options?: {
         homework_students (*)
       `)
       .order('assigned_date', { ascending: false })
+
+    if (wsId) {
+      query = query.eq('workspace_id', wsId)
+    }
 
     if (options?.batchId) {
       query = query.eq('batch_id', options.batchId)
@@ -163,9 +175,9 @@ export async function getHomeworkById(id: string): Promise<{
   }
 }
 
-export async function getHomeworkSummary(): Promise<HomeworkSummary> {
+export async function getHomeworkSummary(workspaceId?: string): Promise<HomeworkSummary> {
   try {
-    const { data: list } = await getHomeworkList()
+    const { data: list } = await getHomeworkList({ workspaceId })
 
     let active = 0
     let pendingSubmissions = 0

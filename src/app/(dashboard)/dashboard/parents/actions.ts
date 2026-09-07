@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import type { Parent, ParentInsert, ParentUpdate } from '@/types'
 
 export interface ActionResult<T = unknown> {
@@ -25,8 +26,12 @@ export async function createParentAction(
       return { success: false, error: 'Parent full name is required.' }
     }
 
+    const activeWs = await getActiveWorkspace()
+    const workspaceId = input.workspace_id || activeWs.activeWorkspace?.id || null
+
     const newParent: ParentInsert = {
       tutor_id: user.id,
+      workspace_id: workspaceId,
       full_name: input.full_name.trim(),
       phone: input.phone?.trim() || null,
       email: input.email?.trim() || null,
@@ -143,10 +148,10 @@ export async function linkStudentToParentAction(
       return { success: false, error: 'Unauthorized. Please sign in.' }
     }
 
-    // Verify parent ownership
+    // Verify parent ownership and retrieve workspace_id
     const { data: parent } = await supabase
       .from('parents')
-      .select('id')
+      .select('id, workspace_id')
       .eq('id', parentId)
       .eq('tutor_id', user.id)
       .single()
@@ -155,16 +160,24 @@ export async function linkStudentToParentAction(
       return { success: false, error: 'Parent not found or unauthorized.' }
     }
 
-    // Verify student ownership
+    // Verify student ownership and retrieve workspace_id
     const { data: student } = await supabase
       .from('students')
-      .select('id')
+      .select('id, workspace_id')
       .eq('id', studentId)
       .eq('tutor_id', user.id)
       .single()
 
     if (!student) {
       return { success: false, error: 'Student not found or unauthorized.' }
+    }
+
+    // Strictly enforce workspace isolation
+    if (parent.workspace_id && student.workspace_id && parent.workspace_id !== student.workspace_id) {
+      return {
+        success: false,
+        error: 'Cross-workspace linking is forbidden. Parents and students must belong to the same teaching workspace.',
+      }
     }
 
     const { error } = await supabase

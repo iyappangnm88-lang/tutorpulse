@@ -173,6 +173,7 @@ export async function getTutorAnnouncements(): Promise<AnnouncementWithTarget[]>
   interface RawAnn {
     id: string
     tutor_id: string
+    workspace_id: string | null
     batch_id: string | null
     student_id: string | null
     target_type: 'all' | 'batch' | 'student'

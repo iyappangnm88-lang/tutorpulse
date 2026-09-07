@@ -34,10 +34,10 @@ export async function saveAttendanceAction(
       return { success: false, error: 'Invalid attendance submission data.' }
     }
 
-    // Verify batch ownership
+    // Verify batch ownership and get workspace_id
     const { data: batch } = await supabase
       .from('batches')
-      .select('id')
+      .select('id, workspace_id')
       .eq('id', batchId)
       .eq('tutor_id', user.id)
       .single()
@@ -48,6 +48,7 @@ export async function saveAttendanceAction(
 
     const rows: AttendanceInsert[] = entries.map((entry) => ({
       tutor_id: user.id,
+      workspace_id: batch.workspace_id || null,
       batch_id: batchId,
       student_id: entry.student_id,
       session_id: sessionId || null,

@@ -1,5 +1,6 @@
 export * from './test-utils'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import {
   calculatePercentage,
   calculateGrade,
@@ -20,9 +21,16 @@ import type {
 export async function getTests(options?: {
   batchId?: string
   status?: string
+  workspaceId?: string
 }): Promise<{ data: TestWithDetails[]; error: string | null }> {
   try {
     const supabase = await createClient()
+
+    let wsId = options?.workspaceId
+    if (!wsId) {
+      const activeWs = await getActiveWorkspace()
+      wsId = activeWs.activeWorkspace?.id
+    }
 
     let query = supabase
       .from('tests')
@@ -32,6 +40,10 @@ export async function getTests(options?: {
         test_marks (*)
       `)
       .order('test_date', { ascending: false })
+
+    if (wsId) {
+      query = query.eq('workspace_id', wsId)
+    }
 
     if (options?.batchId) {
       query = query.eq('batch_id', options.batchId)
@@ -172,9 +184,9 @@ export async function getTestById(id: string): Promise<{
   }
 }
 
-export async function getTestSummary(): Promise<TestSummary> {
+export async function getTestSummary(workspaceId?: string): Promise<TestSummary> {
   try {
-    const { data: list } = await getTests()
+    const { data: list } = await getTests({ workspaceId })
 
     let completed = 0
     let upcoming = 0

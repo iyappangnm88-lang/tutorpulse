@@ -6,6 +6,7 @@ import type { Batch, Student, Parent, Fee, Payment, Homework, HomeworkStudent, T
 export * from './database'
 
 export type UserRole = 'tutor' | 'parent'
+export type WorkspaceType = 'offline' | 'online'
 
 export interface TutorProfile {
   id: string

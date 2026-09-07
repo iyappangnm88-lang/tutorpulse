@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import { isBatchScheduledOnDate, normalizeWorkingDays } from '@/lib/scheduling'
 import type { Batch, ClassSession, ClassSessionInsert, ClassSessionStatus, ClassSessionWithBatch, ClassMode } from '@/types'
 
@@ -23,7 +24,7 @@ import {
 export async function syncAndGetSessionsForDateRange(
   startDateStr: string,
   endDateStr: string,
-  options?: { batchId?: string }
+  options?: { batchId?: string; workspaceId?: string }
 ): Promise<{ data: ClassSessionWithBatch[]; error: string | null }> {
   try {
     const supabase = await createClient()
@@ -33,12 +34,22 @@ export async function syncAndGetSessionsForDateRange(
       return { data: [], error: 'Unauthorized' }
     }
 
-    // 1. Fetch active batches for this tutor
+    let wsId = options?.workspaceId
+    if (!wsId) {
+      const activeWs = await getActiveWorkspace()
+      wsId = activeWs.activeWorkspace?.id
+    }
+
+    // 1. Fetch active batches for this tutor in the workspace
     let batchQuery = supabase
       .from('batches')
       .select('*')
       .eq('tutor_id', user.id)
       .eq('status', 'active')
+
+    if (wsId) {
+      batchQuery = batchQuery.eq('workspace_id', wsId)
+    }
 
     if (options?.batchId) {
       batchQuery = batchQuery.eq('id', options.batchId)
@@ -62,6 +73,10 @@ export async function syncAndGetSessionsForDateRange(
       .eq('tutor_id', user.id)
       .gte('session_date', startDateStr)
       .lte('session_date', endDateStr)
+
+    if (wsId) {
+      existingQuery = existingQuery.eq('workspace_id', wsId)
+    }
 
     if (options?.batchId) {
       existingQuery = existingQuery.eq('batch_id', options.batchId)
@@ -100,6 +115,7 @@ export async function syncAndGetSessionsForDateRange(
         if (isBatchScheduledOnDate(batch, dateStr)) {
           newSessionsToInsert.push({
             tutor_id: user.id,
+            workspace_id: batch.workspace_id || wsId || null,
             batch_id: batch.id,
             session_date: dateStr,
             start_time: batch.start_time,
@@ -139,6 +155,10 @@ export async function syncAndGetSessionsForDateRange(
       .lte('session_date', endDateStr)
       .order('session_date', { ascending: true })
       .order('start_time', { ascending: true })
+
+    if (wsId) {
+      finalQuery = finalQuery.eq('workspace_id', wsId)
+    }
 
     if (options?.batchId) {
       finalQuery = finalQuery.eq('batch_id', options.batchId)
@@ -187,22 +207,25 @@ export async function syncAndGetSessionsForDateRange(
 /**
  * Returns today's class sessions for the logged-in tutor
  */
-export async function getTodaySessions(): Promise<{ data: ClassSessionWithBatch[]; error: string | null }> {
+export async function getTodaySessions(
+  workspaceId?: string
+): Promise<{ data: ClassSessionWithBatch[]; error: string | null }> {
   const todayStr = formatDateKey(new Date())
-  return syncAndGetSessionsForDateRange(todayStr, todayStr)
+  return syncAndGetSessionsForDateRange(todayStr, todayStr, { workspaceId })
 }
 
 /**
  * Returns upcoming class sessions starting from today
  */
 export async function getUpcomingSessions(
-  limit: number = 5
+  limit: number = 5,
+  workspaceId?: string
 ): Promise<{ data: ClassSessionWithBatch[]; error: string | null }> {
   const today = new Date()
   const todayStr = formatDateKey(today)
   const futureStr = formatDateKey(addDays(today, 14))
 
-  const { data, error } = await syncAndGetSessionsForDateRange(todayStr, futureStr)
+  const { data, error } = await syncAndGetSessionsForDateRange(todayStr, futureStr, { workspaceId })
   if (error) return { data: [], error }
 
   // Filter out cancelled if needed, or sort and slice

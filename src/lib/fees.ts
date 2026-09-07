@@ -1,5 +1,6 @@
 export * from './fee-utils'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import type { Fee, Payment, FeeWithDetails, FeeSummary, Student } from '@/types'
 
 /**
@@ -10,9 +11,16 @@ import { roundCurrency, deriveFeeStatus } from './fee-utils'
 export async function getFees(options?: {
   studentId?: string
   status?: string
+  workspaceId?: string
 }): Promise<{ data: FeeWithDetails[]; error: string | null }> {
   try {
     const supabase = await createClient()
+
+    let wsId = options?.workspaceId
+    if (!wsId) {
+      const activeWs = await getActiveWorkspace()
+      wsId = activeWs.activeWorkspace?.id
+    }
 
     let query = supabase
       .from('fees')
@@ -22,6 +30,10 @@ export async function getFees(options?: {
         payments (*)
       `)
       .order('due_date', { ascending: false })
+
+    if (wsId) {
+      query = query.eq('workspace_id', wsId)
+    }
 
     if (options?.studentId) {
       query = query.eq('student_id', options.studentId)
@@ -127,9 +139,9 @@ export async function getFeeById(id: string): Promise<{ data: FeeWithDetails | n
   }
 }
 
-export async function getFeeSummary(): Promise<FeeSummary> {
+export async function getFeeSummary(workspaceId?: string): Promise<FeeSummary> {
   try {
-    const { data: fees } = await getFees()
+    const { data: fees } = await getFees({ workspaceId })
 
     const today = new Date()
     const currentYear = today.getFullYear()

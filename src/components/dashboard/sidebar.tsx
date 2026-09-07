@@ -11,7 +11,9 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SidebarInstallButton } from '@/components/pwa/install-prompt'
-import { TUTOR_NAV_ITEMS, NavItem } from '@/lib/navigation'
+import { TUTOR_NAV_ITEMS, getTutorNavItems, NavItem } from '@/lib/navigation'
+import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
+import { useWorkspace } from '@/contexts/workspace-context'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
 import { createClient } from '@/lib/supabase/client'
@@ -68,7 +70,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const { user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
+  const { workspaceType } = useWorkspace()
   const [loggingOut, setLoggingOut] = React.useState(false)
+
+  const isOffline = workspaceType === 'offline'
+  const navItems = getTutorNavItems(workspaceType)
 
   const displayName = user?.user_metadata?.name ?? user?.email?.split('@')[0] ?? 'Tutor'
 
@@ -128,12 +134,15 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
         )}
       </div>
 
+      {/* Prominent Workspace Switcher in Sidebar */}
+      <WorkspaceSwitcher variant="sidebar" onSwitch={mobile ? onClose : undefined} />
+
       {/* Nav items */}
       <nav
-        className="flex-1 overflow-y-auto py-4 space-y-0.5 overscroll-contain"
+        className="flex-1 overflow-y-auto py-2 space-y-0.5 overscroll-contain"
         aria-label="Sidebar navigation links"
       >
-        {TUTOR_NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <NavLink
             key={item.href}
             item={item}
@@ -148,10 +157,24 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
 
         <div className="rounded-xl bg-white border border-gray-100 p-3 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-semibold text-gray-700">Tutor Workspace</span>
+            <span
+              className={cn(
+                'h-2 w-2 rounded-full',
+                isOffline ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'
+              )}
+            />
+            <span className="text-xs font-semibold text-gray-700">
+              {isOffline ? 'Offline Teaching' : 'Online Teaching'}
+            </span>
           </div>
-          <span className="text-[10px] font-mono text-gray-400">v1.0.0</span>
+          <span
+            className={cn(
+              'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded',
+              isOffline ? 'bg-amber-50 text-amber-700' : 'bg-indigo-50 text-indigo-700'
+            )}
+          >
+            {isOffline ? 'Physical' : 'Virtual'}
+          </span>
         </div>
 
         {mobile && (

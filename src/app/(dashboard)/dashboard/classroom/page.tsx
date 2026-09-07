@@ -19,6 +19,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getTodaySessions, getUpcomingSessions } from '@/lib/class-sessions'
 import { getBatches } from '@/lib/batches'
+import { getActiveWorkspace } from '@/lib/workspace'
+import { WorkspaceNotice } from '@/components/dashboard/workspace-notice'
 import { formatTimeRange } from '@/lib/scheduling'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import type { Metadata } from 'next'
@@ -30,6 +32,20 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function ClassroomHubPage() {
+  const { workspaceType } = await getActiveWorkspace()
+
+  if (workspaceType === 'offline') {
+    return (
+      <div className="py-12">
+        <WorkspaceNotice
+          requiredWorkspace="online"
+          title="Online Classroom & Virtual Engine"
+          description="The interactive WebRTC virtual classroom, digital sessions, and live feeds belong exclusively to the Online Teaching Workspace."
+        />
+      </div>
+    )
+  }
+
   const [todayRes, upcomingRes, batchesRes] = await Promise.all([
     getTodaySessions().catch(() => ({ data: [], error: null })),
     getUpcomingSessions(10).catch(() => ({ data: [], error: null })),

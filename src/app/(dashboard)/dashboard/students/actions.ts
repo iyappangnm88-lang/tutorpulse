@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import type { Student, StudentInsert, StudentUpdate } from '@/types'
 
 export interface ActionResult<T = unknown> {
@@ -25,9 +26,13 @@ export async function createStudentAction(
       return { success: false, error: 'Student full name is required.' }
     }
 
+    const activeWs = await getActiveWorkspace()
+    const workspaceId = input.workspace_id || activeWs.activeWorkspace?.id || null
+
     const newStudent: StudentInsert = {
       ...input,
       tutor_id: user.id,
+      workspace_id: workspaceId,
       full_name: input.full_name.trim(),
       phone: input.phone?.trim() || null,
       email: input.email?.trim() || null,

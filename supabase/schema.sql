@@ -76,12 +76,62 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ==============================================================================
+-- TABLE: workspaces
+-- Strictly separates tutor account operations into Offline and Online workspaces
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.workspaces (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type IN ('offline', 'online')),
+    name TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT unique_tutor_workspace_type UNIQUE (tutor_id, type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_workspaces_tutor ON public.workspaces(tutor_id);
+CREATE INDEX IF NOT EXISTS idx_workspaces_type ON public.workspaces(tutor_id, type);
+
+ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Tutors can view their own workspaces" ON public.workspaces;
+CREATE POLICY "Tutors can view their own workspaces"
+    ON public.workspaces FOR SELECT
+    USING (auth.uid() = tutor_id);
+
+DROP POLICY IF EXISTS "Tutors can manage their own workspaces" ON public.workspaces;
+CREATE POLICY "Tutors can manage their own workspaces"
+    ON public.workspaces FOR ALL
+    USING (auth.uid() = tutor_id)
+    WITH CHECK (auth.uid() = tutor_id);
+
+-- Auto-provision both workspaces on signup
+CREATE OR REPLACE FUNCTION public.provision_tutor_workspaces()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.workspaces (tutor_id, type, name)
+    VALUES 
+        (NEW.id, 'offline', 'Offline Teaching'),
+        (NEW.id, 'online', 'Online Teaching')
+    ON CONFLICT (tutor_id, type) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_provision_workspaces ON auth.users;
+CREATE TRIGGER on_auth_user_provision_workspaces
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.provision_tutor_workspaces();
+
+-- ==============================================================================
 -- TABLE: students
--- Core students record, strictly isolated per tutor/owner
+-- Core students record, strictly isolated per workspace
 -- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.students (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     full_name TEXT NOT NULL,
     phone TEXT,
     email TEXT,
@@ -136,6 +186,7 @@ CREATE POLICY "Tutors can delete their own students"
 CREATE TABLE IF NOT EXISTS public.batches (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     subject TEXT,
     class_name TEXT,
@@ -143,7 +194,7 @@ CREATE TABLE IF NOT EXISTS public.batches (
     working_days TEXT[] DEFAULT '{}',
     start_time TIME,
     end_time TIME,
-    class_mode TEXT DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online', 'hybrid')),
+    class_mode TEXT DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online')),
     location TEXT,
     description TEXT,
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived')),
@@ -266,12 +317,13 @@ CREATE POLICY "Tutors can delete batch_students"
 CREATE TABLE IF NOT EXISTS public.class_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     batch_id UUID NOT NULL REFERENCES public.batches(id) ON DELETE CASCADE,
     session_date DATE NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled')),
-    class_mode TEXT NOT NULL DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online', 'hybrid')),
+    class_mode TEXT NOT NULL DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online')),
     location TEXT,
     meeting_link TEXT,
     meeting_provider TEXT DEFAULT 'webrtc',
@@ -340,6 +392,7 @@ CREATE POLICY "Tutors can delete their own class sessions"
 CREATE TABLE IF NOT EXISTS public.attendance (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     batch_id UUID NOT NULL REFERENCES public.batches(id) ON DELETE CASCADE,
     student_id UUID NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
     session_id UUID REFERENCES public.class_sessions(id) ON DELETE SET NULL,
@@ -391,6 +444,7 @@ CREATE POLICY "Tutors can delete attendance records"
 CREATE TABLE IF NOT EXISTS public.parents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     portal_enabled BOOLEAN NOT NULL DEFAULT true,
     full_name TEXT NOT NULL,
@@ -513,6 +567,7 @@ CREATE POLICY "Tutors can delete parent_students"
 CREATE TABLE IF NOT EXISTS public.fees (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     student_id UUID NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     description TEXT,
@@ -636,6 +691,7 @@ CREATE POLICY "Tutors can delete payments"
 CREATE TABLE IF NOT EXISTS public.homework (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     batch_id UUID NOT NULL REFERENCES public.batches(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     description TEXT,
@@ -756,6 +812,7 @@ CREATE POLICY "Tutors can delete homework_students"
 CREATE TABLE IF NOT EXISTS public.tests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     batch_id UUID NOT NULL REFERENCES public.batches(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     subject TEXT,
@@ -877,6 +934,7 @@ CREATE POLICY "Tutors can delete test_marks"
 CREATE TABLE IF NOT EXISTS public.announcements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
     batch_id UUID REFERENCES public.batches(id) ON DELETE CASCADE,
     student_id UUID REFERENCES public.students(id) ON DELETE CASCADE,
     target_type TEXT NOT NULL DEFAULT 'all' CHECK (target_type IN ('all', 'batch', 'student')),
@@ -1028,7 +1086,52 @@ DROP POLICY IF EXISTS "Authenticated users can update their own participation" O
 CREATE POLICY "Authenticated users can update their own participation"
     ON public.classroom_participants FOR UPDATE
     USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);
+-- ==============================================================================
+-- Workspace Integrity Enforcement Triggers
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.check_batch_student_workspace()
+RETURNS TRIGGER AS $$
+DECLARE
+    batch_ws UUID;
+    student_ws UUID;
+BEGIN
+    SELECT workspace_id INTO batch_ws FROM public.batches WHERE id = NEW.batch_id;
+    SELECT workspace_id INTO student_ws FROM public.students WHERE id = NEW.student_id;
+
+    IF batch_ws IS NOT NULL AND student_ws IS NOT NULL AND batch_ws <> student_ws THEN
+        RAISE EXCEPTION 'Cross-workspace violation: Student workspace (%) does not match batch workspace (%)', student_ws, batch_ws;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_check_batch_student_workspace ON public.batch_students;
+CREATE TRIGGER trg_check_batch_student_workspace
+    BEFORE INSERT OR UPDATE ON public.batch_students
+    FOR EACH ROW
+    EXECUTE FUNCTION public.check_batch_student_workspace();
+
+CREATE OR REPLACE FUNCTION public.check_parent_student_workspace()
+RETURNS TRIGGER AS $$
+DECLARE
+    parent_ws UUID;
+    student_ws UUID;
+BEGIN
+    SELECT workspace_id INTO parent_ws FROM public.parents WHERE id = NEW.parent_id;
+    SELECT workspace_id INTO student_ws FROM public.students WHERE id = NEW.student_id;
+
+    IF parent_ws IS NOT NULL AND student_ws IS NOT NULL AND parent_ws <> student_ws THEN
+        RAISE EXCEPTION 'Cross-workspace violation: Parent workspace (%) does not match student workspace (%)', parent_ws, student_ws;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_check_parent_student_workspace ON public.parent_students;
+CREATE TRIGGER trg_check_parent_student_workspace
+    BEFORE INSERT OR UPDATE ON public.parent_students
+    FOR EACH ROW
+    EXECUTE FUNCTION public.check_parent_student_workspace();
 
 -- ==============================================================================
 -- Grant schema permissions to API roles and reload PostgREST cache

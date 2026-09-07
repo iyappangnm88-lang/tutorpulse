@@ -49,6 +49,15 @@ export const TUTOR_NAV_ITEMS: NavItem[] = [
   { label: 'Help & Guides', href: '/dashboard/help', icon: HelpCircle },
 ]
 
+export function getTutorNavItems(workspaceType: 'offline' | 'online' = 'offline'): NavItem[] {
+  if (workspaceType === 'offline') {
+    return TUTOR_NAV_ITEMS.filter(
+      (item) => item.href !== '/dashboard/calendar' && item.href !== '/dashboard/classroom'
+    )
+  }
+  return TUTOR_NAV_ITEMS
+}
+
 /**
  * Source of Truth for Parent Portal navigation.
  */

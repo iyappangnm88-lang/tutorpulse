@@ -15,6 +15,7 @@ import {
   Sparkles,
   Video,
   MapPin,
+  School,
 } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,6 +29,7 @@ import { isBatchScheduledOnDate, formatTimeRange } from '@/lib/scheduling'
 import { getTodaySessions, getUpcomingSessions } from '@/lib/class-sessions'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import { formatCurrency } from '@/lib/fee-utils'
 import { PageGuide } from '@/components/help/page-guide'
 import { OnboardingChecklist } from '@/components/help/onboarding-checklist'
@@ -107,7 +109,11 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Safely fetch all dashboard data — never crash on empty tables or new accounts
+  const { activeWorkspace, workspaceType } = await getActiveWorkspace()
+  const isOffline = workspaceType === 'offline'
+  const wsId = activeWorkspace?.id
+
+  // Safely fetch all dashboard data scoped strictly to the active workspace
   let notifications: Awaited<ReturnType<typeof getTutorNotifications>> = []
   let reportData: Awaited<ReturnType<typeof getReportAggregatedData>> | null = null
   let studentsRes: Awaited<ReturnType<typeof getStudents>> = { data: [], error: null }
@@ -121,10 +127,10 @@ export default async function DashboardPage() {
     [notifications, reportData, studentsRes, batchesRes, todaySessionsRes, upcomingSessionsRes] = await Promise.all([
       getTutorNotifications().catch(() => []),
       getReportAggregatedData({ range: 'this_month' }).catch(() => null),
-      getStudents().catch(() => ({ data: [], error: null })),
-      getBatches().catch(() => ({ data: [], error: null })),
-      getTodaySessions().catch(() => ({ data: [], error: null })),
-      getUpcomingSessions(5).catch(() => ({ data: [], error: null })),
+      getStudents(wsId).catch(() => ({ data: [], error: null })),
+      getBatches(wsId).catch(() => ({ data: [], error: null })),
+      getTodaySessions(wsId).catch(() => ({ data: [], error: null })),
+      getUpcomingSessions(5, wsId).catch(() => ({ data: [], error: null })),
     ])
   } catch {
     // Fallback: all empty — fresh account, no data yet
@@ -154,40 +160,77 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Welcome Hero Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-950 p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
+      {/* Welcome Hero Banner with prominent Active Workspace Indicator */}
+      <div
+        className={`rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden ${
+          isOffline
+            ? 'bg-gradient-to-r from-amber-900 via-amber-800 to-amber-950'
+            : 'bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-950'
+        }`}
+      >
         {/* Subtle decorative background circles */}
-        <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-16 right-32 h-64 w-64 rounded-full bg-violet-500/10 blur-2xl pointer-events-none" />
+        <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-16 right-32 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-1">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span>{todayStr}</span>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider mb-1.5">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md font-bold text-[10px] tracking-wider uppercase ${
+                  isOffline
+                    ? 'bg-amber-400 text-amber-950 shadow-xs'
+                    : 'bg-indigo-400 text-indigo-950 shadow-xs'
+                }`}
+              >
+                {isOffline ? <School className="h-3 w-3" /> : <Video className="h-3 w-3" />}
+                {isOffline ? 'Offline Teaching Workspace' : 'Online Teaching Workspace'}
+              </span>
+              <span className="text-white/60">•</span>
+              <span className="text-white/80">{todayStr}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               {greeting}, {tutorName}!
             </h1>
-            <p className="text-xs sm:text-sm text-indigo-200 mt-1 max-w-lg">
-              Here is what is happening across your batches, attendance, and fee collection today.
+            <p className="text-xs sm:text-sm text-white/80 mt-1 max-w-lg">
+              {isOffline
+                ? 'Managing physical tuition, classroom attendance, chalkboard notes & in-person batches.'
+                : 'Managing virtual classes, WebRTC live classroom, screen sharing & digital sessions.'}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              href="/dashboard/calendar"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-semibold shadow-xs transition-all"
-            >
-              <Calendar className="h-3.5 w-3.5 text-indigo-600" />
-              <span>Calendar</span>
-            </Link>
+            {isOffline ? (
+              <Link
+                href="/dashboard/attendance"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-amber-950 hover:bg-amber-50 text-xs font-semibold shadow-xs transition-all"
+              >
+                <ClipboardCheck className="h-3.5 w-3.5 text-amber-700" />
+                <span>Take Attendance</span>
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/dashboard/classroom"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-semibold shadow-xs transition-all"
+                >
+                  <Video className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>Classroom</span>
+                </Link>
+                <Link
+                  href="/dashboard/calendar"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white border border-white/10 backdrop-blur-xs transition-all"
+                >
+                  <Calendar className="h-3.5 w-3.5 text-indigo-200" />
+                  <span>Calendar</span>
+                </Link>
+              </>
+            )}
             <Link
               href="/dashboard/reports"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white border border-white/10 backdrop-blur-xs transition-all"
             >
-              <TrendingUp className="h-3.5 w-3.5 text-indigo-300" />
-              <span>Full Analytics →</span>
+              <TrendingUp className="h-3.5 w-3.5 text-white/80" />
+              <span>Reports →</span>
             </Link>
           </div>
         </div>
@@ -208,67 +251,86 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <MetricCard
             icon={Users}
-            label="Total Students"
+            label={isOffline ? 'Offline Students' : 'Online Students'}
             value={studentsCount}
-            sub={`${reportData?.kpis.active_students || 0} active in roster`}
-            iconColor="text-blue-600"
-            iconBg="bg-blue-50"
+            sub={`${reportData?.kpis.active_students || 0} active in ${isOffline ? 'physical' : 'digital'} roster`}
+            iconColor={isOffline ? 'text-amber-600' : 'text-blue-600'}
+            iconBg={isOffline ? 'bg-amber-50' : 'bg-blue-50'}
             href="/dashboard/students"
           />
           <MetricCard
             icon={ClipboardCheck}
             label="Attendance %"
-            value={`${reportData?.kpis.overall_attendance_pct || 100}%`}
-            sub="Average across sessions"
+            value={
+              reportData?.kpis.overall_attendance_pct !== undefined
+                ? `${reportData.kpis.overall_attendance_pct}%`
+                : '—'
+            }
+            sub="Month to date"
             iconColor="text-emerald-600"
             iconBg="bg-emerald-50"
             href="/dashboard/attendance"
           />
           <MetricCard
             icon={CreditCard}
-            label="Pending Fees"
-            value={formatCurrency(reportData?.kpis.fees_outstanding || 0)}
-            sub={`${reportData?.kpis.collection_rate || 100}% collection rate`}
-            iconColor="text-amber-600"
-            iconBg="bg-amber-50"
+            label="Fee Collected"
+            value={formatCurrency(reportData?.kpis.fees_total_collected || 0)}
+            sub={`${formatCurrency(reportData?.kpis.fees_outstanding || 0)} pending`}
+            iconColor="text-purple-600"
+            iconBg="bg-purple-50"
             href="/dashboard/fees"
           />
           <MetricCard
             icon={BookOpen}
             label="Homework Rate"
-            value={`${reportData?.kpis.homework_completion_rate || 100}%`}
-            sub={`${reportData?.kpis.homework_assigned || 0} assignments given`}
-            iconColor="text-purple-600"
-            iconBg="bg-purple-50"
+            value={
+              reportData?.kpis.homework_completion_rate !== undefined
+                ? `${reportData.kpis.homework_completion_rate}%`
+                : '—'
+            }
+            sub={`${reportData?.kpis.homework_assigned || 0} assigned`}
+            iconColor="text-amber-600"
+            iconBg="bg-amber-50"
             href="/dashboard/homework"
           />
         </div>
       </section>
 
       {/* Quick Actions Grid */}
-      <section>
+      <section aria-labelledby="quick-actions-heading">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Quick Actions</h2>
+          <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            {isOffline ? 'Offline Quick Actions' : 'Online Quick Actions'}
+          </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
           <QuickActionButton
             icon={UserPlus}
             label="Add Student"
-            description="Register a learner"
+            description={isOffline ? 'Register in-person learner' : 'Register digital learner'}
             href="/dashboard/students/new"
           />
           <QuickActionButton
             icon={Layers}
-            label="Create Batch"
-            description="Organize a class"
+            label={isOffline ? 'Create Batch' : 'Create Batch'}
+            description={isOffline ? 'Physical location' : 'Virtual classroom'}
             href="/dashboard/batches/new"
           />
-          <QuickActionButton
-            icon={ClipboardCheck}
-            label="Attendance"
-            description="Mark daily roll"
-            href="/dashboard/attendance"
-          />
+          {isOffline ? (
+            <QuickActionButton
+              icon={ClipboardCheck}
+              label="Attendance"
+              description="Mark physical roll"
+              href="/dashboard/attendance"
+            />
+          ) : (
+            <QuickActionButton
+              icon={Video}
+              label="Classroom"
+              description="Join WebRTC room"
+              href="/dashboard/classroom"
+            />
+          )}
           <QuickActionButton
             icon={GraduationCap}
             label="Add Test"
@@ -297,21 +359,29 @@ export default async function DashboardPage() {
           {/* Today's Schedule Card */}
           {todaySessions.length > 0 && (
             <Card className="border-indigo-100 shadow-xs">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-white">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-indigo-600" />
-                  <h2 className="text-sm font-bold text-gray-900">Today&apos;s Class Sessions</h2>
+                  {isOffline ? (
+                    <School className="h-4 w-4 text-amber-600" />
+                  ) : (
+                    <Video className="h-4 w-4 text-indigo-600" />
+                  )}
+                  <h2 className="text-sm font-bold text-gray-900">
+                    {isOffline ? "Today's In-Person Classes" : "Today's Virtual Classes"}
+                  </h2>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="success">
                     {todaySessions.length} {todaySessions.length === 1 ? 'class' : 'classes'} scheduled
                   </Badge>
-                  <Link
-                    href="/dashboard/calendar"
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-1"
-                  >
-                    Calendar →
-                  </Link>
+                  {!isOffline && (
+                    <Link
+                      href="/dashboard/calendar"
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-1"
+                    >
+                      Calendar →
+                    </Link>
+                  )}
                 </div>
               </div>
               <CardBody className="p-0">
@@ -322,7 +392,11 @@ export default async function DashboardPage() {
                       className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-gray-50/60 transition-colors"
                     >
                       <div className="flex items-start gap-3 min-w-0">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 font-bold text-sm shrink-0">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold text-sm shrink-0 ${
+                            isOffline ? 'bg-amber-50 text-amber-700' : 'bg-indigo-50 text-indigo-600'
+                          }`}
+                        >
                           {session.batch.name.charAt(0)}
                         </div>
                         <div className="min-w-0 space-y-0.5">
@@ -343,6 +417,12 @@ export default async function DashboardPage() {
                             </span>
                             <span>•</span>
                             <span className="capitalize">{session.class_mode}</span>
+                            {session.location && (
+                              <>
+                                <span>•</span>
+                                <span className="text-gray-600 truncate max-w-[120px]">{session.location}</span>
+                              </>
+                            )}
                             <span>•</span>
                             <span>{session.student_count ?? 0} Students</span>
                           </div>
@@ -350,7 +430,7 @@ export default async function DashboardPage() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
-                        {session.class_mode === 'online' ? (
+                        {!isOffline ? (
                           session.status === 'in_progress' ? (
                             <Link
                               href={`/dashboard/classroom/${session.id}`}
@@ -369,7 +449,7 @@ export default async function DashboardPage() {
                             </Link>
                           ) : null
                         ) : (
-                          /* Offline physical class */
+                          /* Offline physical class — purely in-person, zero WebRTC controls */
                           session.status === 'in_progress' ? (
                             <Link
                               href={`/dashboard/class/${session.id}`}
@@ -381,9 +461,9 @@ export default async function DashboardPage() {
                           ) : session.status === 'scheduled' ? (
                             <Link
                               href={`/dashboard/class/${session.id}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition-colors"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition-colors"
                             >
-                              <MapPin className="h-3.5 w-3.5 text-amber-600" />
+                              <MapPin className="h-3.5 w-3.5 text-amber-700" />
                               Open Class
                             </Link>
                           ) : (
@@ -401,12 +481,14 @@ export default async function DashboardPage() {
                         >
                           Attendance
                         </Link>
-                        <Link
-                          href="/dashboard/calendar"
-                          className="text-xs font-medium text-gray-500 hover:text-indigo-600 px-2 py-1"
-                        >
-                          Manage →
-                        </Link>
+                        {!isOffline && (
+                          <Link
+                            href="/dashboard/calendar"
+                            className="text-xs font-medium text-gray-500 hover:text-indigo-600 px-2 py-1"
+                          >
+                            Manage →
+                          </Link>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -415,11 +497,18 @@ export default async function DashboardPage() {
             </Card>
           )}
 
+          {/* Active Batches Card */}
           <Card>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
-                <h2 className="text-sm font-bold text-gray-900">Active Batches</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Your current tutoring cohorts & schedule</p>
+                <h2 className="text-sm font-bold text-gray-900">
+                  {isOffline ? 'Active Offline Batches' : 'Active Online Batches'}
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {isOffline
+                    ? 'In-person tuition cohorts & classroom schedules'
+                    : 'Digital cohorts & virtual classroom schedules'}
+                </p>
               </div>
               {todayBatches.length > 0 ? (
                 <Badge variant="success">
@@ -432,15 +521,21 @@ export default async function DashboardPage() {
             <CardBody className="p-0">
               {batchesCount === 0 ? (
                 <EmptyState
-                  icon={<Calendar className="h-6 w-6" />}
-                  title="No batches created yet"
-                  description="Create your first batch to organize your students and track attendance."
+                  icon={isOffline ? <School className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+                  title={isOffline ? 'No offline batches created yet' : 'No online batches created yet'}
+                  description={
+                    isOffline
+                      ? 'Create an offline batch with physical location to organize your in-person students.'
+                      : 'Create an online batch with WebRTC virtual classroom to teach remotely.'
+                  }
                   action={
                     <Link
                       href="/dashboard/batches/new"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white transition-colors"
+                      className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-colors ${
+                        isOffline ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'
+                      }`}
                     >
-                      Create Batch
+                      {isOffline ? 'Create Offline Batch' : 'Create Online Batch'}
                     </Link>
                   }
                 />
@@ -460,7 +555,11 @@ export default async function DashboardPage() {
                           <div
                             className={`flex h-9 w-9 items-center justify-center rounded-xl font-bold text-xs shrink-0 ${
                               isScheduledToday
-                                ? 'bg-indigo-600 text-white shadow-2xs shadow-indigo-500/30'
+                                ? isOffline
+                                  ? 'bg-amber-600 text-white shadow-2xs shadow-amber-500/30'
+                                  : 'bg-indigo-600 text-white shadow-2xs shadow-indigo-500/30'
+                                : isOffline
+                                ? 'bg-amber-50 text-amber-700'
                                 : 'bg-indigo-50 text-indigo-600'
                             }`}
                           >
@@ -481,6 +580,7 @@ export default async function DashboardPage() {
                             <p className="text-[11px] text-gray-400 truncate mt-0.5">
                               {batch.subject || 'General'}
                               {batch.class_name ? ` • Class ${batch.class_name}` : ''}
+                              {batch.location ? ` • 📍 ${batch.location}` : ''}
                               {batch.start_time && batch.end_time
                                 ? ` • ${formatTimeRange(batch.start_time, batch.end_time)}`
                                 : batch.schedule
@@ -524,12 +624,14 @@ export default async function DashboardPage() {
                 <Calendar className="h-4 w-4 text-indigo-600" />
                 <h2 className="text-sm font-bold text-gray-900">Upcoming Classes</h2>
               </div>
-              <Link
-                href="/dashboard/calendar"
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
-              >
-                Calendar →
-              </Link>
+              {!isOffline && (
+                <Link
+                  href="/dashboard/calendar"
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                >
+                  Calendar →
+                </Link>
+              )}
             </div>
             <CardBody className="p-0">
               {upcomingSessions.length === 0 ? (
@@ -541,7 +643,7 @@ export default async function DashboardPage() {
                   {upcomingSessions.slice(0, 4).map((session) => (
                     <Link
                       key={session.id}
-                      href="/dashboard/calendar"
+                      href={isOffline ? `/dashboard/class/${session.id}` : `/dashboard/calendar`}
                       className="p-3.5 flex items-center justify-between hover:bg-gray-50/70 transition-colors group block"
                     >
                       <div className="min-w-0 space-y-0.5">

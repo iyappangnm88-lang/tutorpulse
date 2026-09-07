@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { LogOut, Menu, X, Settings, HelpCircle } from 'lucide-react'
 import { NotificationBell } from '@/components/communication/notification-bell'
 import { GlobalHelpButton } from '@/components/help/global-help-button'
+import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
@@ -60,6 +61,11 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
       >
         {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
+
+      {/* Prominent Global Workspace Switcher */}
+      <div className="flex items-center">
+        <WorkspaceSwitcher variant="header" />
+      </div>
 
       {/* Page title area slot */}
       <div className="flex-1" />

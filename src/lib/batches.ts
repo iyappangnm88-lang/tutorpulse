@@ -1,15 +1,28 @@
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import type { Batch, BatchWithCount, EnrolledStudent, Student } from '@/types'
 
-export async function getBatches(): Promise<{ data: BatchWithCount[]; error: string | null }> {
+export async function getBatches(workspaceId?: string): Promise<{ data: BatchWithCount[]; error: string | null }> {
   try {
     const supabase = await createClient()
-    
-    // Fetch batches
-    const { data: batchesData, error: batchesError } = await supabase
+
+    let wsId = workspaceId
+    if (!wsId) {
+      const activeWs = await getActiveWorkspace()
+      wsId = activeWs.activeWorkspace?.id
+    }
+
+    // Fetch batches scoped by workspace
+    let query = supabase
       .from('batches')
       .select('*')
       .order('created_at', { ascending: false })
+
+    if (wsId) {
+      query = query.eq('workspace_id', wsId)
+    }
+
+    const { data: batchesData, error: batchesError } = await query
 
     if (batchesError) {
       if (batchesError.code === 'PGRST205' || batchesError.code === '42P01') {
@@ -48,14 +61,26 @@ export async function getBatches(): Promise<{ data: BatchWithCount[]; error: str
   }
 }
 
-export async function getBatchById(id: string): Promise<{ data: BatchWithCount | null; error: string | null }> {
+export async function getBatchById(id: string, workspaceId?: string): Promise<{ data: BatchWithCount | null; error: string | null }> {
   try {
     const supabase = await createClient()
-    const { data: batch, error } = await supabase
+
+    let wsId = workspaceId
+    if (!wsId) {
+      const activeWs = await getActiveWorkspace()
+      wsId = activeWs.activeWorkspace?.id
+    }
+
+    let query = supabase
       .from('batches')
       .select('*')
       .eq('id', id)
-      .maybeSingle()
+
+    if (wsId) {
+      query = query.eq('workspace_id', wsId)
+    }
+
+    const { data: batch, error } = await query.maybeSingle()
 
     if (error || !batch) {
       return { data: null, error: error?.message || 'Batch not found' }
@@ -126,7 +151,14 @@ export async function getAvailableStudentsForBatch(batchId: string): Promise<{ d
   try {
     const supabase = await createClient()
 
-    // 1. Get IDs of students already actively in this batch
+    // 1. Fetch the batch to know its workspace_id
+    const { data: batch } = await supabase
+      .from('batches')
+      .select('workspace_id')
+      .eq('id', batchId)
+      .maybeSingle()
+
+    // 2. Get IDs of students already actively in this batch
     const { data: enrolled } = await supabase
       .from('batch_students')
       .select('student_id')
@@ -135,12 +167,18 @@ export async function getAvailableStudentsForBatch(batchId: string): Promise<{ d
 
     const enrolledIds = new Set((enrolled || []).map((e) => e.student_id))
 
-    // 2. Fetch all active students
-    const { data: allStudents, error } = await supabase
+    // 3. Fetch all active students strictly from the batch's workspace
+    let query = supabase
       .from('students')
       .select('*')
       .neq('status', 'archived')
       .order('full_name', { ascending: true })
+
+    if (batch?.workspace_id) {
+      query = query.eq('workspace_id', batch.workspace_id)
+    }
+
+    const { data: allStudents, error } = await query
 
     if (error) {
       if (error.code === 'PGRST205' || error.code === '42P01') {
@@ -149,7 +187,7 @@ export async function getAvailableStudentsForBatch(batchId: string): Promise<{ d
       return { data: [], error: error.message }
     }
 
-    // 3. Filter out those already in batch
+    // 4. Filter out those already in batch
     const available = (allStudents as Student[]).filter((s) => !enrolledIds.has(s.id))
     return { data: available, error: null }
   } catch {

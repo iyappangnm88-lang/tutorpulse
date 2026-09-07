@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { FieldHelp } from '@/components/help/field-help'
 import { useToast } from '@/contexts/toast-context'
+import { useWorkspace } from '@/contexts/workspace-context'
 import { createBatchAction, updateBatchAction } from '@/app/(dashboard)/dashboard/batches/actions'
 import { WorkingDaysSelector } from './working-days-selector'
 import { TimeRangePicker } from './time-range-picker'
@@ -25,11 +26,19 @@ interface BatchFormProps {
 export function BatchForm({ initialData, mode }: BatchFormProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const { workspaceType } = useWorkspace()
   const [loading, setLoading] = useState(false)
 
   // Safe time formatting for HTML type="time" input (HH:mm)
   const safeStartTime = initialData?.start_time ? initialData.start_time.slice(0, 5) : ''
   const safeEndTime = initialData?.end_time ? initialData.end_time.slice(0, 5) : ''
+
+  const effectiveWorkspace: 'offline' | 'online' =
+    mode === 'edit'
+      ? initialData?.class_mode === 'online'
+        ? 'online'
+        : 'offline'
+      : workspaceType
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -38,7 +47,7 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
     working_days: (initialData?.working_days || []) as WorkingDay[],
     start_time: safeStartTime,
     end_time: safeEndTime,
-    class_mode: (initialData?.class_mode || 'offline') as ClassMode,
+    class_mode: (initialData?.class_mode || effectiveWorkspace) as ClassMode,
     location: initialData?.location || '',
     description: initialData?.description || '',
     status: (initialData?.status || 'active') as BatchStatus,
@@ -251,6 +260,8 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
             <ClassModeSelector
               mode={formData.class_mode}
               location={formData.location}
+              lockedWorkspace={effectiveWorkspace}
+              isEdit={mode === 'edit'}
               onModeChange={(m) => {
                 setFormData({ ...formData, class_mode: m })
                 if (errors.class_mode) setErrors((prev) => ({ ...prev, class_mode: '' }))

@@ -12,6 +12,8 @@ interface ClassModeSelectorProps {
   onLocationChange: (location: string) => void
   locationError?: string
   disabled?: boolean
+  lockedWorkspace?: 'offline' | 'online'
+  isEdit?: boolean
 }
 
 export function ClassModeSelector({
@@ -21,6 +23,8 @@ export function ClassModeSelector({
   onLocationChange,
   locationError,
   disabled = false,
+  lockedWorkspace,
+  isEdit = false,
 }: ClassModeSelectorProps) {
   // TutorPulse strictly offers two distinct teaching systems: Offline (Physical) or Online (Virtual)
   const modes: Array<{
@@ -43,18 +47,30 @@ export function ClassModeSelector({
     },
   ]
 
-  const isOffline = mode === 'offline'
-  const isOnline = mode === 'online'
-  const isLegacyHybrid = mode === 'hybrid'
+  const effectiveMode = lockedWorkspace || mode
+  const isOffline = effectiveMode === 'offline'
+  const isOnline = effectiveMode === 'online'
+  const isLegacyHybrid = effectiveMode === 'hybrid'
 
   return (
     <div className="space-y-4">
       <div>
-        <span className="block text-sm font-semibold text-gray-900">
-          Teaching System / Class Mode <span className="text-red-500">*</span>
-        </span>
+        <div className="flex items-center justify-between">
+          <span className="block text-sm font-semibold text-gray-900">
+            Teaching System / Class Mode <span className="text-red-500">*</span>
+          </span>
+          {lockedWorkspace && (
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+              {isEdit ? 'Locked to Batch Workspace' : `Workspace: ${lockedWorkspace}`}
+            </span>
+          )}
+        </div>
         <p className="text-xs text-gray-500">
-          Select whether this batch is taught in person at a physical location or conducted in the online virtual classroom.
+          {isEdit
+            ? 'Batches are permanently assigned to their creation workspace. Mode cannot be modified.'
+            : lockedWorkspace === 'offline'
+            ? 'Creating an Offline batch in your Offline Teaching Workspace.'
+            : 'Creating an Online batch in your Online Teaching Workspace.'}
         </p>
       </div>
 
@@ -75,7 +91,8 @@ export function ClassModeSelector({
         aria-label="Select class mode"
       >
         {modes.map((item) => {
-          const isSelected = mode === item.id
+          const isSelected = effectiveMode === item.id
+          const isLockedOut = Boolean(lockedWorkspace && lockedWorkspace !== item.id)
           const Icon = item.icon
 
           return (
@@ -84,12 +101,15 @@ export function ClassModeSelector({
               type="button"
               role="radio"
               aria-checked={isSelected}
-              disabled={disabled}
-              onClick={() => onModeChange(item.id)}
+              disabled={disabled || isLockedOut}
+              onClick={() => !lockedWorkspace && onModeChange(item.id)}
               className={cn(
-                'flex items-start gap-3.5 p-3.5 rounded-xl border transition-all cursor-pointer select-none text-left',
+                'flex items-start gap-3.5 p-3.5 rounded-xl border transition-all text-left',
+                isLockedOut
+                  ? 'opacity-35 cursor-not-allowed bg-gray-50 border-gray-200'
+                  : 'cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
-                'disabled:pointer-events-none disabled:opacity-50 min-h-[64px]',
+                'disabled:pointer-events-none min-h-[64px]',
                 isSelected
                   ? 'bg-indigo-50/80 border-indigo-600 text-indigo-950 font-semibold ring-1 ring-indigo-600 shadow-2xs'
                   : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'

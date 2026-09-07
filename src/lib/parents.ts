@@ -1,15 +1,28 @@
 import { createClient } from '@/lib/supabase/server'
+import { getActiveWorkspace } from '@/lib/workspace'
 import type { Parent, ParentWithStudents, LinkedStudent, LinkedParent, Student } from '@/types'
 
-export async function getParents(): Promise<{ data: ParentWithStudents[]; error: string | null }> {
+export async function getParents(workspaceId?: string): Promise<{ data: ParentWithStudents[]; error: string | null }> {
   try {
     const supabase = await createClient()
 
-    // 1. Fetch parents
-    const { data: parentsData, error: parentsError } = await supabase
+    let wsId = workspaceId
+    if (!wsId) {
+      const activeWs = await getActiveWorkspace()
+      wsId = activeWs.activeWorkspace?.id
+    }
+
+    // 1. Fetch parents scoped to workspace
+    let query = supabase
       .from('parents')
       .select('*')
       .order('created_at', { ascending: false })
+
+    if (wsId) {
+      query = query.eq('workspace_id', wsId)
+    }
+
+    const { data: parentsData, error: parentsError } = await query
 
     if (parentsError) {
       if (parentsError.code === 'PGRST205' || parentsError.code === '42P01') {
@@ -140,7 +153,14 @@ export async function getAvailableStudentsForParent(parentId: string): Promise<{
   try {
     const supabase = await createClient()
 
-    // 1. Get student IDs already linked to this parent
+    // 1. Fetch the parent to know the workspace_id
+    const { data: parent } = await supabase
+      .from('parents')
+      .select('workspace_id')
+      .eq('id', parentId)
+      .maybeSingle()
+
+    // 2. Get student IDs already linked to this parent
     const { data: linked } = await supabase
       .from('parent_students')
       .select('student_id')
@@ -148,16 +168,18 @@ export async function getAvailableStudentsForParent(parentId: string): Promise<{
 
     const linkedIds = new Set((linked || []).map((l) => l.student_id))
 
-    // 2. Fetch all non-archived students
-    const { data: allStudents, error } = await supabase
+    // 3. Fetch all non-archived students strictly in the same workspace
+    let query = supabase
       .from('students')
       .select('*')
       .neq('status', 'archived')
       .order('full_name', { ascending: true })
 
-    if (error) {
-      return { data: [], error: error.message }
+    if (parent?.workspace_id) {
+      query = query.eq('workspace_id', parent.workspace_id)
     }
+
+    const { data: allStudents, error } = await query
 
     const available = (allStudents as Student[]).filter((s) => !linkedIds.has(s.id))
     return { data: available, error: null }

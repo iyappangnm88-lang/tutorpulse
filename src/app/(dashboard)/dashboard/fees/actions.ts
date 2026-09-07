@@ -44,10 +44,10 @@ export async function createFeeAction(input: {
       return { success: false, error: 'Due date is required.' }
     }
 
-    // Verify student belongs to this tutor
+    // Verify student belongs to this tutor and retrieve workspace_id
     const { data: student, error: studentError } = await supabase
       .from('students')
-      .select('id')
+      .select('id, workspace_id')
       .eq('id', input.student_id)
       .eq('tutor_id', user.id)
       .single()
@@ -62,6 +62,7 @@ export async function createFeeAction(input: {
       .from('fees')
       .insert({
         tutor_id: user.id,
+        workspace_id: student.workspace_id || null,
         student_id: input.student_id,
         title: input.title.trim(),
         description: input.description?.trim() || null,

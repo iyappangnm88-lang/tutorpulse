@@ -5,6 +5,8 @@ import { CalendarView } from '@/components/calendar/calendar-view'
 import { PageGuide } from '@/components/help/page-guide'
 import { syncAndGetSessionsForDateRange, formatDateKey, addDays } from '@/lib/class-sessions'
 import { getBatches } from '@/lib/batches'
+import { getActiveWorkspace } from '@/lib/workspace'
+import { WorkspaceNotice } from '@/components/dashboard/workspace-notice'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +16,19 @@ export const metadata: Metadata = {
 }
 
 export default async function CalendarPage() {
+  const { workspaceType } = await getActiveWorkspace()
+
+  if (workspaceType === 'offline') {
+    return (
+      <div className="py-12">
+        <WorkspaceNotice
+          requiredWorkspace="online"
+          title="Interactive Calendar & Digital Timetable"
+          description="The Calendar & Session scheduling view belongs to the Online Teaching Workspace. Offline tuition utilizes physical batches, locations, and attendance sheets."
+        />
+      </div>
+    )
+  }
   const now = new Date()
   const y = now.getFullYear()
   const m = now.getMonth()
