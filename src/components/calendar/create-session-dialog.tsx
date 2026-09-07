@@ -176,23 +176,28 @@ export function CreateSessionDialog({
               onChange={(e) => setClassMode(e.target.value as ClassMode)}
               className="mt-1"
             >
-              <option value="offline">Offline</option>
-              <option value="online">Online</option>
-              <option value="hybrid">Hybrid</option>
+              <option value="offline">Offline (Physical)</option>
+              <option value="online">Online (Virtual)</option>
             </Select>
           </div>
           <div>
             <Label htmlFor="new-session-location" className="text-xs font-semibold text-gray-700">
-              Location / Room
+              {classMode === 'online' ? 'Classroom Environment' : 'Physical Location'}
             </Label>
-            <Input
-              id="new-session-location"
-              type="text"
-              placeholder="Room 101, Main Center"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="mt-1"
-            />
+            {classMode === 'online' ? (
+              <div className="mt-1 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-700 font-medium">
+                Live WebRTC Classroom
+              </div>
+            ) : (
+              <Input
+                id="new-session-location"
+                type="text"
+                placeholder="e.g. Room 101, Main Center"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="mt-1"
+              />
+            )}
           </div>
         </div>
 

@@ -219,6 +219,14 @@ export async function getClassroomTokenAction(sessionId: string): Promise<{
 
     const session = authResult.session
 
+    if (session.class_mode === 'offline') {
+      return {
+        success: false,
+        providerConfigured: false,
+        error: 'This session is configured as an offline in-person class.',
+      }
+    }
+
     if (session.status === 'completed') {
       return {
         success: false,

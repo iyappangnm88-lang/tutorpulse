@@ -5,6 +5,7 @@ import type { ClassroomRole } from './types'
 export interface SessionAuthResult {
   authorized: boolean
   role?: ClassroomRole
+  studentId?: string
   user?: {
     id: string
     name: string
@@ -49,18 +50,11 @@ export async function verifySessionAccess(sessionId: string): Promise<SessionAut
       batch: rawSession.batch as Batch,
     }
 
-    // 2. Offline class guard
-    if (session.class_mode === 'offline') {
-      return {
-        authorized: false,
-        error: 'This session is configured as an offline in-person class.',
-      }
-    }
-
-    // 3. Cancelled session guard
+    // 2. Cancelled session guard
     if (session.status === 'cancelled') {
       return {
         authorized: false,
+        session,
         error: 'This class session has been cancelled.',
       }
     }
@@ -131,6 +125,7 @@ export async function verifySessionAccess(sessionId: string): Promise<SessionAut
         return {
           authorized: true,
           role: 'participant',
+          studentId: matchingChild.students.id,
           user: {
             id: user.id,
             name: matchingChild.students.full_name,

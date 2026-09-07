@@ -142,10 +142,36 @@ export async function updateBatchAction(
       return { success: false, error: error.message }
     }
 
+    // If class_mode was updated, synchronize future unstarted scheduled sessions
+    // Historical sessions (past date or completed/in-progress) remain 100% untouched
+    if (updateData.class_mode !== undefined) {
+      const todayStr = new Date().toISOString().split('T')[0]
+      const sessionUpdates: Record<string, any> = {
+        class_mode: updateData.class_mode,
+        updated_at: new Date().toISOString(),
+      }
+      if (updateData.class_mode === 'online') {
+        sessionUpdates.location = null
+      } else if (updateData.location !== undefined) {
+        sessionUpdates.location = updateData.location
+      }
+
+      await supabase
+        .from('class_sessions')
+        .update(sessionUpdates)
+        .eq('batch_id', id)
+        .eq('tutor_id', user.id)
+        .eq('status', 'scheduled')
+        .eq('is_overridden', false)
+        .gte('session_date', todayStr)
+    }
+
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/batches')
     revalidatePath(`/dashboard/batches/${id}`)
     revalidatePath('/dashboard/attendance')
+    revalidatePath('/dashboard/calendar')
+    revalidatePath('/dashboard/classroom')
     return { success: true, data: data as Batch }
   } catch (err: unknown) {
     console.error('updateBatchAction exception:', err)

@@ -50,6 +50,11 @@ export default async function ParentClassroomPage({ params }: ParentClassroomPag
     )
   }
 
+  // Cross-route guard: If this is an offline session, redirect to the parent offline class view
+  if (authResult.session.class_mode === 'offline') {
+    redirect(`/parent/class/${sessionId}`)
+  }
+
   // If a tutor accesses this route, redirect them to the host dashboard classroom
   if (authResult.role === 'host') {
     redirect(`/dashboard/classroom/${sessionId}`)

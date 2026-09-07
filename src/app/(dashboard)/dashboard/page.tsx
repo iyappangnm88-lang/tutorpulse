@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Sparkles,
   Video,
+  MapPin,
 } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -349,14 +350,14 @@ export default async function DashboardPage() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
-                        {(session.class_mode === 'online' || session.class_mode === 'hybrid') && (
+                        {session.class_mode === 'online' ? (
                           session.status === 'in_progress' ? (
                             <Link
                               href={`/dashboard/classroom/${session.id}`}
                               className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-xl shadow-xs transition-colors"
                             >
                               <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                              Live • Enter Class
+                              Live • Enter Classroom
                             </Link>
                           ) : session.status === 'scheduled' ? (
                             <Link
@@ -367,6 +368,32 @@ export default async function DashboardPage() {
                               Enter Classroom
                             </Link>
                           ) : null
+                        ) : (
+                          /* Offline physical class */
+                          session.status === 'in_progress' ? (
+                            <Link
+                              href={`/dashboard/class/${session.id}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 px-3 py-1.5 rounded-xl shadow-xs transition-colors"
+                            >
+                              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                              Physical Class Active
+                            </Link>
+                          ) : session.status === 'scheduled' ? (
+                            <Link
+                              href={`/dashboard/class/${session.id}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition-colors"
+                            >
+                              <MapPin className="h-3.5 w-3.5 text-amber-600" />
+                              Open Class
+                            </Link>
+                          ) : (
+                            <Link
+                              href={`/dashboard/class/${session.id}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200 transition-colors"
+                            >
+                              Class Details
+                            </Link>
+                          )
                         )}
                         <Link
                           href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}

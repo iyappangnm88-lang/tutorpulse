@@ -25,3 +25,25 @@ export async function getBatchAttendanceForDate(
     return { data: [], error: 'Failed to load attendance records.' }
   }
 }
+
+export async function getSessionAttendance(
+  sessionId: string,
+  batchId: string,
+  date: string
+): Promise<{ data: Attendance[]; error: string | null }> {
+  try {
+    const supabase = await createClient()
+    const { data: bySession, error: sessionErr } = await supabase
+      .from('attendance')
+      .select('*')
+      .eq('session_id', sessionId)
+
+    if (!sessionErr && bySession && bySession.length > 0) {
+      return { data: bySession as Attendance[], error: null }
+    }
+
+    return getBatchAttendanceForDate(batchId, date)
+  } catch {
+    return { data: [], error: 'Failed to load session attendance.' }
+  }
+}

@@ -167,7 +167,7 @@ export function SessionDetailDialog({
               )}
             </div>
 
-            {(session.class_mode === 'online' || session.class_mode === 'hybrid') && (
+            {session.class_mode === 'online' && (
               <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-xs">
                 <span className="text-gray-700 flex items-center gap-1.5 font-medium">
                   <Video className="h-3.5 w-3.5 text-indigo-600" />
@@ -178,6 +178,21 @@ export function SessionDetailDialog({
                   className="font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors"
                 >
                   Enter Classroom →
+                </Link>
+              </div>
+            )}
+
+            {session.class_mode === 'offline' && (
+              <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-xs">
+                <span className="text-gray-700 flex items-center gap-1.5 font-medium">
+                  <MapPin className="h-3.5 w-3.5 text-amber-600" />
+                  Physical Class:
+                </span>
+                <Link
+                  href={`/dashboard/class/${session.id}`}
+                  className="font-semibold text-amber-800 hover:text-amber-900 flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition-colors"
+                >
+                  Open Physical Class →
                 </Link>
               </div>
             )}

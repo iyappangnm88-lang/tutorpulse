@@ -50,6 +50,11 @@ export default async function TutorClassroomPage({ params }: ClassroomPageProps)
     )
   }
 
+  // Cross-route guard: If this is an offline session, redirect to the offline physical class view
+  if (authResult.session.class_mode === 'offline') {
+    redirect(`/dashboard/class/${sessionId}`)
+  }
+
   // If a parent tries to enter the tutor dashboard classroom route, redirect to parent route
   if (authResult.role === 'participant') {
     redirect(`/parent/classroom/${sessionId}`)

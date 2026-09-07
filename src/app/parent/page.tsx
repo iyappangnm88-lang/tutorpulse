@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Eye,
   Video,
+  MapPin,
 } from 'lucide-react'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -86,15 +87,25 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
                 <p className="text-xs text-indigo-200 mt-0.5">{upcoming_class.schedule}</p>
               ) : null}
 
-              {upcoming_class.next_session_id && ['online', 'hybrid'].includes(upcoming_class.next_session_mode || '') && (
+              {upcoming_class.next_session_id && (
                 <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between">
-                  <Link
-                    href={`/parent/classroom/${upcoming_class.next_session_id}`}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-indigo-900 hover:bg-indigo-50 shadow-xs transition-colors"
-                  >
-                    <Video className="h-3.5 w-3.5 text-indigo-600" />
-                    <span>{upcoming_class.next_session_status === 'in_progress' ? 'Join Live Class' : 'Enter Classroom'}</span>
-                  </Link>
+                  {upcoming_class.next_session_mode === 'online' ? (
+                    <Link
+                      href={`/parent/classroom/${upcoming_class.next_session_id}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-indigo-900 hover:bg-indigo-50 shadow-xs transition-colors"
+                    >
+                      <Video className="h-3.5 w-3.5 text-indigo-600" />
+                      <span>{upcoming_class.next_session_status === 'in_progress' ? 'Join Live Class' : 'Enter Classroom'}</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/parent/class/${upcoming_class.next_session_id}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/20 text-white hover:bg-white/30 border border-white/20 transition-colors"
+                    >
+                      <MapPin className="h-3.5 w-3.5 text-amber-300" />
+                      <span>View Class Details</span>
+                    </Link>
+                  )}
                 </div>
               )}
             </div>

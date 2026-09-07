@@ -129,7 +129,7 @@ export default async function ClassroomHubPage() {
               <span>Today&apos;s Online Classes</span>
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              Online and hybrid sessions scheduled for today
+              Live online sessions scheduled for today
             </p>
           </div>
           <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
