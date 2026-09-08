@@ -23,11 +23,13 @@ import {
   Shield,
   Radio,
   Sparkles,
+  PenTool,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/contexts/toast-context'
 import { formatTimeRange } from '@/lib/scheduling'
+import { DigitalWhiteboard } from '@/components/whiteboard/digital-whiteboard'
 import { EndClassDialog } from './end-class-dialog'
 import {
   startClassSessionAction,
@@ -220,6 +222,9 @@ export function ClassroomView({
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
   const [sidePanelTab, setSidePanelTab] = useState<'participants' | 'chat'>('participants')
   const chatScrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Stage View Mode: Video Grid vs Digital Whiteboard
+  const [activeStageView, setActiveStageView] = useState<'video' | 'whiteboard'>('video')
 
   // References to Engine Instances
   const signalingRef = useRef<ClassroomSignalingChannel | null>(null)
@@ -621,6 +626,38 @@ export function ClassroomView({
             </span>
           )}
 
+          {/* Stage View Switcher (Video Grid vs Whiteboard) */}
+          {status === 'in_progress' && (
+            <div className="flex items-center gap-1 bg-gray-900 p-0.5 rounded-xl border border-gray-800">
+              <button
+                type="button"
+                onClick={() => setActiveStageView('video')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  activeStageView === 'video'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="Switch to full video grid"
+              >
+                <Video className="h-3 w-3" />
+                <span className="hidden sm:inline">Video</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveStageView('whiteboard')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  activeStageView === 'whiteboard'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="Switch to digital whiteboard"
+              >
+                <PenTool className="h-3 w-3" />
+                <span>Whiteboard</span>
+              </button>
+            </div>
+          )}
+
           {/* Host Start Class Action */}
           {initialRole === 'host' && status === 'scheduled' && (
             <Button
@@ -794,8 +831,59 @@ export function ClassroomView({
                 </Button>
               </div>
             </div>
+          ) : activeStageView === 'whiteboard' ? (
+            /* State D1: Active Digital Whiteboard Teaching Stage */
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative w-full h-full rounded-2xl border border-gray-800 bg-gray-950 shadow-2xl">
+              {/* Main Whiteboard Canvas */}
+              <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
+                <DigitalWhiteboard
+                  sessionId={session.id}
+                  portalType={portalType}
+                  currentUserId={userId}
+                  currentUserName={currentUserName}
+                />
+              </div>
+
+              {/* Video Strip (keeps tutor and student videos active and visible) */}
+              <div className="h-28 md:h-auto md:w-56 lg:w-64 border-t md:border-t-0 md:border-l border-gray-800/80 bg-gray-950/90 p-2 overflow-x-auto md:overflow-y-auto flex md:flex-col gap-2 shrink-0 z-10 backdrop-blur-md">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1 hidden md:block">
+                  Live Video ({participants.length})
+                </div>
+                <div className="min-w-[130px] md:min-w-0 md:w-full h-24 md:h-32 shrink-0">
+                  <ParticipantTile
+                    participantId={userId}
+                    name={currentUserName}
+                    role={initialRole}
+                    isLocal={true}
+                    stream={localStream}
+                    isAudioMuted={isAudioMuted}
+                    isVideoMuted={isVideoMuted}
+                    isScreenSharing={isScreenSharing}
+                    connectionState="connected"
+                  />
+                </div>
+                {remoteParticipants.map((p) => {
+                  const remoteStream = remoteStreams.get(p.id)
+                  return (
+                    <div key={p.id} className="min-w-[130px] md:min-w-0 md:w-full h-24 md:h-32 shrink-0">
+                      <ParticipantTile
+                        participantId={p.id}
+                        name={p.name}
+                        role={p.role}
+                        isLocal={false}
+                        stream={remoteStream}
+                        isAudioMuted={p.isAudioMuted}
+                        isVideoMuted={p.isVideoMuted}
+                        isScreenSharing={p.isScreenSharing}
+                        connectionState={p.connectionState}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           ) : (
-            /* State D: Active Live WebRTC Video Grid */
+            /* State D2: Active Live WebRTC Video Grid */
             <div className="flex-1 flex flex-col gap-2 sm:gap-3 overflow-hidden">
               {/* Screen Share Spotlight (if active) */}
               {(isLocalScreenSharing || activeScreenSharingPeer) && (
@@ -1110,6 +1198,24 @@ export function ClassroomView({
               <Share2 className="h-5 w-5" />
             </button>
           )}
+
+          {/* Whiteboard Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveStageView(activeStageView === 'whiteboard' ? 'video' : 'whiteboard')
+            }}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
+              activeStageView === 'whiteboard'
+                ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-400'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title={activeStageView === 'whiteboard' ? 'Return to Video Grid' : 'Open Digital Whiteboard'}
+            aria-label="Digital Whiteboard"
+          >
+            <PenTool className="h-5 w-5" />
+            <span className="text-[8px] font-bold mt-0.5 hidden sm:inline">Board</span>
+          </button>
 
           {/* Participants Panel Toggle */}
           <button

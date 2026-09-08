@@ -439,3 +439,21 @@ export interface ReportAggregatedData {
   homeworkRows: StudentHomeworkReportRow[]
   feeRows: StudentFeeReportRow[]
 }
+
+// Whiteboard Types re-export
+export type {
+  WhiteboardTool,
+  WhiteboardColor,
+  WhiteboardPoint,
+  WhiteboardElementType,
+  BaseWhiteboardElement,
+  StrokeElement,
+  ShapeElement,
+  TextElement,
+  WhiteboardElement,
+  WhiteboardPageData,
+  WhiteboardSessionState,
+  WhiteboardRealtimeEvent,
+} from '@/lib/whiteboard/types'
+export { WHITEBOARD_PALETTE, STROKE_WIDTHS } from '@/lib/whiteboard/types'
+

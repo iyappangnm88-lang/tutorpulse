@@ -722,10 +722,79 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+      },
+      whiteboards: {
+        Row: {
+          id: string
+          session_id: string
+          workspace_id: string
+          tutor_id: string
+          students_can_draw: boolean
+          active_page_number: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          workspace_id: string
+          tutor_id: string
+          students_can_draw?: boolean
+          active_page_number?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          workspace_id?: string
+          tutor_id?: string
+          students_can_draw?: boolean
+          active_page_number?: number
+          created_at?: string
+          updated_at?: string
+        }
+      },
+      whiteboard_pages: {
+        Row: {
+          id: string
+          whiteboard_id: string
+          page_number: number
+          title: string
+          elements: any
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          whiteboard_id: string
+          page_number?: number
+          title?: string
+          elements?: any
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          whiteboard_id?: string
+          page_number?: number
+          title?: string
+          elements?: any
+          created_at?: string
+          updated_at?: string
+        }
       }
     }
   }
 }
+
+export type WhiteboardRow = Database['public']['Tables']['whiteboards']['Row']
+export type WhiteboardInsert = Database['public']['Tables']['whiteboards']['Insert']
+export type WhiteboardUpdate = Database['public']['Tables']['whiteboards']['Update']
+
+export type WhiteboardPageRow = Database['public']['Tables']['whiteboard_pages']['Row']
+export type WhiteboardPageInsert = Database['public']['Tables']['whiteboard_pages']['Insert']
+export type WhiteboardPageUpdate = Database['public']['Tables']['whiteboard_pages']['Update']
 
 export type Workspace = Database['public']['Tables']['workspaces']['Row']
 export type WorkspaceInsert = Database['public']['Tables']['workspaces']['Insert']

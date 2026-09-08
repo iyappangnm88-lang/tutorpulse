@@ -250,10 +250,10 @@ export default async function ClassroomHubPage() {
             <CardHeader className="border-b border-gray-100 px-5 py-4">
               <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                 <Layers className="h-4 w-4 text-indigo-600" />
-                <span>Your Online & Hybrid Batches</span>
+                <span>Your Online Batches</span>
               </h2>
               <p className="text-xs text-gray-400 mt-0.5">
-                Cohorts configured for online video classes
+                Cohorts configured for online video classes and digital whiteboard
               </p>
             </CardHeader>
 
@@ -261,9 +261,9 @@ export default async function ClassroomHubPage() {
               {onlineBatches.length === 0 ? (
                 <div className="p-6 text-center text-xs text-gray-500 space-y-3">
                   <Layers className="h-8 w-8 text-gray-300 mx-auto" />
-                  <p className="font-semibold text-gray-700">No batches currently set to Online or Hybrid mode.</p>
+                  <p className="font-semibold text-gray-700">No batches currently set to Online mode.</p>
                   <p className="text-gray-400 max-w-md mx-auto">
-                    To host online tuition classes, edit any of your batches and set Class Mode to <strong>Online</strong> or <strong>Hybrid</strong>.
+                    To host online tuition classes, create an online batch or set Class Mode to <strong>Online Virtual Classroom</strong>.
                   </p>
                   <Link
                     href="/dashboard/batches"
