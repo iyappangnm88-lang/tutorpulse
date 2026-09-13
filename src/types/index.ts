@@ -220,6 +220,8 @@ export interface ParentChildInfo {
   relationship: string
   is_primary: boolean
   batch?: Batch | null
+  workspace_type?: 'offline' | 'online'
+  workspace_id?: string | null
 }
 
 export interface ParentDashboardData {

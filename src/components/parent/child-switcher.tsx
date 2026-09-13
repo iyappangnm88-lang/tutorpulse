@@ -25,6 +25,15 @@ export function ChildSwitcher({ childrenList, selectedChildId }: ChildSwitcherPr
         {onlyChild.class_name && (
           <span className="text-indigo-500 font-normal">({onlyChild.class_name})</span>
         )}
+        {onlyChild.workspace_type && (
+          <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-md ${
+            onlyChild.workspace_type === 'online'
+              ? 'bg-cyan-100 text-cyan-800'
+              : 'bg-amber-100 text-amber-800'
+          }`}>
+            {onlyChild.workspace_type}
+          </span>
+        )}
       </div>
     )
   }
@@ -49,7 +58,7 @@ export function ChildSwitcher({ childrenList, selectedChildId }: ChildSwitcherPr
       >
         {childrenList.map((c) => (
           <option key={c.student_id} value={c.student_id}>
-            {c.full_name} {c.class_name ? `(${c.class_name})` : ''}
+            {c.full_name} {c.class_name ? `(${c.class_name})` : ''} {c.workspace_type ? `[${c.workspace_type.toUpperCase()}]` : ''}
           </option>
         ))}
       </select>

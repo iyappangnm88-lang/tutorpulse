@@ -24,52 +24,76 @@ export async function getParentAuthUser() {
 }
 
 /**
- * Loads the parent record for the current auth user
+ * Loads all parent records linked to the authenticated user.
+ * If none are linked yet, calls the link_parent_account_by_verified_email RPC to auto-link.
  */
-export async function getParentRecord(): Promise<Parent | null> {
+export async function getParentRecords(): Promise<Parent[]> {
   const user = await getParentAuthUser()
-  if (!user) return null
+  if (!user) return []
 
   const supabase = await createClient()
 
-  // Find by user_id first
-  const { data: parentByUser } = await supabase
+  // Query all parent records linked to user.id
+  let { data: parents } = await supabase
     .from('parents')
     .select('*')
     .eq('user_id', user.id)
-    .maybeSingle()
 
-  if (parentByUser) return parentByUser as Parent
-
-  // Fallback: match by email if not yet linked
-  if (user.email) {
-    const { data: parentByEmail } = await supabase
-      .from('parents')
-      .select('*')
-      .eq('email', user.email)
-      .maybeSingle()
-
-    if (parentByEmail) {
-      // Auto-link user_id
-      await supabase
+  // If no parent rows found, attempt fallback linking via RPC
+  if ((!parents || parents.length === 0) && user.email) {
+    const { data: rpcResult } = await supabase.rpc('link_parent_account_by_verified_email')
+    if (rpcResult?.is_parent) {
+      const { data: relinked } = await supabase
         .from('parents')
-        .update({ user_id: user.id })
-        .eq('id', parentByEmail.id)
-
-      return { ...(parentByEmail as Parent), user_id: user.id }
+        .select('*')
+        .eq('user_id', user.id)
+      parents = relinked
     }
   }
 
-  return null
+  return (parents || []) as Parent[]
 }
 
 /**
- * Loads all active children linked to the authenticated parent
+ * Loads the primary or workspace-matching parent record for the current auth user
  */
-export async function getParentChildren(): Promise<ParentChildInfo[]> {
-  const parent = await getParentRecord()
-  if (!parent || !parent.portal_enabled) return []
+export async function getParentRecord(workspaceType?: 'offline' | 'online'): Promise<Parent | null> {
+  const parents = await getParentRecords()
+  if (parents.length === 0) return null
 
+  if (workspaceType) {
+    const supabase = await createClient()
+    const workspaceIds = parents.map((p) => p.workspace_id).filter(Boolean) as string[]
+    if (workspaceIds.length > 0) {
+      const { data: matchedWorkspaces } = await supabase
+        .from('workspaces')
+        .select('id, type')
+        .in('id', workspaceIds)
+        .eq('type', workspaceType)
+
+      if (matchedWorkspaces && matchedWorkspaces.length > 0) {
+        const matchedWsId = matchedWorkspaces[0].id
+        const matchedParent = parents.find((p) => p.workspace_id === matchedWsId)
+        if (matchedParent) return matchedParent
+      }
+    }
+  }
+
+  // Return the first active portal parent or first available
+  return parents.find((p) => p.portal_enabled) || parents[0]
+}
+
+/**
+ * Loads all active children linked to the authenticated parent across all linked parent records
+ */
+export async function getParentChildren(workspaceType?: 'offline' | 'online'): Promise<ParentChildInfo[]> {
+  const parents = await getParentRecords()
+  if (parents.length === 0) return []
+
+  const activeParents = parents.filter((p) => p.portal_enabled)
+  if (activeParents.length === 0) return []
+
+  const parentIds = activeParents.map((p) => p.id)
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -77,26 +101,30 @@ export async function getParentChildren(): Promise<ParentChildInfo[]> {
     .select(`
       relationship,
       is_primary,
+      parent_id,
       students:student_id (
         id,
         full_name,
         class_name,
         school_name,
         status,
+        workspace_id,
         batch_students (
           status,
           batches (*)
         )
       )
     `)
-    .eq('parent_id', parent.id)
+    .in('parent_id', parentIds)
 
   if (error || !data) return []
 
   interface RawLink {
     relationship: string
     is_primary: boolean
+    parent_id: string
     students: Student & {
+      workspace_id?: string | null
       batch_students: Array<{
         status: string
         batches: Batch
@@ -106,10 +134,34 @@ export async function getParentChildren(): Promise<ParentChildInfo[]> {
 
   const links = data as unknown as RawLink[]
 
+  // Fetch workspaces for mapped workspace types
+  const wsIds = Array.from(
+    new Set(
+      links
+        .map((l) => l.students?.workspace_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  )
+
+  const workspaceTypeMap: Record<string, 'offline' | 'online'> = {}
+  if (wsIds.length > 0) {
+    const { data: wsData } = await supabase
+      .from('workspaces')
+      .select('id, type')
+      .in('id', wsIds)
+
+    if (wsData) {
+      for (const ws of wsData) {
+        workspaceTypeMap[ws.id] = ws.type as 'offline' | 'online'
+      }
+    }
+  }
+
   const result: ParentChildInfo[] = links
     .filter((l) => l.students && l.students.status !== 'archived')
     .map((l) => {
       const activeBatch = l.students.batch_students?.find((bs) => bs.status === 'active')?.batches || null
+      const wsType = l.students.workspace_id ? workspaceTypeMap[l.students.workspace_id] : undefined
       return {
         student_id: l.students.id,
         full_name: l.students.full_name,
@@ -118,7 +170,13 @@ export async function getParentChildren(): Promise<ParentChildInfo[]> {
         relationship: l.relationship,
         is_primary: l.is_primary,
         batch: activeBatch,
+        workspace_type: wsType,
+        workspace_id: l.students.workspace_id,
       }
+    })
+    .filter((c) => {
+      if (!workspaceType) return true
+      return c.workspace_type === workspaceType
     })
 
   return result
@@ -127,35 +185,42 @@ export async function getParentChildren(): Promise<ParentChildInfo[]> {
 /**
  * Validates child access against authenticated parent's linked children list
  */
-export async function getAuthorizedChild(childId?: string): Promise<{
+export async function getAuthorizedChild(
+  childId?: string,
+  workspaceType?: 'offline' | 'online'
+): Promise<{
   child: ParentChildInfo | null
   allChildren: ParentChildInfo[]
   parent: Parent | null
   error?: string
 }> {
-  const parent = await getParentRecord()
-  if (!parent) {
+  const parents = await getParentRecords()
+  if (parents.length === 0) {
     return { child: null, allChildren: [], parent: null, error: 'Parent record not found.' }
   }
 
-  if (!parent.portal_enabled) {
-    return { child: null, allChildren: [], parent, error: 'Parent portal access is currently disabled.' }
+  const activeParents = parents.filter((p) => p.portal_enabled)
+  if (activeParents.length === 0) {
+    return { child: null, allChildren: [], parent: parents[0], error: 'Parent portal access is currently disabled.' }
   }
 
-  const children = await getParentChildren()
+  const children = await getParentChildren(workspaceType)
   if (children.length === 0) {
-    return { child: null, allChildren: [], parent, error: 'No children linked to this parent account.' }
+    return { child: null, allChildren: [], parent: activeParents[0], error: 'No children linked to this parent account.' }
   }
 
   if (childId) {
     const found = children.find((c) => c.student_id === childId)
     if (found) {
-      return { child: found, allChildren: children, parent }
+      const matchedParent = activeParents.find((p) => p.workspace_id === found.workspace_id) || activeParents[0]
+      return { child: found, allChildren: children, parent: matchedParent }
     }
   }
 
   // Safely default to first child
-  return { child: children[0], allChildren: children, parent }
+  const defaultChild = children[0]
+  const matchedParent = activeParents.find((p) => p.workspace_id === defaultChild.workspace_id) || activeParents[0]
+  return { child: defaultChild, allChildren: children, parent: matchedParent }
 }
 
 /**

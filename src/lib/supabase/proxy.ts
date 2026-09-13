@@ -52,6 +52,9 @@ export async function updateSession(request: NextRequest) {
   if (!user && isProtected) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    if (pathname.startsWith('/parent')) {
+      url.searchParams.set('next', pathname)
+    }
     return NextResponse.redirect(url)
   }
 
@@ -69,6 +72,11 @@ export async function updateSession(request: NextRequest) {
     const isParent = profile?.role === 'parent'
 
     if (isAuthPage) {
+      // If there is an explicit error message (such as unlinked parent account notice),
+      // allow the login page to display the error instead of auto-bouncing
+      if (request.nextUrl.searchParams.has('error')) {
+        return supabaseResponse
+      }
       const url = request.nextUrl.clone()
       url.pathname = isParent ? '/parent' : '/dashboard'
       return NextResponse.redirect(url)
@@ -82,10 +90,14 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Tutors must not access parent portal routes
+    // Non-parents must not access parent portal routes
     if (!isParent && pathname.startsWith('/parent')) {
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
+      url.pathname = '/login'
+      url.searchParams.set(
+        'error',
+        'This Google account is not linked to a TutorPulse parent account.'
+      )
       return NextResponse.redirect(url)
     }
   }

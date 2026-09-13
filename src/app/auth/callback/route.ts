@@ -26,7 +26,16 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
-        // Fetch or initialize profile
+        // Securely link matching parent records and determine role via SECURITY DEFINER RPC
+        const { data: linkResult, error: linkError } = await supabase.rpc(
+          'link_parent_account_by_verified_email'
+        )
+
+        if (linkError) {
+          console.warn('link_parent_account_by_verified_email RPC notice:', linkError)
+        }
+
+        // Fetch user profile
         const { data: profile } = await supabase
           .from('profiles')
           .select('id, role')
@@ -35,31 +44,15 @@ export async function GET(request: Request) {
 
         let userRole = profile?.role
 
+        // Fallback: If trigger did not create profile, create it now
         if (!profile) {
-          // Check if this email matches an active parent record
-          let assignedRole: 'tutor' | 'parent' = 'tutor'
-          if (user.email) {
-            const { data: parentRecord } = await supabase
-              .from('parents')
-              .select('id')
-              .eq('email', user.email)
-              .maybeSingle()
-
-            if (parentRecord) {
-              assignedRole = 'parent'
-              // Auto-link parent user_id if not yet linked
-              await supabase
-                .from('parents')
-                .update({ user_id: user.id })
-                .eq('id', parentRecord.id)
-            }
-          }
-
+          const isLinkedParent = Boolean(linkResult?.is_parent)
+          const assignedRole = isLinkedParent ? 'parent' : 'tutor'
           const fullName =
             user.user_metadata?.full_name ||
             user.user_metadata?.name ||
             user.email?.split('@')[0] ||
-            'Tutor'
+            (assignedRole === 'parent' ? 'Parent' : 'Tutor')
 
           await supabase.from('profiles').insert({
             id: user.id,
@@ -69,20 +62,18 @@ export async function GET(request: Request) {
           })
 
           userRole = assignedRole
-        } else if (userRole === 'parent' && user.email) {
-          // Ensure parent record has user_id linked
-          const { data: parentRecord } = await supabase
-            .from('parents')
-            .select('id, user_id')
-            .eq('email', user.email)
-            .maybeSingle()
+        } else if (linkResult?.is_parent && userRole !== 'parent' && !linkResult?.is_tutor) {
+          // If RPC identified as parent and not an active tutor, align role
+          userRole = 'parent'
+        }
 
-          if (parentRecord && !parentRecord.user_id) {
-            await supabase
-              .from('parents')
-              .update({ user_id: user.id })
-              .eq('id', parentRecord.id)
-          }
+        // Check if an unlinked user was attempting to access the parent portal
+        const isTryingParentPortal = typeof next === 'string' && next.startsWith('/parent')
+        if (isTryingParentPortal && userRole !== 'parent') {
+          const errMessage = encodeURIComponent(
+            'This Google account is not linked to a TutorPulse parent account.'
+          )
+          return NextResponse.redirect(`${baseUrl}/login?error=${errMessage}`)
         }
 
         // Open redirect prevention: must be relative path starting with '/' and not '//'

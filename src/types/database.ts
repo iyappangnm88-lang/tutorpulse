@@ -785,6 +785,18 @@ export interface Database {
         }
       }
     }
+    Functions: {
+      link_parent_account_by_verified_email: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          success: boolean
+          is_parent?: boolean
+          is_tutor?: boolean
+          linked_count?: number
+          error?: string
+        }
+      }
+    }
   }
 }
 

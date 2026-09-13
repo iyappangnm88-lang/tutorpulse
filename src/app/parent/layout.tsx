@@ -21,7 +21,8 @@ export default async function ParentLayout({
 
   if (error || !parent) {
     // If user is not authenticated or not a parent
-    redirect('/login')
+    const errMessage = encodeURIComponent('This Google account is not linked to a TutorPulse parent account.')
+    redirect(`/login?error=${errMessage}`)
   }
 
   return (

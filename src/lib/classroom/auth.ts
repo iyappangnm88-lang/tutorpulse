@@ -81,19 +81,20 @@ export async function verifySessionAccess(sessionId: string): Promise<SessionAut
 
     // 5. Parent / Student authorization check (Participant)
     // Check if user is an authorized parent with a linked student in this batch
-    const { data: parentRecord } = await supabase
+    const { data: parentRecords } = await supabase
       .from('parents')
       .select('id, full_name, portal_enabled')
       .eq('user_id', user.id)
       .eq('portal_enabled', true)
-      .maybeSingle()
 
-    if (parentRecord) {
+    if (parentRecords && parentRecords.length > 0) {
+      const parentIds = parentRecords.map((p) => p.id)
       // Find if parent has an enrolled student in this batch
       const { data: linkedEnrollment } = await supabase
         .from('parent_students')
         .select(`
           student_id,
+          parent_id,
           students:student_id (
             id,
             full_name,
@@ -103,10 +104,11 @@ export async function verifySessionAccess(sessionId: string): Promise<SessionAut
             )
           )
         `)
-        .eq('parent_id', parentRecord.id)
+        .in('parent_id', parentIds)
 
       interface LinkedData {
         student_id: string
+        parent_id: string
         students: {
           id: string
           full_name: string
@@ -181,19 +183,19 @@ export async function canParentAccessSession(userId: string, sessionId: string):
 
     if (!session) return false
 
-    const { data: parent } = await supabase
+    const { data: parents } = await supabase
       .from('parents')
       .select('id')
       .eq('user_id', userId)
       .eq('portal_enabled', true)
-      .maybeSingle()
 
-    if (!parent) return false
+    if (!parents || parents.length === 0) return false
 
+    const parentIds = parents.map((p) => p.id)
     const { data: links } = await supabase
       .from('parent_students')
       .select('student_id, batch_students!inner(batch_id, status)')
-      .eq('parent_id', parent.id)
+      .in('parent_id', parentIds)
       .eq('batch_students.batch_id', session.batch_id)
       .eq('batch_students.status', 'active')
 
