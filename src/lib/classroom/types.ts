@@ -30,6 +30,8 @@ export interface ClassroomParticipant {
   isAudioMuted: boolean
   isVideoMuted: boolean
   isScreenSharing: boolean
+  handRaised?: boolean
+  handRaisedAt?: string
   joinedAt: string
   stream?: MediaStream
   connectionState?: RTCPeerConnectionState
@@ -41,6 +43,14 @@ export type SignalType =
   | 'ice-candidate'
   | 'state-change'
   | 'class-ended'
+  | 'hand:raise'
+  | 'hand:lower'
+  | 'hand:acknowledge'
+  | 'reaction'
+  | 'poll:started'
+  | 'poll:response'
+  | 'poll:closed'
+  | 'poll:revealed'
 
 export interface SignalingMessage {
   id: string
@@ -61,6 +71,41 @@ export interface ClassroomChatMessage {
   senderRole: ClassroomRole
   text: string
   timestamp: string
+}
+
+export interface ClassroomReaction {
+  id: string
+  emoji: string
+  senderId: string
+  senderName: string
+  timestamp: number
+}
+
+export interface ClassroomPoll {
+  id: string
+  workspace_id: string
+  class_session_id: string
+  tutor_id: string
+  question: string
+  options: string[]
+  status: 'draft' | 'active' | 'closed'
+  results_revealed: boolean
+  created_at: string
+  started_at: string | null
+  closed_at: string | null
+  total_votes?: number
+  vote_counts?: number[]
+  user_voted_option?: number | null
+}
+
+export interface ClassroomPollResponse {
+  id: string
+  poll_id: string
+  class_session_id: string
+  user_id: string
+  student_id: string | null
+  option_index: number
+  created_at: string
 }
 
 export interface ClassRoomResult {

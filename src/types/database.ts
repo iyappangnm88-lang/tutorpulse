@@ -14,7 +14,16 @@ export interface Database {
           id: string
           full_name: string
           email: string
-          role: 'tutor' | 'parent'
+          role: 'tutor' | 'student' | 'parent'
+          onboarding_completed: boolean
+          bio: string | null
+          primary_subjects: string[] | null
+          target_classes: string[] | null
+          teaching_languages: string[] | null
+          teaching_mode: 'online' | 'offline' | 'both' | null
+          experience_years: number | null
+          avatar_url: string | null
+          is_public_marketplace: boolean
           created_at: string
           updated_at: string
         }
@@ -22,7 +31,16 @@ export interface Database {
           id: string
           full_name: string
           email: string
-          role?: 'tutor' | 'parent'
+          role?: 'tutor' | 'student' | 'parent'
+          onboarding_completed?: boolean
+          bio?: string | null
+          primary_subjects?: string[] | null
+          target_classes?: string[] | null
+          teaching_languages?: string[] | null
+          teaching_mode?: 'online' | 'offline' | 'both' | null
+          experience_years?: number | null
+          avatar_url?: string | null
+          is_public_marketplace?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -30,7 +48,83 @@ export interface Database {
           id?: string
           full_name?: string
           email?: string
-          role?: 'tutor' | 'parent'
+          role?: 'tutor' | 'student' | 'parent'
+          onboarding_completed?: boolean
+          bio?: string | null
+          primary_subjects?: string[] | null
+          target_classes?: string[] | null
+          teaching_languages?: string[] | null
+          teaching_mode?: 'online' | 'offline' | 'both' | null
+          experience_years?: number | null
+          avatar_url?: string | null
+          is_public_marketplace?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      student_profiles: {
+        Row: {
+          id: string
+          full_name: string
+          grade_level: string | null
+          school_name: string | null
+          interests: string[]
+          avatar_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          full_name: string
+          grade_level?: string | null
+          school_name?: string | null
+          interests?: string[]
+          avatar_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          grade_level?: string | null
+          school_name?: string | null
+          interests?: string[]
+          avatar_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      student_tutor_connections: {
+        Row: {
+          id: string
+          student_user_id: string
+          tutor_id: string
+          student_record_id: string | null
+          status: 'active' | 'pending' | 'inactive'
+          joined_via: 'invite' | 'direct' | 'marketplace'
+          invite_code: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_user_id: string
+          tutor_id: string
+          student_record_id?: string | null
+          status?: 'active' | 'pending' | 'inactive'
+          joined_via?: 'invite' | 'direct' | 'marketplace'
+          invite_code?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_user_id?: string
+          tutor_id?: string
+          student_record_id?: string | null
+          status?: 'active' | 'pending' | 'inactive'
+          joined_via?: 'invite' | 'direct' | 'marketplace'
+          invite_code?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -41,6 +135,7 @@ export interface Database {
           tutor_id: string
           type: 'offline' | 'online'
           name: string
+          invite_code: string | null
           created_at: string
           updated_at: string
         }
@@ -49,6 +144,7 @@ export interface Database {
           tutor_id: string
           type: 'offline' | 'online'
           name: string
+          invite_code?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -57,6 +153,7 @@ export interface Database {
           tutor_id?: string
           type?: 'offline' | 'online'
           name?: string
+          invite_code?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -783,6 +880,111 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+      },
+      classroom_messages: {
+        Row: {
+          id: string
+          workspace_id: string
+          class_session_id: string
+          sender_user_id: string
+          sender_role: 'tutor' | 'student' | 'parent'
+          sender_name: string
+          message: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          class_session_id: string
+          sender_user_id: string
+          sender_role: 'tutor' | 'student' | 'parent'
+          sender_name: string
+          message: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          class_session_id?: string
+          sender_user_id?: string
+          sender_role?: 'tutor' | 'student' | 'parent'
+          sender_name?: string
+          message?: string
+          created_at?: string
+          updated_at?: string
+        }
+      },
+      classroom_polls: {
+        Row: {
+          id: string
+          workspace_id: string
+          class_session_id: string
+          tutor_id: string
+          question: string
+          options: any
+          status: 'draft' | 'active' | 'closed'
+          results_revealed: boolean
+          created_at: string
+          started_at: string | null
+          closed_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          class_session_id: string
+          tutor_id: string
+          question: string
+          options: any
+          status?: 'draft' | 'active' | 'closed'
+          results_revealed?: boolean
+          created_at?: string
+          started_at?: string | null
+          closed_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          class_session_id?: string
+          tutor_id?: string
+          question?: string
+          options?: any
+          status?: 'draft' | 'active' | 'closed'
+          results_revealed?: boolean
+          created_at?: string
+          started_at?: string | null
+          closed_at?: string | null
+        }
+      },
+      classroom_poll_responses: {
+        Row: {
+          id: string
+          poll_id: string
+          class_session_id: string
+          user_id: string
+          student_id: string | null
+          option_index: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          poll_id: string
+          class_session_id: string
+          user_id: string
+          student_id?: string | null
+          option_index: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          poll_id?: string
+          class_session_id?: string
+          user_id?: string
+          student_id?: string | null
+          option_index?: number
+          created_at?: string
+        }
       }
     }
     Functions: {
@@ -869,6 +1071,16 @@ export type TestMarkInsert = Database['public']['Tables']['test_marks']['Insert'
 export type TestMarkUpdate = Database['public']['Tables']['test_marks']['Update']
 
 export type Profile = Database['public']['Tables']['profiles']['Row']
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
+
+export type StudentProfile = Database['public']['Tables']['student_profiles']['Row']
+export type StudentProfileInsert = Database['public']['Tables']['student_profiles']['Insert']
+export type StudentProfileUpdate = Database['public']['Tables']['student_profiles']['Update']
+
+export type StudentTutorConnection = Database['public']['Tables']['student_tutor_connections']['Row']
+export type StudentTutorConnectionInsert = Database['public']['Tables']['student_tutor_connections']['Insert']
+export type StudentTutorConnectionUpdate = Database['public']['Tables']['student_tutor_connections']['Update']
 
 export type Announcement = Database['public']['Tables']['announcements']['Row']
 export type AnnouncementInsert = Database['public']['Tables']['announcements']['Insert']
@@ -877,3 +1089,16 @@ export type AnnouncementUpdate = Database['public']['Tables']['announcements']['
 export type Notification = Database['public']['Tables']['notifications']['Row']
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert']
 export type NotificationUpdate = Database['public']['Tables']['notifications']['Update']
+
+export type ClassroomMessageRow = Database['public']['Tables']['classroom_messages']['Row']
+export type ClassroomMessageInsert = Database['public']['Tables']['classroom_messages']['Insert']
+export type ClassroomMessageUpdate = Database['public']['Tables']['classroom_messages']['Update']
+
+export type ClassroomPollRow = Database['public']['Tables']['classroom_polls']['Row']
+export type ClassroomPollInsert = Database['public']['Tables']['classroom_polls']['Insert']
+export type ClassroomPollUpdate = Database['public']['Tables']['classroom_polls']['Update']
+
+export type ClassroomPollResponseRow = Database['public']['Tables']['classroom_poll_responses']['Row']
+export type ClassroomPollResponseInsert = Database['public']['Tables']['classroom_poll_responses']['Insert']
+export type ClassroomPollResponseUpdate = Database['public']['Tables']['classroom_poll_responses']['Update']
+

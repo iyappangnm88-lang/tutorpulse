@@ -85,15 +85,15 @@ export default function SignupPage() {
       // Step 2: If user is immediately confirmed (email confirmation disabled),
       // create the profile row right away
       if (data.user && data.session) {
-        // User is logged in immediately — create profile
+        // User is logged in immediately — create profile with onboarding_completed: false
         await supabase.from('profiles').upsert({
           id: data.user.id,
           full_name: name,
           email: email,
-          role: 'tutor',
+          onboarding_completed: false,
         })
-        toast('success', 'Welcome to TutorPulse!', 'Your account is ready.')
-        router.push('/dashboard')
+        toast('success', 'Welcome to TutorPulse!', "Let's set up your account.")
+        router.push('/onboarding/role')
         return
       }
 

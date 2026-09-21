@@ -63,27 +63,41 @@ export default function LoginPage() {
         return
       }
 
-      // Check role to direct to /parent or /dashboard
+      // Check role and onboarding status
       let { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, onboarding_completed')
         .eq('id', data.user.id)
         .maybeSingle()
 
-      // If profile doesn't exist yet (email confirmed but profile not created), create it now
+      // If profile doesn't exist yet (e.g. freshly verified OAuth/email user), create it now
       if (!profile) {
         const insertRes = await supabase.from('profiles').insert({
           id: data.user.id,
-          full_name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Tutor',
+          full_name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
           email: data.user.email || '',
           role: 'tutor',
-        }).select('role').maybeSingle()
+          onboarding_completed: false,
+        }).select('role, onboarding_completed').maybeSingle()
         profile = insertRes.data
       }
 
       toast('success', 'Welcome back!', 'Redirecting...')
-      if (profile?.role === 'parent') {
+
+      if (!profile?.onboarding_completed) {
+        if (!profile?.role) {
+          router.push('/onboarding/role')
+        } else if (profile.role === 'tutor') {
+          router.push('/onboarding/tutor')
+        } else if (profile.role === 'student') {
+          router.push('/onboarding/student')
+        } else {
+          router.push('/onboarding/role')
+        }
+      } else if (profile.role === 'parent') {
         router.push('/parent')
+      } else if (profile.role === 'student') {
+        router.push('/student')
       } else {
         router.push('/dashboard')
       }

@@ -5,8 +5,26 @@
 import type { Batch, Student, Parent, Fee, Payment, Homework, HomeworkStudent, Test, TestMark, Announcement, ClassSession } from './database'
 export * from './database'
 
-export type UserRole = 'tutor' | 'parent'
+export type UserRole = 'tutor' | 'student' | 'parent'
 export type WorkspaceType = 'offline' | 'online'
+
+export interface TutorOnboardingData {
+  displayName: string
+  bio?: string
+  primarySubjects: string[]
+  targetClasses?: string[]
+  teachingLanguages?: string[]
+  teachingMode?: 'online' | 'offline' | 'both'
+  experienceYears?: number
+}
+
+export interface StudentOnboardingData {
+  fullName: string
+  gradeLevel: string
+  schoolName?: string
+  interests?: string[]
+  inviteCode?: string
+}
 
 export interface TutorProfile {
   id: string

@@ -70,3 +70,18 @@ export const PARENT_NAV_ITEMS: NavItem[] = [
   { label: 'Announcements', href: '/parent/announcements', icon: Bell },
   { label: 'My Profile', href: '/parent/profile', icon: User },
 ]
+
+/**
+ * Source of Truth for Student Portal navigation.
+ */
+export const STUDENT_NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/student', icon: Home },
+  { label: 'My Tutors', href: '/student/tutors', icon: Users },
+  { label: 'Live Classes', href: '/student/classes', icon: Video },
+  { label: 'Homework', href: '/student/homework', icon: BookOpen },
+  { label: 'Tests & Marks', href: '/student/tests', icon: Award },
+  { label: 'My Progress', href: '/student/progress', icon: BarChart3 },
+  { label: 'Messages', href: '/student/messages', icon: MessageSquare },
+  { label: 'Settings', href: '/student/settings', icon: Settings },
+  { label: 'Find a Tutor', href: '/student/marketplace', icon: HelpCircle },
+]

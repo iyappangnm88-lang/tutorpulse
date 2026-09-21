@@ -24,6 +24,10 @@ import {
   Radio,
   Sparkles,
   PenTool,
+  Hand,
+  Smile,
+  BarChart2,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +35,13 @@ import { useToast } from '@/contexts/toast-context'
 import { formatTimeRange } from '@/lib/scheduling'
 import { DigitalWhiteboard } from '@/components/whiteboard/digital-whiteboard'
 import { EndClassDialog } from './end-class-dialog'
+import { ClassroomChatPanel } from './classroom-chat-panel'
+import { ClassroomPollsPanel } from './classroom-polls-panel'
+import { ClassroomReactionOverlay } from './classroom-reaction-overlay'
+import {
+  getClassroomMessagesAction,
+  getClassroomPollsAction,
+} from '@/app/(dashboard)/dashboard/classroom/interaction-actions'
 import {
   startClassSessionAction,
   endClassSessionAction,
@@ -50,6 +61,8 @@ import type {
   ClassroomRole,
   ClassroomParticipant,
   ClassroomChatMessage,
+  ClassroomReaction,
+  ClassroomPoll,
   ClassroomConnectionState,
 } from '@/lib/classroom/types'
 
@@ -58,7 +71,7 @@ interface ClassroomViewProps {
   initialRole: ClassroomRole
   currentUserName: string
   currentUserId?: string
-  portalType: 'tutor' | 'parent'
+  portalType: 'tutor' | 'parent' | 'student'
 }
 
 /**
@@ -215,13 +228,17 @@ export function ClassroomView({
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map())
   const [participants, setParticipants] = useState<ClassroomParticipant[]>([])
   const [messages, setMessages] = useState<ClassroomChatMessage[]>([])
-  const [chatDraft, setChatDraft] = useState('')
-  const [unreadCount, setUnreadCount] = useState(0)
-
   // Side Drawer UI
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
-  const [sidePanelTab, setSidePanelTab] = useState<'participants' | 'chat'>('participants')
-  const chatScrollRef = useRef<HTMLDivElement | null>(null)
+  const [sidePanelTab, setSidePanelTab] = useState<'participants' | 'chat' | 'polls'>('participants')
+
+  // Live Classroom Interactions State
+  const [reactions, setReactions] = useState<ClassroomReaction[]>([])
+  const [polls, setPolls] = useState<ClassroomPoll[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadPollsCount, setUnreadPollsCount] = useState(0)
+  const [isHandRaised, setIsHandRaised] = useState(false)
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
 
   // Stage View Mode: Video Grid vs Digital Whiteboard
   const [activeStageView, setActiveStageView] = useState<'video' | 'whiteboard'>('video')
@@ -230,20 +247,6 @@ export function ClassroomView({
   const signalingRef = useRef<ClassroomSignalingChannel | null>(null)
   const peerPoolRef = useRef<WebRtcPeerPool | null>(null)
   const participantLogIdRef = useRef<string | null>(null)
-
-  // Scroll chat to bottom
-  const scrollToBottom = useCallback(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
-    }
-  }, [])
-
-  useEffect(() => {
-    if (isSidePanelOpen && sidePanelTab === 'chat') {
-      scrollToBottom()
-      setUnreadCount(0)
-    }
-  }, [messages, isSidePanelOpen, sidePanelTab, scrollToBottom])
 
   // =========================================================================
   // WebRTC & Signaling Initialization
@@ -345,9 +348,65 @@ export function ClassroomView({
           }
         },
         onChatMessage: (chatMsg) => {
-          setMessages((prev) => [...prev, chatMsg])
+          setMessages((prev) => {
+            const exists = prev.some((m) => m.id === chatMsg.id)
+            return exists ? prev : [...prev, chatMsg]
+          })
           if (!isSidePanelOpen || sidePanelTab !== 'chat') {
             setUnreadCount((c) => c + 1)
+          }
+        },
+        onChatMessageDelete: (messageId) => {
+          setMessages((prev) => prev.filter((m) => m.id !== messageId))
+        },
+        onReaction: (reaction) => {
+          setReactions((prev) => [...prev, reaction])
+        },
+        onHandRaised: (participantId, senderName, timestamp) => {
+          setParticipants((prev) =>
+            prev.map((p) =>
+              p.id === participantId
+                ? { ...p, handRaised: true, handRaisedAt: timestamp }
+                : p
+            )
+          )
+          if (participantId !== userId) {
+            toast('info', `${senderName || 'A student'} raised hand ✋`)
+          }
+        },
+        onHandLowered: (participantId) => {
+          setParticipants((prev) =>
+            prev.map((p) =>
+              p.id === participantId
+                ? { ...p, handRaised: false, handRaisedAt: undefined }
+                : p
+            )
+          )
+        },
+        onHandAcknowledged: (participantId) => {
+          setParticipants((prev) =>
+            prev.map((p) =>
+              p.id === participantId
+                ? { ...p, handRaised: false, handRaisedAt: undefined }
+                : p
+            )
+          )
+          if (participantId === userId) {
+            setIsHandRaised(false)
+            toast('success', 'Hand Acknowledged', 'Your tutor acknowledged your raised hand.')
+          }
+        },
+        onPollEvent: (event) => {
+          getClassroomPollsAction(session.id).then((res) => {
+            if (res.success && res.data) {
+              setPolls(res.data)
+            }
+          })
+          if (event.type === 'poll:started') {
+            if (!isSidePanelOpen || sidePanelTab !== 'polls') {
+              setUnreadPollsCount((c) => c + 1)
+            }
+            toast('info', 'New Poll Launched', 'Check the polls tab to vote.')
           }
         },
         onClassEnded: () => {
@@ -384,6 +443,20 @@ export function ClassroomView({
   useEffect(() => {
     if (status === 'in_progress') {
       initializeClassroom()
+
+      // Fetch initial chat messages
+      getClassroomMessagesAction(session.id).then((res) => {
+        if (res.success && res.data) {
+          setMessages(res.data)
+        }
+      })
+
+      // Fetch initial classroom polls
+      getClassroomPollsAction(session.id).then((res) => {
+        if (res.success && res.data) {
+          setPolls(res.data)
+        }
+      })
     }
 
     return () => {
@@ -475,15 +548,78 @@ export function ClassroomView({
     }
   }
 
-  // Send in-session chat
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!chatDraft.trim()) return
-    const sent = await signalingRef.current?.sendChatMessage(chatDraft)
-    if (sent) {
-      setChatDraft('')
-      scrollToBottom()
+  // Chat handlers
+  const handleChatMessageSent = async (msg: ClassroomChatMessage) => {
+    setMessages((prev) => {
+      const exists = prev.some((m) => m.id === msg.id)
+      return exists ? prev : [...prev, msg]
+    })
+    await signalingRef.current?.sendChatMessage(msg)
+  }
+
+  const handleChatMessageDeleted = async (msgId: string) => {
+    setMessages((prev) => prev.filter((m) => m.id !== msgId))
+    await signalingRef.current?.broadcastChatDelete(msgId)
+  }
+
+  // Live interaction handlers (Reactions, Hand-raising, Polls)
+  const handleSendReaction = (emoji: string) => {
+    signalingRef.current?.sendReaction(emoji)
+    setShowReactionPicker(false)
+  }
+
+  const handleToggleRaiseHand = async () => {
+    if (isHandRaised) {
+      await signalingRef.current?.lowerHand()
+      setIsHandRaised(false)
+      toast('info', 'Hand Lowered')
+    } else {
+      await signalingRef.current?.raiseHand()
+      setIsHandRaised(true)
+      toast('success', 'Hand Raised ✋', 'Your tutor has been notified.')
     }
+  }
+
+  const handleAcknowledgeHand = async (participantId: string) => {
+    await signalingRef.current?.acknowledgeHand(participantId)
+    setParticipants((prev) =>
+      prev.map((p) =>
+        p.id === participantId
+          ? { ...p, handRaised: false, handRaisedAt: undefined }
+          : p
+      )
+    )
+    toast('success', 'Hand Acknowledged')
+  }
+
+  const handlePollCreated = async (newPoll: ClassroomPoll) => {
+    setPolls((prev) => [newPoll, ...prev])
+    await signalingRef.current?.sendPollBroadcast('poll:started', newPoll.id, { poll: newPoll })
+  }
+
+  const handlePollUpdated = async (pollId: string, updates: Partial<ClassroomPoll>) => {
+    setPolls((prev) =>
+      prev.map((p) => (p.id === pollId ? { ...p, ...updates } : p))
+    )
+    const eventType = updates.status === 'closed' ? 'poll:closed' : 'poll:revealed'
+    await signalingRef.current?.sendPollBroadcast(eventType, pollId, updates)
+  }
+
+  const handlePollVoted = async (pollId: string, optionIndex: number) => {
+    setPolls((prev) =>
+      prev.map((p) => {
+        if (p.id !== pollId) return p
+        const voteCounts = [...(p.vote_counts || new Array(p.options.length).fill(0))]
+        voteCounts[optionIndex] = (voteCounts[optionIndex] || 0) + 1
+        return {
+          ...p,
+          total_votes: (p.total_votes || 0) + 1,
+          user_voted_option: optionIndex,
+          vote_counts: voteCounts,
+        }
+      })
+    )
+    await signalingRef.current?.sendPollBroadcast('poll:response', pollId, { optionIndex })
   }
 
   // Tutor starts the class
@@ -534,10 +670,10 @@ export function ClassroomView({
     if (participantLogIdRef.current) {
       await recordClassroomLeaveAction(participantLogIdRef.current)
     }
-    router.push(portalType === 'tutor' ? '/dashboard' : '/parent')
+    router.push(portalType === 'tutor' ? '/dashboard' : portalType === 'student' ? '/student' : '/parent')
   }
 
-  const backHref = portalType === 'tutor' ? '/dashboard' : '/parent'
+  const backHref = portalType === 'tutor' ? '/dashboard' : portalType === 'student' ? '/student' : '/parent'
   const timeRangeDisplay = formatTimeRange(session.start_time, session.end_time)
 
   // Determine active screen share in room
@@ -715,6 +851,8 @@ export function ClassroomView({
       <div className="flex-1 flex overflow-hidden relative">
         {/* Main Stage Canvas */}
         <main className="flex-1 flex flex-col p-2 sm:p-4 overflow-hidden relative">
+          {/* Phase 5: Floating Reactions Overlay */}
+          <ClassroomReactionOverlay reactions={reactions} />
           {/* Media Permission Warning Banner */}
           {mediaWarning && (
             <div className="mb-2 px-3 py-2 rounded-xl bg-amber-950/80 border border-amber-800/80 text-amber-300 text-xs flex items-center justify-between gap-2 shrink-0">
@@ -748,7 +886,7 @@ export function ClassroomView({
                     href={backHref}
                     className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow-xs"
                   >
-                    Return to {portalType === 'tutor' ? 'Dashboard' : 'Portal'}
+                    Return to {portalType === 'tutor' ? 'Dashboard' : portalType === 'student' ? 'Student Space' : 'Portal'}
                   </Link>
                 </div>
               </div>
@@ -974,21 +1112,23 @@ export function ClassroomView({
             <div className="h-12 border-b border-gray-800 px-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1 bg-gray-900 p-0.5 rounded-xl border border-gray-800">
                 <button
+                  type="button"
                   onClick={() => setSidePanelTab('participants')}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     sidePanelTab === 'participants'
                       ? 'bg-indigo-600 text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  Participants ({participants.length})
+                  People ({participants.length})
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setSidePanelTab('chat')
                     setUnreadCount(0)
                   }}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all relative ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
                     sidePanelTab === 'chat'
                       ? 'bg-indigo-600 text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
@@ -1001,11 +1141,31 @@ export function ClassroomView({
                     </span>
                   )}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSidePanelTab('polls')
+                    setUnreadPollsCount(0)
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
+                    sidePanelTab === 'polls'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Polls
+                  {unreadPollsCount > 0 && (
+                    <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">
+                      {unreadPollsCount}
+                    </span>
+                  )}
+                </button>
               </div>
 
               <button
+                type="button"
                 onClick={() => setIsSidePanelOpen(false)}
-                className="h-7 w-7 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 flex items-center justify-center"
+                className="h-7 w-7 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 flex items-center justify-center cursor-pointer"
                 aria-label="Close panel"
               >
                 <X className="h-4 w-4" />
@@ -1022,9 +1182,14 @@ export function ClassroomView({
                       {currentUserName[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-white truncate">
-                        {currentUserName}{' '}
+                      <p className="text-xs font-bold text-white truncate flex items-center gap-1.5">
+                        <span>{currentUserName}</span>
                         <span className="text-[10px] text-indigo-400 font-normal">(You)</span>
+                        {isHandRaised && (
+                          <span className="px-1.5 py-0.2 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[9px] font-bold animate-pulse">
+                            ✋ Raised
+                          </span>
+                        )}
                       </p>
                       <span className="text-[10px] text-gray-400 capitalize">{initialRole}</span>
                     </div>
@@ -1047,18 +1212,45 @@ export function ClassroomView({
                 {remoteParticipants.map((p) => (
                   <div
                     key={p.id}
-                    className="p-2.5 rounded-xl bg-gray-900/50 border border-gray-800/80 flex items-center justify-between gap-2"
+                    className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 transition-colors ${
+                      p.handRaised
+                        ? 'bg-amber-950/30 border-amber-800/80 shadow-xs'
+                        : 'bg-gray-900/50 border-gray-800/80'
+                    }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="h-8 w-8 rounded-lg bg-gray-800 text-gray-300 flex items-center justify-center font-bold text-xs shrink-0">
-                        {p.name[0]?.toUpperCase() || 'P'}
+                      <div
+                        className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                          p.handRaised ? 'bg-amber-600 text-black' : 'bg-gray-800 text-gray-300'
+                        }`}
+                      >
+                        {p.handRaised ? '✋' : p.name[0]?.toUpperCase() || 'P'}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-gray-200 truncate">{p.name}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-semibold text-gray-200 truncate">{p.name}</p>
+                          {p.handRaised && (
+                            <span className="px-1.5 py-0.2 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[9px] font-bold animate-pulse">
+                              Raised
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] text-gray-500 capitalize">{p.role}</span>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-1 shrink-0">
+                      {p.handRaised && initialRole === 'host' && (
+                        <button
+                          type="button"
+                          onClick={() => handleAcknowledgeHand(p.id)}
+                          className="px-2 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold transition-colors flex items-center gap-1 mr-1 shadow-xs cursor-pointer"
+                          title="Acknowledge student's raised hand"
+                        >
+                          <Check className="h-3 w-3" />
+                          <span>Ack</span>
+                        </button>
+                      )}
                       {p.isAudioMuted ? (
                         <MicOff className="h-3.5 w-3.5 text-rose-400" />
                       ) : (
@@ -1077,71 +1269,28 @@ export function ClassroomView({
 
             {/* TAB 2: IN-SESSION CHAT */}
             {sidePanelTab === 'chat' && (
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <div ref={chatScrollRef} className="flex-1 p-3 overflow-y-auto space-y-3">
-                  {messages.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-4 text-gray-500 text-xs">
-                      <MessageSquare className="h-8 w-8 text-gray-700 mb-2" />
-                      <p className="font-semibold text-gray-400">Classroom Chat</p>
-                      <p className="text-[11px] mt-1 text-gray-500">
-                        Messages sent here are visible to active class participants.
-                      </p>
-                    </div>
-                  ) : (
-                    messages.map((m) => {
-                      const isMe = m.senderId === userId
-                      return (
-                        <div
-                          key={m.id}
-                          className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
-                        >
-                          <div className="flex items-center gap-1.5 mb-0.5 text-[10px] text-gray-400">
-                            <span className="font-bold text-gray-300">{m.senderName}</span>
-                            <span>•</span>
-                            <span>
-                              {new Date(m.timestamp).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          <div
-                            className={`px-3 py-2 rounded-2xl text-xs max-w-[85%] break-words ${
-                              isMe
-                                ? 'bg-indigo-600 text-white rounded-tr-xs'
-                                : 'bg-gray-800 text-gray-200 rounded-tl-xs border border-gray-700'
-                            }`}
-                          >
-                            {m.text}
-                          </div>
-                        </div>
-                      )
-                    })
-                  )}
-                </div>
+              <ClassroomChatPanel
+                sessionId={session.id}
+                currentUserId={userId}
+                isTutor={initialRole === 'host'}
+                sessionStatus={status}
+                messages={messages}
+                onSendMessage={handleChatMessageSent}
+                onDeleteMessage={handleChatMessageDeleted}
+              />
+            )}
 
-                {/* Message Input Form */}
-                <form
-                  onSubmit={handleSendMessage}
-                  className="p-2 border-t border-gray-800 bg-gray-900/60 flex items-center gap-2"
-                >
-                  <input
-                    type="text"
-                    value={chatDraft}
-                    onChange={(e) => setChatDraft(e.target.value)}
-                    placeholder="Type a message..."
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!chatDraft.trim()}
-                    className="h-8 w-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center transition-colors"
-                    aria-label="Send message"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                  </button>
-                </form>
-              </div>
+            {/* TAB 3: LIVE CLASSROOM POLLS */}
+            {sidePanelTab === 'polls' && (
+              <ClassroomPollsPanel
+                sessionId={session.id}
+                isTutor={initialRole === 'host'}
+                sessionStatus={status}
+                polls={polls}
+                onPollCreated={handlePollCreated}
+                onPollUpdated={handlePollUpdated}
+                onPollVoted={handlePollVoted}
+              />
             )}
           </aside>
         )}
@@ -1215,6 +1364,86 @@ export function ClassroomView({
           >
             <PenTool className="h-5 w-5" />
             <span className="text-[8px] font-bold mt-0.5 hidden sm:inline">Board</span>
+          </button>
+
+          {/* Raise Hand Toggle (Student Participant Only) */}
+          {initialRole === 'participant' && (
+            <button
+              type="button"
+              onClick={handleToggleRaiseHand}
+              className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
+                isHandRaised
+                  ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg ring-2 ring-amber-300 animate-pulse'
+                  : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+              }`}
+              title={isHandRaised ? 'Lower your hand' : 'Raise hand (✋)'}
+              aria-label={isHandRaised ? 'Lower your hand' : 'Raise hand'}
+            >
+              <Hand className="h-5 w-5" />
+              <span className="text-[8px] font-bold mt-0.5">{isHandRaised ? 'Lower' : 'Hand'}</span>
+            </button>
+          )}
+
+          {/* Reaction Picker Popover */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowReactionPicker((v) => !v)}
+              className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
+                showReactionPicker
+                  ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-400'
+                  : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+              }`}
+              title="Send live reaction"
+              aria-label="Send live reaction"
+            >
+              <Smile className="h-5 w-5" />
+              <span className="text-[8px] font-bold mt-0.5 hidden sm:inline">React</span>
+            </button>
+
+            {showReactionPicker && (
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-gray-900/95 border border-gray-800 rounded-2xl p-2 shadow-2xl backdrop-blur-md flex items-center gap-1.5 z-50 animate-fade-in">
+                {['👍', '👏', '❤️', '😊', '❓'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => handleSendReaction(emoji)}
+                    className="h-10 w-10 text-xl rounded-xl hover:bg-gray-800 flex items-center justify-center transition-transform hover:scale-125 cursor-pointer"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Polls Panel Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isSidePanelOpen && sidePanelTab === 'polls') {
+                setIsSidePanelOpen(false)
+              } else {
+                setIsSidePanelOpen(true)
+                setSidePanelTab('polls')
+                setUnreadPollsCount(0)
+              }
+            }}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
+              isSidePanelOpen && sidePanelTab === 'polls'
+                ? 'bg-indigo-600 text-white shadow-lg'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title="Classroom polls"
+            aria-label="Classroom polls"
+          >
+            <BarChart2 className="h-5 w-5" />
+            {unreadPollsCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-gray-950">
+                {unreadPollsCount}
+              </span>
+            )}
+            <span className="text-[8px] font-bold mt-0.5 hidden sm:inline">Polls</span>
           </button>
 
           {/* Participants Panel Toggle */}

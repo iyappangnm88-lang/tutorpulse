@@ -79,7 +79,7 @@ export async function verifySessionAccess(sessionId: string): Promise<SessionAut
       }
     }
 
-    // 5. Parent / Student authorization check (Participant)
+    // 5. Parent authorization check (Participant)
     // Check if user is an authorized parent with a linked student in this batch
     const { data: parentRecords } = await supabase
       .from('parents')
@@ -138,7 +138,58 @@ export async function verifySessionAccess(sessionId: string): Promise<SessionAut
       }
     }
 
-    // 6. Access denied (Not owner and not enrolled)
+    // 6. Student authorization check (Participant)
+    // Check if user is an active student connected to this tutor
+    const { data: studentConnections } = await supabase
+      .from('student_tutor_connections')
+      .select('id, student_user_id, tutor_id, student_record_id, status')
+      .eq('student_user_id', user.id)
+      .eq('tutor_id', session.tutor_id)
+      .eq('status', 'active')
+
+    if (studentConnections && studentConnections.length > 0) {
+      return {
+        authorized: true,
+        role: 'participant',
+        studentId: studentConnections[0].student_record_id || undefined,
+        user: {
+          id: user.id,
+          name: userName,
+          email: user.email,
+        },
+        session,
+      }
+    }
+
+    // Check if student is directly enrolled in this session's batch by email
+    if (user.email) {
+      const { data: enrolledStudents } = await supabase
+        .from('students')
+        .select(`
+          id,
+          full_name,
+          batch_students!inner (batch_id, status)
+        `)
+        .ilike('email', user.email)
+        .eq('batch_students.batch_id', session.batch_id)
+        .eq('batch_students.status', 'active')
+
+      if (enrolledStudents && enrolledStudents.length > 0) {
+        return {
+          authorized: true,
+          role: 'participant',
+          studentId: enrolledStudents[0].id,
+          user: {
+            id: user.id,
+            name: enrolledStudents[0].full_name || userName,
+            email: user.email,
+          },
+          session,
+        }
+      }
+    }
+
+    // 7. Access denied (Not owner and not enrolled)
     return {
       authorized: false,
       error: 'You are not enrolled in or authorized for this class session.',

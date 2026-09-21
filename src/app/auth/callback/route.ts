@@ -35,36 +35,40 @@ export async function GET(request: Request) {
           console.warn('link_parent_account_by_verified_email RPC notice:', linkError)
         }
 
-        // Fetch user profile
+        // Fetch user profile including onboarding_completed
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id, role')
+          .select('id, role, onboarding_completed')
           .eq('id', user.id)
           .maybeSingle()
 
         let userRole = profile?.role
+        let isOnboardingCompleted = Boolean(profile?.onboarding_completed)
 
         // Fallback: If trigger did not create profile, create it now
         if (!profile) {
           const isLinkedParent = Boolean(linkResult?.is_parent)
           const assignedRole = isLinkedParent ? 'parent' : 'tutor'
+          isOnboardingCompleted = isLinkedParent
           const fullName =
             user.user_metadata?.full_name ||
             user.user_metadata?.name ||
             user.email?.split('@')[0] ||
-            (assignedRole === 'parent' ? 'Parent' : 'Tutor')
+            (assignedRole === 'parent' ? 'Parent' : 'User')
 
           await supabase.from('profiles').insert({
             id: user.id,
             full_name: fullName,
             email: user.email || '',
             role: assignedRole,
+            onboarding_completed: isOnboardingCompleted,
           })
 
           userRole = assignedRole
         } else if (linkResult?.is_parent && userRole !== 'parent' && !linkResult?.is_tutor) {
           // If RPC identified as parent and not an active tutor, align role
           userRole = 'parent'
+          isOnboardingCompleted = true
         }
 
         // Check if an unlinked user was attempting to access the parent portal
@@ -83,15 +87,33 @@ export async function GET(request: Request) {
           !next.startsWith('//') &&
           !next.includes('\\')
 
-        // Default path based on role
-        const defaultDestination = userRole === 'parent' ? '/parent' : '/dashboard'
+        // Default path based on role and onboarding status
+        let defaultDestination = '/dashboard'
+        if (userRole === 'parent') {
+          defaultDestination = '/parent'
+        } else if (!isOnboardingCompleted) {
+          // New user needs role selection or onboarding completion
+          if (userRole === 'student') {
+            defaultDestination = '/onboarding/student'
+          } else if (userRole === 'tutor') {
+            defaultDestination = '/onboarding/role'
+          } else {
+            defaultDestination = '/onboarding/role'
+          }
+        } else if (userRole === 'student') {
+          defaultDestination = '/student'
+        } else {
+          defaultDestination = '/dashboard'
+        }
 
         // Check role boundaries for redirect
         let finalPath = defaultDestination
-        if (isSafeRedirect) {
-          if (userRole === 'parent' && !next.startsWith('/dashboard')) {
+        if (isSafeRedirect && isOnboardingCompleted) {
+          if (userRole === 'parent' && !next.startsWith('/dashboard') && !next.startsWith('/student')) {
             finalPath = next
-          } else if (userRole !== 'parent' && !next.startsWith('/parent')) {
+          } else if (userRole === 'student' && !next.startsWith('/dashboard') && !next.startsWith('/parent')) {
+            finalPath = next
+          } else if (userRole === 'tutor' && !next.startsWith('/parent') && !next.startsWith('/student')) {
             finalPath = next
           }
         }

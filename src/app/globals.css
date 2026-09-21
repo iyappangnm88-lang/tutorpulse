@@ -79,6 +79,32 @@ body {
   animation: pulse-subtle 4s ease-in-out infinite;
 }
 
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.1);
+  }
+  30% {
+    transform: translateY(-50px) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-160px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-220px) scale(0.8);
+  }
+}
+
+.animate-float-up {
+  animation: float-up 3.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -1421,6 +1421,360 @@ $$;
 GRANT EXECUTE ON FUNCTION public.link_parent_account_by_verified_email() TO authenticated;
 
 -- ==============================================================================
+-- PHASE 5: CLASSROOM INTERACTIONS (Chat, Polls & Responses)
+-- ==============================================================================
+
+-- 1. CLASSROOM MESSAGES
+CREATE TABLE IF NOT EXISTS public.classroom_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+    class_session_id UUID NOT NULL REFERENCES public.class_sessions(id) ON DELETE CASCADE,
+    sender_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    sender_role TEXT NOT NULL CHECK (sender_role IN ('tutor', 'student', 'parent')),
+    sender_name TEXT NOT NULL,
+    message TEXT NOT NULL CHECK (char_length(trim(message)) > 0 AND char_length(message) <= 500),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_classroom_messages_session_time 
+    ON public.classroom_messages(class_session_id, created_at ASC);
+
+CREATE INDEX IF NOT EXISTS idx_classroom_messages_workspace 
+    ON public.classroom_messages(workspace_id);
+
+CREATE INDEX IF NOT EXISTS idx_classroom_messages_sender 
+    ON public.classroom_messages(sender_user_id);
+
+ALTER TABLE public.classroom_messages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Participants can view classroom messages" ON public.classroom_messages;
+CREATE POLICY "Participants can view classroom messages"
+    ON public.classroom_messages FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.class_sessions cs
+            WHERE cs.id = classroom_messages.class_session_id
+              AND cs.tutor_id = auth.uid()
+        )
+        OR
+        EXISTS (
+            SELECT 1 FROM public.class_sessions cs
+            JOIN public.batch_students bs ON bs.batch_id = cs.batch_id
+            JOIN public.parent_students ps ON ps.student_id = bs.student_id
+            JOIN public.parents p ON p.id = ps.parent_id
+            WHERE cs.id = classroom_messages.class_session_id
+              AND p.user_id = auth.uid()
+              AND p.portal_enabled = true
+        )
+    );
+
+DROP POLICY IF EXISTS "Authorized participants can insert classroom messages" ON public.classroom_messages;
+CREATE POLICY "Authorized participants can insert classroom messages"
+    ON public.classroom_messages FOR INSERT
+    WITH CHECK (
+        auth.uid() = sender_user_id
+        AND EXISTS (
+            SELECT 1 FROM public.class_sessions cs
+            WHERE cs.id = class_session_id
+              AND cs.status = 'in_progress'
+              AND (
+                  cs.tutor_id = auth.uid()
+                  OR EXISTS (
+                      SELECT 1 FROM public.batch_students bs
+                      JOIN public.parent_students ps ON ps.student_id = bs.student_id
+                      JOIN public.parents p ON p.id = ps.parent_id
+                      WHERE bs.batch_id = cs.batch_id
+                        AND p.user_id = auth.uid()
+                        AND p.portal_enabled = true
+                  )
+              )
+        )
+    );
+
+DROP POLICY IF EXISTS "Users can delete authorized classroom messages" ON public.classroom_messages;
+CREATE POLICY "Users can delete authorized classroom messages"
+    ON public.classroom_messages FOR DELETE
+    USING (
+        auth.uid() = sender_user_id
+        OR EXISTS (
+            SELECT 1 FROM public.class_sessions cs
+            WHERE cs.id = classroom_messages.class_session_id
+              AND cs.tutor_id = auth.uid()
+        )
+    );
+
+-- 2. CLASSROOM POLLS
+CREATE TABLE IF NOT EXISTS public.classroom_polls (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+    class_session_id UUID NOT NULL REFERENCES public.class_sessions(id) ON DELETE CASCADE,
+    tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    question TEXT NOT NULL CHECK (char_length(trim(question)) > 0 AND char_length(question) <= 300),
+    options JSONB NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'closed')),
+    results_revealed BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    started_at TIMESTAMPTZ,
+    closed_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_classroom_polls_session 
+    ON public.classroom_polls(class_session_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_classroom_polls_workspace 
+    ON public.classroom_polls(workspace_id);
+
+ALTER TABLE public.classroom_polls ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Tutors can manage classroom polls" ON public.classroom_polls;
+CREATE POLICY "Tutors can manage classroom polls"
+    ON public.classroom_polls FOR ALL
+    USING (auth.uid() = tutor_id)
+    WITH CHECK (auth.uid() = tutor_id);
+
+DROP POLICY IF EXISTS "Enrolled participants can view polls" ON public.classroom_polls;
+CREATE POLICY "Enrolled participants can view polls"
+    ON public.classroom_polls FOR SELECT
+    USING (
+        status IN ('active', 'closed')
+        AND EXISTS (
+            SELECT 1 FROM public.class_sessions cs
+            JOIN public.batch_students bs ON bs.batch_id = cs.batch_id
+            JOIN public.parent_students ps ON ps.student_id = bs.student_id
+            JOIN public.parents p ON p.id = ps.parent_id
+            WHERE cs.id = classroom_polls.class_session_id
+              AND p.user_id = auth.uid()
+              AND p.portal_enabled = true
+        )
+    );
+
+-- 3. CLASSROOM POLL RESPONSES
+CREATE TABLE IF NOT EXISTS public.classroom_poll_responses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    poll_id UUID NOT NULL REFERENCES public.classroom_polls(id) ON DELETE CASCADE,
+    class_session_id UUID NOT NULL REFERENCES public.class_sessions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    student_id UUID REFERENCES public.students(id) ON DELETE CASCADE,
+    option_index INT NOT NULL CHECK (option_index >= 0 AND option_index <= 10),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT unique_user_poll_response UNIQUE (poll_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_poll_responses_poll 
+    ON public.classroom_poll_responses(poll_id);
+
+CREATE INDEX IF NOT EXISTS idx_poll_responses_session 
+    ON public.classroom_poll_responses(class_session_id);
+
+ALTER TABLE public.classroom_poll_responses ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Tutors can view poll responses" ON public.classroom_poll_responses;
+CREATE POLICY "Tutors can view poll responses"
+    ON public.classroom_poll_responses FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.classroom_polls cp
+            WHERE cp.id = classroom_poll_responses.poll_id
+              AND cp.tutor_id = auth.uid()
+        )
+    );
+
+DROP POLICY IF EXISTS "Participants can view own poll response" ON public.classroom_poll_responses;
+CREATE POLICY "Participants can view own poll response"
+    ON public.classroom_poll_responses FOR SELECT
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Participants can submit poll response" ON public.classroom_poll_responses;
+CREATE POLICY "Participants can submit poll response"
+    ON public.classroom_poll_responses FOR INSERT
+    WITH CHECK (
+        auth.uid() = user_id
+        AND EXISTS (
+            SELECT 1 FROM public.classroom_polls cp
+            JOIN public.class_sessions cs ON cs.id = cp.class_session_id
+            WHERE cp.id = poll_id
+              AND cp.status = 'active'
+              AND cs.status = 'in_progress'
+        )
+    );
+
+-- ==============================================================================
+-- PHASE 6: V2 FOUNDATION, ROLES & STUDENT DOMAIN
+-- ==============================================================================
+
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check CHECK (role IN ('tutor', 'student', 'parent'));
+
+ALTER TABLE public.profiles
+    ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS bio TEXT,
+    ADD COLUMN IF NOT EXISTS primary_subjects TEXT[] DEFAULT '{}',
+    ADD COLUMN IF NOT EXISTS target_classes TEXT[] DEFAULT '{}',
+    ADD COLUMN IF NOT EXISTS teaching_languages TEXT[] DEFAULT '{}',
+    ADD COLUMN IF NOT EXISTS teaching_mode TEXT DEFAULT 'both' CHECK (teaching_mode IN ('online', 'offline', 'both')),
+    ADD COLUMN IF NOT EXISTS experience_years INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+    ADD COLUMN IF NOT EXISTS is_public_marketplace BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE public.workspaces
+    ADD COLUMN IF NOT EXISTS invite_code TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_workspaces_invite_code ON public.workspaces(invite_code) WHERE invite_code IS NOT NULL;
+
+-- Independent student_profiles table
+CREATE TABLE IF NOT EXISTS public.student_profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name TEXT NOT NULL,
+    grade_level TEXT,
+    school_name TEXT,
+    interests TEXT[] DEFAULT '{}',
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS set_student_profiles_updated_at ON public.student_profiles;
+CREATE TRIGGER set_student_profiles_updated_at
+    BEFORE UPDATE ON public.student_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE public.student_profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Students can view their own profile" ON public.student_profiles;
+CREATE POLICY "Students can view their own profile"
+    ON public.student_profiles FOR SELECT
+    USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Students can insert their own profile" ON public.student_profiles;
+CREATE POLICY "Students can insert their own profile"
+    ON public.student_profiles FOR INSERT
+    WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Students can update their own profile" ON public.student_profiles;
+CREATE POLICY "Students can update their own profile"
+    ON public.student_profiles FOR UPDATE
+    USING (auth.uid() = id)
+    WITH CHECK (auth.uid() = id);
+
+-- Student-Tutor Connection junction
+CREATE TABLE IF NOT EXISTS public.student_tutor_connections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    student_record_id UUID REFERENCES public.students(id) ON DELETE SET NULL,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'pending', 'inactive')),
+    joined_via TEXT NOT NULL DEFAULT 'invite' CHECK (joined_via IN ('invite', 'direct', 'marketplace')),
+    invite_code TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT unique_student_tutor_connection UNIQUE (student_user_id, tutor_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_stc_student_user_id ON public.student_tutor_connections(student_user_id);
+CREATE INDEX IF NOT EXISTS idx_stc_tutor_id ON public.student_tutor_connections(tutor_id);
+
+DROP TRIGGER IF EXISTS set_student_tutor_connections_updated_at ON public.student_tutor_connections;
+CREATE TRIGGER set_student_tutor_connections_updated_at
+    BEFORE UPDATE ON public.student_tutor_connections
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE public.student_tutor_connections ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Students can view their own connections" ON public.student_tutor_connections;
+CREATE POLICY "Students can view their own connections"
+    ON public.student_tutor_connections FOR SELECT
+    USING (auth.uid() = student_user_id);
+
+DROP POLICY IF EXISTS "Tutors can view connections to them" ON public.student_tutor_connections;
+CREATE POLICY "Tutors can view connections to them"
+    ON public.student_tutor_connections FOR SELECT
+    USING (auth.uid() = tutor_id);
+
+DROP POLICY IF EXISTS "Students can create connections" ON public.student_tutor_connections;
+CREATE POLICY "Students can create connections"
+    ON public.student_tutor_connections FOR INSERT
+    WITH CHECK (auth.uid() = student_user_id);
+
+DROP POLICY IF EXISTS "Tutors can update their connections" ON public.student_tutor_connections;
+CREATE POLICY "Tutors can update their connections"
+    ON public.student_tutor_connections FOR UPDATE
+    USING (auth.uid() = tutor_id)
+    WITH CHECK (auth.uid() = tutor_id);
+
+DROP POLICY IF EXISTS "Tutors can view connected student profiles" ON public.student_profiles;
+CREATE POLICY "Tutors can view connected student profiles"
+    ON public.student_profiles FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.student_tutor_connections
+            WHERE tutor_id = auth.uid()
+              AND student_user_id = student_profiles.id
+        )
+    );
+
+-- Function to join a tutor via invite code
+CREATE OR REPLACE FUNCTION public.join_tutor_by_invite_code(p_invite_code TEXT)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+    v_user_id UUID;
+    v_workspace RECORD;
+    v_connection RECORD;
+BEGIN
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Authentication required');
+    END IF;
+
+    SELECT * INTO v_workspace
+    FROM public.workspaces
+    WHERE UPPER(invite_code) = UPPER(TRIM(p_invite_code))
+    LIMIT 1;
+
+    IF v_workspace.id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Invalid invite code. Please verify with your tutor.');
+    END IF;
+
+    IF v_workspace.tutor_id = v_user_id THEN
+        RETURN jsonb_build_object('success', false, 'error', 'You cannot connect to your own tutor workspace.');
+    END IF;
+
+    INSERT INTO public.student_tutor_connections (
+        student_user_id,
+        tutor_id,
+        status,
+        joined_via,
+        invite_code
+    )
+    VALUES (
+        v_user_id,
+        v_workspace.tutor_id,
+        'active',
+        'invite',
+        p_invite_code
+    )
+    ON CONFLICT (student_user_id, tutor_id) DO UPDATE
+    SET status = 'active',
+        updated_at = NOW()
+    RETURNING * INTO v_connection;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'tutor_id', v_workspace.tutor_id,
+        'workspace_name', v_workspace.name
+    );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.join_tutor_by_invite_code(TEXT) TO authenticated;
+
+-- ==============================================================================
 -- Grant schema permissions to API roles and reload PostgREST cache
 -- ==============================================================================
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;

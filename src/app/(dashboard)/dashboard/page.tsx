@@ -33,6 +33,7 @@ import { getActiveWorkspace } from '@/lib/workspace'
 import { formatCurrency } from '@/lib/fee-utils'
 import { PageGuide } from '@/components/help/page-guide'
 import { OnboardingChecklist } from '@/components/help/onboarding-checklist'
+import { InviteCodeBadge } from '@/components/dashboard/invite-code-badge'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -196,6 +197,14 @@ export default async function DashboardPage() {
                 ? 'Managing physical tuition, classroom attendance, chalkboard notes & in-person batches.'
                 : 'Managing virtual classes, WebRTC live classroom, screen sharing & digital sessions.'}
             </p>
+            {activeWorkspace?.invite_code && (
+              <div className="mt-3">
+                <InviteCodeBadge
+                  inviteCode={activeWorkspace.invite_code}
+                  workspaceType={workspaceType}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

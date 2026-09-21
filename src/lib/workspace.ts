@@ -37,12 +37,14 @@ export async function getTutorWorkspaces(tutorId: string): Promise<{
 
     // Auto-provision if either workspace is missing
     if (!offlineWs) {
+      const offCode = 'TP-' + Math.random().toString(36).substring(2, 8).toUpperCase()
       const { data: newOffline, error: offErr } = await supabase
         .from('workspaces')
         .insert({
           tutor_id: tutorId,
           name: 'Offline Teaching',
           type: 'offline',
+          invite_code: offCode,
         })
         .select()
         .single()
@@ -53,12 +55,14 @@ export async function getTutorWorkspaces(tutorId: string): Promise<{
     }
 
     if (!onlineWs) {
+      const onCode = 'TP-' + Math.random().toString(36).substring(2, 8).toUpperCase()
       const { data: newOnline, error: onErr } = await supabase
         .from('workspaces')
         .insert({
           tutor_id: tutorId,
           name: 'Online Teaching',
           type: 'online',
+          invite_code: onCode,
         })
         .select()
         .single()

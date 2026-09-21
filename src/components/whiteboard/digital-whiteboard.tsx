@@ -35,7 +35,7 @@ import { ClearConfirmModal } from './clear-confirm-modal'
 
 interface DigitalWhiteboardProps {
   sessionId: string
-  portalType: 'tutor' | 'parent'
+  portalType: 'tutor' | 'parent' | 'student'
   currentUserId?: string
   currentUserName: string
 }

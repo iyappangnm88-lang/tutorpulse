@@ -5,6 +5,7 @@ import type {
   ClassroomParticipant,
   SignalingMessage,
   ClassroomChatMessage,
+  ClassroomReaction,
   SignalType,
 } from './types'
 
@@ -14,6 +15,12 @@ export interface SignalingCallbacks {
   onParticipantLeave?: (participantId: string) => void
   onSignal?: (signal: SignalingMessage) => void
   onChatMessage?: (message: ClassroomChatMessage) => void
+  onChatMessageDelete?: (messageId: string) => void
+  onReaction?: (reaction: ClassroomReaction) => void
+  onHandRaised?: (participantId: string, name: string, timestamp: string) => void
+  onHandLowered?: (participantId: string) => void
+  onHandAcknowledged?: (participantId: string) => void
+  onPollEvent?: (event: { type: SignalType; pollId?: string; data?: any }) => void
   onClassEnded?: () => void
   onError?: (err: Error) => void
 }
@@ -25,6 +32,8 @@ export interface LocalParticipantMeta {
   audioEnabled: boolean
   videoEnabled: boolean
   isScreenSharing: boolean
+  handRaised?: boolean
+  handRaisedAt?: string
 }
 
 /**
@@ -88,6 +97,8 @@ export class ClassroomSignalingChannel {
               isAudioMuted: latest.audioEnabled === false,
               isVideoMuted: latest.videoEnabled === false,
               isScreenSharing: Boolean(latest.isScreenSharing),
+              handRaised: Boolean(latest.handRaised),
+              handRaisedAt: latest.handRaisedAt,
               joinedAt: latest.joinedAt || new Date().toISOString(),
             })
           }
@@ -106,6 +117,8 @@ export class ClassroomSignalingChannel {
               isAudioMuted: presence.audioEnabled === false,
               isVideoMuted: presence.videoEnabled === false,
               isScreenSharing: Boolean(presence.isScreenSharing),
+              handRaised: Boolean(presence.handRaised),
+              handRaisedAt: presence.handRaisedAt,
               joinedAt: presence.joinedAt || new Date().toISOString(),
             })
           }
@@ -120,7 +133,7 @@ export class ClassroomSignalingChannel {
         })
       })
 
-    // 2. Broadcast Signaling (WebRTC offers, answers, ICE candidates, state)
+    // 2. Broadcast Signaling (WebRTC offers, answers, ICE candidates, state, reactions, polls)
     this.channel.on('broadcast', { event: 'signal' }, ({ payload }) => {
       const msg = payload as SignalingMessage
       if (!msg || msg.senderId === this.localMeta.id) {
@@ -137,6 +150,31 @@ export class ClassroomSignalingChannel {
         return
       }
 
+      if (msg.type === 'reaction') {
+        this.callbacks.onReaction?.(msg.data)
+        return
+      }
+
+      if (msg.type === 'hand:raise') {
+        this.callbacks.onHandRaised?.(msg.senderId, msg.senderName, msg.data?.timestamp || new Date().toISOString())
+        return
+      }
+
+      if (msg.type === 'hand:lower') {
+        this.callbacks.onHandLowered?.(msg.senderId)
+        return
+      }
+
+      if (msg.type === 'hand:acknowledge') {
+        this.callbacks.onHandAcknowledged?.(msg.data?.participantId || msg.targetId || '')
+        return
+      }
+
+      if (msg.type.startsWith('poll:')) {
+        this.callbacks.onPollEvent?.({ type: msg.type, pollId: msg.data?.pollId, data: msg.data })
+        return
+      }
+
       this.callbacks.onSignal?.(msg)
     })
 
@@ -145,6 +183,12 @@ export class ClassroomSignalingChannel {
       const chatMsg = payload as ClassroomChatMessage
       if (!chatMsg) return
       this.callbacks.onChatMessage?.(chatMsg)
+    })
+
+    this.channel.on('broadcast', { event: 'chat:delete' }, ({ payload }) => {
+      if (payload?.messageId) {
+        this.callbacks.onChatMessageDelete?.(payload.messageId)
+      }
     })
 
     // Subscribe to channel
@@ -236,18 +280,24 @@ export class ClassroomSignalingChannel {
   }
 
   /**
-   * Sends a session-scoped text chat message.
+   * Broadcasts a chat message to all connected peers in this classroom session.
    */
-  async sendChatMessage(text: string): Promise<ClassroomChatMessage | null> {
-    if (!this.channel || !text.trim()) return null
+  async sendChatMessage(messageOrText: string | ClassroomChatMessage): Promise<ClassroomChatMessage | null> {
+    if (!this.channel) return null
 
-    const message: ClassroomChatMessage = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      senderId: this.localMeta.id,
-      senderName: this.localMeta.name,
-      senderRole: this.localMeta.role,
-      text: text.trim(),
-      timestamp: new Date().toISOString(),
+    let message: ClassroomChatMessage
+    if (typeof messageOrText === 'string') {
+      if (!messageOrText.trim()) return null
+      message = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        senderId: this.localMeta.id,
+        senderName: this.localMeta.name,
+        senderRole: this.localMeta.role,
+        text: messageOrText.trim(),
+        timestamp: new Date().toISOString(),
+      }
+    } else {
+      message = messageOrText
     }
 
     try {
@@ -256,12 +306,90 @@ export class ClassroomSignalingChannel {
         event: 'chat:message',
         payload: message,
       })
-      // Trigger callback locally as well
-      this.callbacks.onChatMessage?.(message)
+      if (typeof messageOrText === 'string') {
+        this.callbacks.onChatMessage?.(message)
+      }
       return message
     } catch (err) {
       console.error('Failed to send classroom chat message:', err)
       return null
+    }
+  }
+
+  /**
+   * Broadcasts a lightweight animated emoji reaction.
+   */
+  async sendReaction(emoji: string): Promise<void> {
+    const reaction: ClassroomReaction = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      emoji,
+      senderId: this.localMeta.id,
+      senderName: this.localMeta.name,
+      timestamp: Date.now(),
+    }
+    // Optimistic local trigger
+    this.callbacks.onReaction?.(reaction)
+    await this.sendSignal('reaction', reaction, null)
+  }
+
+  /**
+   * Student raises hand in classroom.
+   */
+  async raiseHand(): Promise<void> {
+    const now = new Date().toISOString()
+    this.localMeta.handRaised = true
+    this.localMeta.handRaisedAt = now
+    await this.updateState({ handRaised: true, handRaisedAt: now })
+    this.callbacks.onHandRaised?.(this.localMeta.id, this.localMeta.name, now)
+    await this.sendSignal('hand:raise', { timestamp: now }, null)
+  }
+
+  /**
+   * Student lowers hand.
+   */
+  async lowerHand(): Promise<void> {
+    this.localMeta.handRaised = false
+    this.localMeta.handRaisedAt = undefined
+    await this.updateState({ handRaised: false, handRaisedAt: undefined })
+    this.callbacks.onHandLowered?.(this.localMeta.id)
+    await this.sendSignal('hand:lower', {}, null)
+  }
+
+  /**
+   * Tutor acknowledges a student's raised hand.
+   */
+  async acknowledgeHand(participantId: string): Promise<void> {
+    this.callbacks.onHandAcknowledged?.(participantId)
+    await this.sendSignal('hand:acknowledge', { participantId }, participantId)
+  }
+
+  /**
+   * Broadcasts a live poll event (started, response submitted, closed, revealed).
+   */
+  async sendPollBroadcast(
+    type: 'poll:started' | 'poll:response' | 'poll:closed' | 'poll:revealed',
+    pollId: string,
+    data?: any
+  ): Promise<void> {
+    const payload = { pollId, ...data }
+    this.callbacks.onPollEvent?.({ type, pollId, data })
+    await this.sendSignal(type, payload, null)
+  }
+
+  /**
+   * Broadcasts a message deletion event so peer clients remove the message locally.
+   */
+  async broadcastChatDelete(messageId: string): Promise<void> {
+    if (!this.channel) return
+    try {
+      await this.channel.send({
+        type: 'broadcast',
+        event: 'chat:delete',
+        payload: { messageId },
+      })
+      this.callbacks.onChatMessageDelete?.(messageId)
+    } catch (err) {
+      console.warn('Failed to broadcast chat delete:', err)
     }
   }
 
