@@ -131,6 +131,16 @@ export function BatchDetailsClient({
                 <Badge variant={batch.status === 'active' ? 'success' : 'default'}>
                   {batch.status === 'active' ? 'Active' : 'Archived'}
                 </Badge>
+                {batch.is_public ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
+                    <Globe2 className="h-3 w-3" />
+                    Marketplace Listed
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-md">
+                    Private Batch
+                  </span>
+                )}
                 {batch.subject && (
                   <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
                     {batch.subject}

@@ -62,6 +62,8 @@ export async function createBatchAction(
       location: scheduleValidation.normalizedData.location,
       schedule: scheduleValidation.normalizedData.schedule,
       description: input.description?.trim() || null,
+      is_public: input.is_public ?? false,
+      public_description: input.public_description?.trim() || null,
       status: input.status || 'active',
     }
 
@@ -126,6 +128,8 @@ export async function updateBatchAction(
       subject: input.subject?.trim() || null,
       class_name: input.class_name?.trim() || null,
       description: input.description?.trim() || null,
+      is_public: input.is_public !== undefined ? input.is_public : undefined,
+      public_description: input.public_description !== undefined ? (input.public_description?.trim() || null) : undefined,
       status: input.status,
     }
 

@@ -19,6 +19,8 @@ import {
   Bell,
   User,
   Video,
+  UserCheck,
+  Compass,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -49,6 +51,7 @@ export const TUTOR_MAIN_NAV_ITEMS: NavItem[] = [
  * Secondary: Administration, analytics, and settings.
  */
 export const TUTOR_SECONDARY_NAV_ITEMS: NavItem[] = [
+  { label: 'Requests', href: '/dashboard/requests', icon: UserCheck },
   { label: 'Parent Portal', href: '/dashboard/parents', icon: HeartHandshake },
   { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
@@ -106,5 +109,5 @@ export const STUDENT_NAV_ITEMS: NavItem[] = [
   { label: 'My Progress', href: '/student/progress', icon: BarChart3 },
   { label: 'Messages', href: '/student/messages', icon: MessageSquare },
   { label: 'Settings', href: '/student/settings', icon: Settings },
-  { label: 'Find a Tutor', href: '/student/marketplace', icon: HelpCircle },
+  { label: 'Find a Tutor', href: '/student/marketplace', icon: Compass },
 ]

@@ -50,6 +50,8 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
     class_mode: (initialData?.class_mode || effectiveWorkspace) as ClassMode,
     location: initialData?.location || '',
     description: initialData?.description || '',
+    is_public: initialData?.is_public ?? false,
+    public_description: initialData?.public_description || '',
     status: (initialData?.status || 'active') as BatchStatus,
   })
 
@@ -100,6 +102,8 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
           class_mode: formData.class_mode,
           location: formData.class_mode === 'online' ? null : (formData.location || null),
           description: formData.description || null,
+          is_public: formData.is_public,
+          public_description: formData.public_description || null,
           status: formData.status,
         })
 
@@ -124,6 +128,8 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
           class_mode: formData.class_mode,
           location: formData.class_mode === 'online' ? null : (formData.location || null),
           description: formData.description || null,
+          is_public: formData.is_public,
+          public_description: formData.public_description || null,
           status: formData.status,
         })
 
@@ -300,6 +306,54 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={loading}
             />
+          </div>
+
+          {/* Public Offering on Tutor Profile */}
+          <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-900">Feature on Public Profile</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                    Marketplace
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Allow prospective students on TutorPulse Marketplace to discover this batch and send join requests.
+                  Existing student rosters and private attendance remain 100% confidential.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={formData.is_public}
+                  onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
+                  disabled={loading}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+
+            {formData.is_public && (
+              <div className="pt-2 border-t border-indigo-100/60">
+                <Label htmlFor="public_description" className="text-xs">
+                  Public Syllabus Summary / Target Students (Optional)
+                </Label>
+                <Textarea
+                  id="public_description"
+                  placeholder="e.g. Intensive 4-month course covering CBSE Class 10 Board exam syllabus. Weekly mock tests and concept revision included."
+                  value={formData.public_description}
+                  onChange={(e) => setFormData({ ...formData, public_description: e.target.value })}
+                  disabled={loading}
+                  rows={2}
+                  className="text-xs mt-1"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  This summary will be visible to prospective students browsing your public profile.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="sm:max-w-xs">

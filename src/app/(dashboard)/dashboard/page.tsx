@@ -261,6 +261,28 @@ export default async function DashboardPage() {
     })
   }
 
+  // 2e. Pending marketplace join requests
+  if (user) {
+    const { count: pendingRequestsCount } = await supabase
+      .from('join_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('tutor_id', user.id)
+      .eq('status', 'pending')
+
+    if (pendingRequestsCount && pendingRequestsCount > 0) {
+      attentionItems.unshift({
+        id: 'join-requests',
+        type: 'alert',
+        title: `${pendingRequestsCount} Pending Student Join ${pendingRequestsCount === 1 ? 'Request' : 'Requests'}`,
+        subtitle: 'Prospective students requesting to enroll in your public marketplace cohorts',
+        badgeText: 'New Request',
+        badgeVariant: 'warning',
+        actionUrl: '/dashboard/requests',
+        actionLabel: 'Review',
+      })
+    }
+  }
+
   // 3. Recent Activity Compilation (top 4 real events)
   const recentActivities: ActivityEvent[] = []
 

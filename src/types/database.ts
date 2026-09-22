@@ -24,6 +24,12 @@ export interface Database {
           experience_years: number | null
           avatar_url: string | null
           is_public_marketplace: boolean
+          headline: string | null
+          teaching_approach: string | null
+          profile_slug: string | null
+          location_region: string | null
+          public_contact_preference: 'platform' | 'email' | 'none' | null
+          availability_hours: any[] | null
           created_at: string
           updated_at: string
         }
@@ -41,6 +47,12 @@ export interface Database {
           experience_years?: number | null
           avatar_url?: string | null
           is_public_marketplace?: boolean
+          headline?: string | null
+          teaching_approach?: string | null
+          profile_slug?: string | null
+          location_region?: string | null
+          public_contact_preference?: 'platform' | 'email' | 'none' | null
+          availability_hours?: any[] | null
           created_at?: string
           updated_at?: string
         }
@@ -58,6 +70,12 @@ export interface Database {
           experience_years?: number | null
           avatar_url?: string | null
           is_public_marketplace?: boolean
+          headline?: string | null
+          teaching_approach?: string | null
+          profile_slug?: string | null
+          location_region?: string | null
+          public_contact_preference?: 'platform' | 'email' | 'none' | null
+          availability_hours?: any[] | null
           created_at?: string
           updated_at?: string
         }
@@ -227,6 +245,8 @@ export interface Database {
           location: string | null
           description: string | null
           status: 'active' | 'archived'
+          is_public: boolean
+          public_description: string | null
           created_at: string
           updated_at: string
         }
@@ -245,6 +265,8 @@ export interface Database {
           location?: string | null
           description?: string | null
           status?: 'active' | 'archived'
+          is_public?: boolean
+          public_description?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -263,6 +285,8 @@ export interface Database {
           location?: string | null
           description?: string | null
           status?: 'active' | 'archived'
+          is_public?: boolean
+          public_description?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -986,6 +1010,44 @@ export interface Database {
           created_at?: string
         }
       }
+      join_requests: {
+        Row: {
+          id: string
+          student_user_id: string
+          tutor_id: string
+          batch_id: string
+          workspace_id: string | null
+          status: 'pending' | 'accepted' | 'rejected' | 'cancelled'
+          student_notes: string | null
+          created_at: string
+          updated_at: string
+          responded_at: string | null
+        }
+        Insert: {
+          id?: string
+          student_user_id: string
+          tutor_id: string
+          batch_id: string
+          workspace_id?: string | null
+          status?: 'pending' | 'accepted' | 'rejected' | 'cancelled'
+          student_notes?: string | null
+          created_at?: string
+          updated_at?: string
+          responded_at?: string | null
+        }
+        Update: {
+          id?: string
+          student_user_id?: string
+          tutor_id?: string
+          batch_id?: string
+          workspace_id?: string | null
+          status?: 'pending' | 'accepted' | 'rejected' | 'cancelled'
+          student_notes?: string | null
+          created_at?: string
+          updated_at?: string
+          responded_at?: string | null
+        }
+      }
     }
     Functions: {
       link_parent_account_by_verified_email: {
@@ -1101,4 +1163,8 @@ export type ClassroomPollUpdate = Database['public']['Tables']['classroom_polls'
 export type ClassroomPollResponseRow = Database['public']['Tables']['classroom_poll_responses']['Row']
 export type ClassroomPollResponseInsert = Database['public']['Tables']['classroom_poll_responses']['Insert']
 export type ClassroomPollResponseUpdate = Database['public']['Tables']['classroom_poll_responses']['Update']
+
+export type JoinRequest = Database['public']['Tables']['join_requests']['Row']
+export type JoinRequestInsert = Database['public']['Tables']['join_requests']['Insert']
+export type JoinRequestUpdate = Database['public']['Tables']['join_requests']['Update']
 

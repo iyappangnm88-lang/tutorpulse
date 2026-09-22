@@ -19,6 +19,7 @@ import {
   ExternalLink,
   ChevronRight,
   Check,
+  Compass,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { JoinTutorModal } from './join-tutor-modal'
@@ -88,12 +89,21 @@ export function StudentDashboardClient({ data }: StudentDashboardClientProps) {
               <UserPlus className="mr-1.5 h-4 w-4 text-indigo-600" />
               {hasTutors ? 'Connect Another Tutor' : 'Join with Invite Code'}
             </Button>
+            <Link href="/student/marketplace">
+              <Button
+                variant="outline"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs"
+              >
+                <Compass className="mr-1.5 h-3.5 w-3.5" />
+                Find a Tutor
+              </Button>
+            </Link>
             <Link href="/student/classes">
               <Button
                 variant="outline"
                 className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs"
               >
-                View Full Timetable
+                Timetable
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
               </Button>
             </Link>
