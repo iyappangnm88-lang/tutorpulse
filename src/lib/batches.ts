@@ -194,3 +194,30 @@ export async function getAvailableStudentsForBatch(batchId: string): Promise<{ d
     return { data: [], error: 'Failed to load available students.' }
   }
 }
+
+export async function getStudentEnrolledBatches(studentId: string): Promise<{
+  data: Batch[]
+  error: string | null
+}> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('batch_students')
+      .select('batch:batches(*)')
+      .eq('student_id', studentId)
+
+    if (error) {
+      return { data: [], error: error.message }
+    }
+
+    const batches = (data || [])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((row: any) => row.batch as Batch)
+      .filter(Boolean)
+
+    return { data: batches, error: null }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to load student batches.'
+    return { data: [], error: message }
+  }
+}

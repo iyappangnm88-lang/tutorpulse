@@ -30,32 +30,55 @@ export interface NavItem {
 
 /**
  * Source of Truth for Tutor navigation.
- * Both the desktop sidebar and mobile navigation drawer consume this exact array.
+ * Main: Core daily teaching workflows.
  */
-export const TUTOR_NAV_ITEMS: NavItem[] = [
+export const TUTOR_MAIN_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Batches', href: '/dashboard/batches', icon: Layers },
+  { label: 'Students', href: '/dashboard/students', icon: Users },
   { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
   { label: 'Classroom', href: '/dashboard/classroom', icon: Video },
-  { label: 'Students', href: '/dashboard/students', icon: Users },
-  { label: 'Batches', href: '/dashboard/batches', icon: Layers },
-  { label: 'Parents', href: '/dashboard/parents', icon: HeartHandshake },
   { label: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
-  { label: 'Fees', href: '/dashboard/fees', icon: CreditCard },
   { label: 'Homework', href: '/dashboard/homework', icon: BookOpen },
   { label: 'Tests', href: '/dashboard/tests', icon: FileText },
-  { label: 'Communication', href: '/dashboard/communication', icon: MessageSquare },
+  { label: 'Fees', href: '/dashboard/fees', icon: CreditCard },
+  { label: 'Messages', href: '/dashboard/communication', icon: MessageSquare },
+]
+
+/**
+ * Secondary: Administration, analytics, and settings.
+ */
+export const TUTOR_SECONDARY_NAV_ITEMS: NavItem[] = [
+  { label: 'Parent Portal', href: '/dashboard/parents', icon: HeartHandshake },
   { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   { label: 'Help & Guides', href: '/dashboard/help', icon: HelpCircle },
 ]
 
-export function getTutorNavItems(workspaceType: 'offline' | 'online' = 'offline'): NavItem[] {
+export const TUTOR_NAV_ITEMS: NavItem[] = [
+  ...TUTOR_MAIN_NAV_ITEMS,
+  ...TUTOR_SECONDARY_NAV_ITEMS,
+]
+
+export function getTutorNavGroups(workspaceType: 'offline' | 'online' = 'offline'): {
+  main: NavItem[]
+  secondary: NavItem[]
+} {
+  let main = TUTOR_MAIN_NAV_ITEMS
   if (workspaceType === 'offline') {
-    return TUTOR_NAV_ITEMS.filter(
+    main = main.filter(
       (item) => item.href !== '/dashboard/calendar' && item.href !== '/dashboard/classroom'
     )
   }
-  return TUTOR_NAV_ITEMS
+  return {
+    main,
+    secondary: TUTOR_SECONDARY_NAV_ITEMS,
+  }
+}
+
+export function getTutorNavItems(workspaceType: 'offline' | 'online' = 'offline'): NavItem[] {
+  const { main, secondary } = getTutorNavGroups(workspaceType)
+  return [...main, ...secondary]
 }
 
 /**

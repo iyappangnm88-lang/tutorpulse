@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import {
   Users,
   ClipboardCheck,
@@ -16,17 +17,23 @@ import {
   Video,
   MapPin,
   School,
+  CheckCircle2,
+  Clock,
+  ArrowRight,
+  BellRing,
 } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
-import Link from 'next/link'
 import { syncSystemAlerts, getTutorNotifications } from '@/lib/communication'
 import { getReportAggregatedData } from '@/lib/reports'
 import { getStudents } from '@/lib/students'
 import { getBatches } from '@/lib/batches'
 import { isBatchScheduledOnDate, formatTimeRange } from '@/lib/scheduling'
 import { getTodaySessions, getUpcomingSessions } from '@/lib/class-sessions'
+import { getHomeworkList } from '@/lib/homework'
+import { getTests } from '@/lib/tests'
+import { getFees } from '@/lib/fees'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveWorkspace } from '@/lib/workspace'
@@ -34,7 +41,9 @@ import { formatCurrency } from '@/lib/fee-utils'
 import { PageGuide } from '@/components/help/page-guide'
 import { OnboardingChecklist } from '@/components/help/onboarding-checklist'
 import { InviteCodeBadge } from '@/components/dashboard/invite-code-badge'
+import { NextClassHero } from '@/components/dashboard/next-class-hero'
 import type { Metadata } from 'next'
+import type { ClassSessionWithBatch } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Dashboard — TutorPulse',
@@ -106,6 +115,25 @@ function QuickActionButton({
   )
 }
 
+interface AttentionItem {
+  id: string
+  type: 'homework' | 'test' | 'fee' | 'attendance' | 'alert'
+  title: string
+  subtitle: string
+  badgeText: string
+  badgeVariant: 'warning' | 'danger' | 'info'
+  actionUrl: string
+  actionLabel: string
+}
+
+interface ActivityEvent {
+  id: string
+  title: string
+  detail: string
+  timestamp: string
+  type: 'class' | 'homework' | 'test' | 'fee'
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -121,34 +149,156 @@ export default async function DashboardPage() {
   let batchesRes: Awaited<ReturnType<typeof getBatches>> = { data: [], error: null }
   let todaySessionsRes: Awaited<ReturnType<typeof getTodaySessions>> = { data: [], error: null }
   let upcomingSessionsRes: Awaited<ReturnType<typeof getUpcomingSessions>> = { data: [], error: null }
+  let homeworkRes: Awaited<ReturnType<typeof getHomeworkList>> = { data: [], error: null }
+  let testsRes: Awaited<ReturnType<typeof getTests>> = { data: [], error: null }
+  let feesRes: Awaited<ReturnType<typeof getFees>> = { data: [], error: null }
 
-  try { await syncSystemAlerts() } catch { /* ignore alerts errors on fresh accounts */ }
+  try { await syncSystemAlerts() } catch { /* ignore alerts errors */ }
 
   try {
-    [notifications, reportData, studentsRes, batchesRes, todaySessionsRes, upcomingSessionsRes] = await Promise.all([
+    [
+      notifications,
+      reportData,
+      studentsRes,
+      batchesRes,
+      todaySessionsRes,
+      upcomingSessionsRes,
+      homeworkRes,
+      testsRes,
+      feesRes,
+    ] = await Promise.all([
       getTutorNotifications().catch(() => []),
       getReportAggregatedData({ range: 'this_month' }).catch(() => null),
       getStudents(wsId).catch(() => ({ data: [], error: null })),
       getBatches(wsId).catch(() => ({ data: [], error: null })),
       getTodaySessions(wsId).catch(() => ({ data: [], error: null })),
       getUpcomingSessions(5, wsId).catch(() => ({ data: [], error: null })),
+      getHomeworkList({ workspaceId: wsId }).catch(() => ({ data: [], error: null })),
+      getTests({ workspaceId: wsId }).catch(() => ({ data: [], error: null })),
+      getFees({ workspaceId: wsId }).catch(() => ({ data: [], error: null })),
     ])
   } catch {
-    // Fallback: all empty — fresh account, no data yet
+    // Fallback: all empty
   }
 
-  const activeAlerts = notifications.filter((n) => !n.read)
   const studentsCount = studentsRes.data?.length || 0
   const batchesCount = batchesRes.data?.length || 0
-  const todaySessions = todaySessionsRes.data || []
-  const upcomingSessions = upcomingSessionsRes.data || []
+  const todaySessions = (todaySessionsRes.data || []) as ClassSessionWithBatch[]
+  const upcomingSessions = (upcomingSessionsRes.data || []) as ClassSessionWithBatch[]
   const todayDate = new Date()
-  const todayBatches = (batchesRes.data || []).filter(
-    (b) => b.status === 'active' && isBatchScheduledOnDate(b, todayDate)
-  )
+
+  // 1. Identify Next Class (Live or Upcoming today)
+  const sortedToday = [...todaySessions].sort((a, b) => a.start_time.localeCompare(b.start_time))
+  const liveSession = sortedToday.find((s) => s.status === 'in_progress')
+  const nextScheduledSession = sortedToday.find((s) => s.status === 'scheduled')
+  const nextSession: ClassSessionWithBatch | null = liveSession || nextScheduledSession || null
+
+  // 2. Action Center items calculation ("Needs Your Attention")
+  const attentionItems: AttentionItem[] = []
+
+  // 2a. Homework needing grading / review
+  for (const hw of homeworkRes.data || []) {
+    const isDue = hw.due_date ? new Date(hw.due_date) <= todayDate : false
+    if (hw.display_status === 'Overdue' || (hw.pending_count > 0 && isDue)) {
+      attentionItems.push({
+        id: `hw-${hw.id}`,
+        type: 'homework',
+        title: `Grade Homework: ${hw.title}`,
+        subtitle: `${hw.batch?.name || 'Batch'} • ${hw.pending_count || 0} student submissions awaiting review`,
+        badgeText: 'Review HW',
+        badgeVariant: 'warning',
+        actionUrl: `/dashboard/homework/${hw.id}`,
+        actionLabel: 'Grade',
+      })
+    }
+  }
+
+  // 2b. Tests needing marks entry
+  for (const test of testsRes.data || []) {
+    const isDue = test.test_date ? new Date(test.test_date) <= todayDate : false
+    if (test.display_status === 'Awaiting Marks' || (isDue && test.graded_count < test.total_students)) {
+      attentionItems.push({
+        id: `test-${test.id}`,
+        type: 'test',
+        title: `Enter Test Marks: ${test.title}`,
+        subtitle: `${test.batch?.name || 'Batch'} • ${test.total_students - test.graded_count} student marks pending`,
+        badgeText: 'Enter Marks',
+        badgeVariant: 'warning',
+        actionUrl: `/dashboard/tests/${test.id}`,
+        actionLabel: 'Enter Marks',
+      })
+    }
+  }
+
+  // 2c. Overdue / Pending Fees
+  for (const fee of feesRes.data || []) {
+    const isDue = fee.due_date ? new Date(fee.due_date) < todayDate : false
+    if (fee.status === 'Overdue' || (fee.status === 'Pending' && isDue)) {
+      attentionItems.push({
+        id: `fee-${fee.id}`,
+        type: 'fee',
+        title: `Overdue Fee: ${fee.student?.full_name || 'Student'}`,
+        subtitle: `Due ${fee.due_date ? new Date(fee.due_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'Pending'} • Balance: ${formatCurrency(fee.balance)}`,
+        badgeText: 'Overdue',
+        badgeVariant: 'danger',
+        actionUrl: '/dashboard/fees',
+        actionLabel: 'Record',
+      })
+    }
+  }
+
+  // 2d. Unread notifications
+  for (const notif of notifications.filter((n) => !n.read)) {
+    attentionItems.push({
+      id: `notif-${notif.id}`,
+      type: 'alert',
+      title: notif.title,
+      subtitle: notif.message,
+      badgeText: 'Notice',
+      badgeVariant: 'info',
+      actionUrl: notif.action_url || '/dashboard/communication',
+      actionLabel: 'View',
+    })
+  }
+
+  // 3. Recent Activity Compilation (top 4 real events)
+  const recentActivities: ActivityEvent[] = []
+
+  for (const hw of (homeworkRes.data || []).slice(0, 2)) {
+    recentActivities.push({
+      id: `act-hw-${hw.id}`,
+      title: `Homework Assigned: ${hw.title}`,
+      detail: `${hw.batch?.name || 'Batch'} • Due ${hw.due_date ? new Date(hw.due_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'No due date'}`,
+      timestamp: hw.created_at || hw.assigned_date,
+      type: 'homework',
+    })
+  }
+
+  for (const test of (testsRes.data || []).slice(0, 2)) {
+    recentActivities.push({
+      id: `act-test-${test.id}`,
+      title: `Test Scheduled: ${test.title}`,
+      detail: `${test.batch?.name || 'Batch'} • Max marks: ${test.max_marks}`,
+      timestamp: test.created_at || test.test_date || '',
+      type: 'test',
+    })
+  }
+
+  for (const fee of (feesRes.data || []).slice(0, 2)) {
+    if (fee.total_paid > 0) {
+      recentActivities.push({
+        id: `act-fee-${fee.id}`,
+        title: `Fee Payment Logged`,
+        detail: `${fee.student?.full_name || 'Student'} • ${formatCurrency(fee.total_paid)} paid`,
+        timestamp: fee.created_at || fee.due_date || '',
+        type: 'fee',
+      })
+    }
+  }
+
+  recentActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
   const tutorName = user?.user_metadata?.name || 'Tutor'
-
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
@@ -161,7 +311,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Welcome Hero Banner with prominent Active Workspace Indicator */}
+      {/* 1. Welcome Hero Banner with Active Workspace Indicator */}
       <div
         className={`rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden ${
           isOffline
@@ -169,7 +319,6 @@ export default async function DashboardPage() {
             : 'bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-950'
         }`}
       >
-        {/* Subtle decorative background circles */}
         <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <div className="absolute -bottom-16 right-32 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
@@ -190,12 +339,12 @@ export default async function DashboardPage() {
               <span className="text-white/80">{todayStr}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              {greeting}, {tutorName}!
+              {greeting}, {tutorName}! 👋
             </h1>
             <p className="text-xs sm:text-sm text-white/80 mt-1 max-w-lg">
               {isOffline
-                ? 'Managing physical tuition, classroom attendance, chalkboard notes & in-person batches.'
-                : 'Managing virtual classes, WebRTC live classroom, screen sharing & digital sessions.'}
+                ? 'Managing in-person tuition, classroom attendance, physical batches & chalkboard routine.'
+                : 'Managing virtual classes, WebRTC live classroom, digital sessions & interactive whiteboard.'}
             </p>
             {activeWorkspace?.invite_code && (
               <div className="mt-3">
@@ -245,6 +394,14 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* 2. Next Class Hero Card (High Priority Callout) */}
+      {nextSession && (
+        <NextClassHero
+          session={nextSession}
+          workspaceType={workspaceType}
+        />
+      )}
+
       {/* Tutor Getting Started Checklist */}
       <OnboardingChecklist
         studentsCount={studentsCount}
@@ -254,7 +411,7 @@ export default async function DashboardPage() {
       {/* Context-Aware Dashboard Guide Banner */}
       <PageGuide topicId="dashboard" defaultCollapsed={batchesCount > 0 && studentsCount > 0} />
 
-      {/* KPI Overview Cards */}
+      {/* 3. Key Overview KPI Metrics (4 clean cards) */}
       <section aria-labelledby="metrics-heading">
         <h2 id="metrics-heading" className="sr-only">Key metrics</h2>
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -266,6 +423,15 @@ export default async function DashboardPage() {
             iconColor={isOffline ? 'text-amber-600' : 'text-blue-600'}
             iconBg={isOffline ? 'bg-amber-50' : 'bg-blue-50'}
             href="/dashboard/students"
+          />
+          <MetricCard
+            icon={Layers}
+            label="Active Batches"
+            value={batchesCount}
+            sub={`${todaySessions.length} scheduled today`}
+            iconColor="text-indigo-600"
+            iconBg="bg-indigo-50"
+            href="/dashboard/batches"
           />
           <MetricCard
             icon={ClipboardCheck}
@@ -282,30 +448,17 @@ export default async function DashboardPage() {
           />
           <MetricCard
             icon={CreditCard}
-            label="Fee Collected"
-            value={formatCurrency(reportData?.kpis.fees_total_collected || 0)}
-            sub={`${formatCurrency(reportData?.kpis.fees_outstanding || 0)} pending`}
+            label="Pending Fees"
+            value={formatCurrency(reportData?.kpis.fees_outstanding || 0)}
+            sub={`${formatCurrency(reportData?.kpis.fees_total_collected || 0)} collected`}
             iconColor="text-purple-600"
             iconBg="bg-purple-50"
             href="/dashboard/fees"
           />
-          <MetricCard
-            icon={BookOpen}
-            label="Homework Rate"
-            value={
-              reportData?.kpis.homework_completion_rate !== undefined
-                ? `${reportData.kpis.homework_completion_rate}%`
-                : '—'
-            }
-            sub={`${reportData?.kpis.homework_assigned || 0} assigned`}
-            iconColor="text-amber-600"
-            iconBg="bg-amber-50"
-            href="/dashboard/homework"
-          />
         </div>
       </section>
 
-      {/* Quick Actions Grid */}
+      {/* 4. Quick Actions Grid (6 clean buttons) */}
       <section aria-labelledby="quick-actions-heading">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -321,36 +474,36 @@ export default async function DashboardPage() {
           />
           <QuickActionButton
             icon={Layers}
-            label={isOffline ? 'Create Batch' : 'Create Batch'}
+            label="Create Batch"
             description={isOffline ? 'Physical location' : 'Virtual classroom'}
             href="/dashboard/batches/new"
           />
           {isOffline ? (
             <QuickActionButton
               icon={ClipboardCheck}
-              label="Attendance"
+              label="Take Attendance"
               description="Mark physical roll"
               href="/dashboard/attendance"
             />
           ) : (
             <QuickActionButton
-              icon={Video}
-              label="Classroom"
-              description="Join WebRTC room"
-              href="/dashboard/classroom"
+              icon={Calendar}
+              label="Schedule Class"
+              description="Add class session"
+              href="/dashboard/calendar"
             />
           )}
           <QuickActionButton
-            icon={GraduationCap}
-            label="Add Test"
-            description="Schedule an exam"
-            href="/dashboard/tests/new"
+            icon={FileCheck2}
+            label="Assign HW"
+            description="Assign practice work"
+            href="/dashboard/homework/new"
           />
           <QuickActionButton
-            icon={FileCheck2}
-            label="Homework"
-            description="Assign practice"
-            href="/dashboard/homework/new"
+            icon={GraduationCap}
+            label="Create Test"
+            description="Schedule an exam"
+            href="/dashboard/tests/new"
           />
           <QuickActionButton
             icon={Receipt}
@@ -361,39 +514,65 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Main Content Grid: Batches overview & Action center */}
+      {/* 5. Main Content Columns: Today's Schedule & Action Center */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column: Today's Schedule & Active Batches */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Today's Schedule Card */}
-          {todaySessions.length > 0 && (
-            <Card className="border-indigo-100 shadow-xs">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white">
-                <div className="flex items-center gap-2">
-                  {isOffline ? (
-                    <School className="h-4 w-4 text-amber-600" />
-                  ) : (
-                    <Video className="h-4 w-4 text-indigo-600" />
-                  )}
-                  <h2 className="text-sm font-bold text-gray-900">
-                    {isOffline ? "Today's In-Person Classes" : "Today's Virtual Classes"}
-                  </h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="success">
-                    {todaySessions.length} {todaySessions.length === 1 ? 'class' : 'classes'} scheduled
-                  </Badge>
-                  {!isOffline && (
+        {/* Left Column: Today's Schedule (Top Priority) + Active Batches */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Today's Classes Card */}
+          <Card className="border-indigo-100/80 shadow-xs">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white">
+              <div className="flex items-center gap-2">
+                {isOffline ? (
+                  <School className="h-4 w-4 text-amber-600" />
+                ) : (
+                  <Video className="h-4 w-4 text-indigo-600" />
+                )}
+                <h2 className="text-sm font-bold text-gray-900">
+                  {isOffline ? "Today's In-Person Classes" : "Today's Virtual Classes"}
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={todaySessions.length > 0 ? 'success' : 'default'}>
+                  {todaySessions.length} {todaySessions.length === 1 ? 'class' : 'classes'} today
+                </Badge>
+                {!isOffline && (
+                  <Link
+                    href="/dashboard/calendar"
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-1"
+                  >
+                    Calendar →
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            <CardBody className="p-0">
+              {todaySessions.length === 0 ? (
+                <div className="p-6 text-center">
+                  <div className="h-10 w-10 rounded-2xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-2">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold text-gray-700">No classes scheduled for today</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5 max-w-sm mx-auto">
+                    You have no scheduled class sessions on your calendar today. Enjoy your day or plan your upcoming routine.
+                  </p>
+                  <div className="mt-3 flex items-center justify-center gap-2">
                     <Link
                       href="/dashboard/calendar"
-                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-1"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
                     >
-                      Calendar →
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Schedule a Class</span>
                     </Link>
-                  )}
+                    <Link
+                      href="/dashboard/batches"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <span>View Batches</span>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-              <CardBody className="p-0">
+              ) : (
                 <div className="divide-y divide-gray-100">
                   {todaySessions.map((session) => (
                     <div
@@ -440,71 +619,65 @@ export default async function DashboardPage() {
 
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
                         {!isOffline ? (
-                          session.status === 'in_progress' ? (
+                          <>
                             <Link
-                              href={`/dashboard/classroom/${session.id}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-xl shadow-xs transition-colors"
+                              href={`/dashboard/classroom/${session.id}/prepare`}
+                              className="text-xs font-semibold text-gray-600 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 px-2.5 py-1.5 rounded-xl border border-gray-200 transition-colors"
                             >
-                              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                              Live • Enter Classroom
+                              Prepare
                             </Link>
-                          ) : session.status === 'scheduled' ? (
-                            <Link
-                              href={`/dashboard/classroom/${session.id}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 transition-colors"
-                            >
-                              <Video className="h-3.5 w-3.5 text-indigo-600" />
-                              Enter Classroom
-                            </Link>
-                          ) : null
+                            {session.status === 'in_progress' ? (
+                              <Link
+                                href={`/dashboard/classroom/${session.id}`}
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-xl shadow-xs transition-colors"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                                Live • Enter
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/dashboard/classroom/${session.id}`}
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 transition-colors"
+                              >
+                                <Video className="h-3.5 w-3.5 text-indigo-600" />
+                                Enter
+                              </Link>
+                            )}
+                          </>
                         ) : (
-                          /* Offline physical class — purely in-person, zero WebRTC controls */
-                          session.status === 'in_progress' ? (
+                          <>
+                            {session.status === 'in_progress' ? (
+                              <Link
+                                href={`/dashboard/class/${session.id}`}
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 px-3 py-1.5 rounded-xl shadow-xs transition-colors"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                                Class Active
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/dashboard/class/${session.id}`}
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition-colors"
+                              >
+                                <MapPin className="h-3.5 w-3.5 text-amber-700" />
+                                Open Class
+                              </Link>
+                            )}
                             <Link
-                              href={`/dashboard/class/${session.id}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 px-3 py-1.5 rounded-xl shadow-xs transition-colors"
+                              href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
+                              className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors border border-emerald-200"
                             >
-                              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                              Physical Class Active
+                              Attendance
                             </Link>
-                          ) : session.status === 'scheduled' ? (
-                            <Link
-                              href={`/dashboard/class/${session.id}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition-colors"
-                            >
-                              <MapPin className="h-3.5 w-3.5 text-amber-700" />
-                              Open Class
-                            </Link>
-                          ) : (
-                            <Link
-                              href={`/dashboard/class/${session.id}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200 transition-colors"
-                            >
-                              Class Details
-                            </Link>
-                          )
-                        )}
-                        <Link
-                          href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
-                          className="text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors border border-emerald-200"
-                        >
-                          Attendance
-                        </Link>
-                        {!isOffline && (
-                          <Link
-                            href="/dashboard/calendar"
-                            className="text-xs font-medium text-gray-500 hover:text-indigo-600 px-2 py-1"
-                          >
-                            Manage →
-                          </Link>
+                          </>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
-              </CardBody>
-            </Card>
-          )}
+              )}
+            </CardBody>
+          </Card>
 
           {/* Active Batches Card */}
           <Card>
@@ -515,17 +688,11 @@ export default async function DashboardPage() {
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">
                   {isOffline
-                    ? 'In-person tuition cohorts & classroom schedules'
+                    ? 'In-person tuition cohorts & physical classroom schedules'
                     : 'Digital cohorts & virtual classroom schedules'}
                 </p>
               </div>
-              {todayBatches.length > 0 ? (
-                <Badge variant="success">
-                  {todayBatches.length} class{todayBatches.length > 1 ? 'es' : ''} today
-                </Badge>
-              ) : (
-                <Badge variant="default">{batchesCount} active</Badge>
-              )}
+              <Badge variant="default">{batchesCount} active</Badge>
             </div>
             <CardBody className="p-0">
               {batchesCount === 0 ? (
@@ -624,9 +791,85 @@ export default async function DashboardPage() {
           </Card>
         </div>
 
-        {/* Right Column: Upcoming Classes & Action Center */}
-        <div className="space-y-4">
-          {/* Upcoming Classes Card */}
+        {/* Right Column: Needs Your Attention (Action Center) + Recent Activity */}
+        <div className="space-y-6">
+          {/* Action Center ("Needs Your Attention") */}
+          <Card className="border-amber-200/60 shadow-xs">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-amber-50/50 to-white">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-600" aria-hidden="true" />
+                <h2 className="text-sm font-bold text-gray-900">Needs Your Attention</h2>
+              </div>
+              {attentionItems.length > 0 && (
+                <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">
+                  {attentionItems.length} Pending
+                </span>
+              )}
+            </div>
+
+            <CardBody className="p-0">
+              {attentionItems.length === 0 ? (
+                <div className="p-6 text-center">
+                  <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold text-gray-800">You&apos;re all caught up! 🎉</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    No pending homework reviews, unentered test marks, or overdue fees require your attention.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {attentionItems.slice(0, 5).map((item) => (
+                    <div key={item.id} className="p-4 flex flex-col gap-2 hover:bg-gray-50/60 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <span
+                            className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${
+                              item.badgeVariant === 'danger'
+                                ? 'bg-rose-500'
+                                : item.badgeVariant === 'warning'
+                                ? 'bg-amber-500'
+                                : 'bg-blue-500'
+                            }`}
+                          />
+                          <div className="min-w-0">
+                            <p className="font-bold text-gray-900 text-xs truncate">{item.title}</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5 leading-snug line-clamp-2">
+                              {item.subtitle}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
+                            item.badgeVariant === 'danger'
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                              : item.badgeVariant === 'warning'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          }`}
+                        >
+                          {item.badgeText}
+                        </span>
+                        <Link
+                          href={item.actionUrl}
+                          className="text-xs font-bold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1"
+                        >
+                          <span>{item.actionLabel}</span>
+                          <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
+          {/* Upcoming Schedule Preview */}
           <Card>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
@@ -681,46 +924,35 @@ export default async function DashboardPage() {
             </CardBody>
           </Card>
 
-          {/* Action Center Alerts */}
-          <Card>
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
-              <AlertCircle className="h-4 w-4 text-amber-500" aria-hidden="true" />
-              <h2 className="text-sm font-bold text-gray-900">Action Center</h2>
-            </div>
-            <CardBody className="p-0">
-              {activeAlerts.length === 0 ? (
-                <div className="p-6">
-                  <EmptyState
-                    icon={<TrendingUp className="h-6 w-6" />}
-                    title="All caught up!"
-                    description="No urgent fee dues or homework notices need your attention."
-                  />
+          {/* Recent Activity Feed */}
+          {recentActivities.length > 0 && (
+            <Card>
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-gray-500" />
+                  <h2 className="text-sm font-bold text-gray-900">Recent Workspace Activity</h2>
                 </div>
-              ) : (
+              </div>
+              <CardBody className="p-0">
                 <div className="divide-y divide-gray-100">
-                  {activeAlerts.slice(0, 4).map((alert) => (
-                    <div key={alert.id} className="p-4 flex flex-col gap-2 hover:bg-gray-50/50">
-                      <div className="flex items-start gap-2">
-                        <span className="h-2 w-2 rounded-full bg-rose-500 mt-1 shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900 text-xs">{alert.title}</p>
-                          <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{alert.message}</p>
-                        </div>
+                  {recentActivities.slice(0, 4).map((act) => (
+                    <div key={act.id} className="p-3.5 flex items-start gap-3 hover:bg-gray-50/50">
+                      <div className="h-7 w-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 mt-0.5">
+                        {act.type === 'homework' && <FileCheck2 className="h-3.5 w-3.5 text-blue-600" />}
+                        {act.type === 'test' && <GraduationCap className="h-3.5 w-3.5 text-purple-600" />}
+                        {act.type === 'fee' && <Receipt className="h-3.5 w-3.5 text-emerald-600" />}
+                        {act.type === 'class' && <Video className="h-3.5 w-3.5 text-indigo-600" />}
                       </div>
-                      {alert.action_url && (
-                        <Link
-                          href={alert.action_url}
-                          className="self-end text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
-                        >
-                          Review →
-                        </Link>
-                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{act.title}</p>
+                        <p className="text-[11px] text-gray-500 truncate">{act.detail}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
-              )}
-            </CardBody>
-          </Card>
+              </CardBody>
+            </Card>
+          )}
         </div>
       </div>
     </div>

@@ -14,11 +14,22 @@ import { StudentCard } from './student-card'
 import { archiveStudentAction } from '@/app/(dashboard)/dashboard/students/actions'
 import type { Student } from '@/types'
 
-export function StudentListClient({ initialStudents }: { initialStudents: Student[] }) {
+interface StudentListClientProps {
+  initialStudents: Student[]
+  batches?: { id: string; name: string }[]
+  studentBatchesMap?: Record<string, { id: string; name: string }[]>
+}
+
+export function StudentListClient({
+  initialStudents,
+  batches = [],
+  studentBatchesMap = {},
+}: StudentListClientProps) {
   const { toast } = useToast()
   const [students, setStudents] = useState<Student[]>(initialStudents)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [batchFilter, setBatchFilter] = useState('all')
 
   // Archive dialog state
   const [studentToArchive, setStudentToArchive] = useState<Student | null>(null)
@@ -29,6 +40,13 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
       // Status filter
       if (statusFilter !== 'all' && s.status !== statusFilter) {
         return false
+      }
+      // Batch filter
+      if (batchFilter !== 'all') {
+        const enrolledIn = studentBatchesMap[s.id] || []
+        if (!enrolledIn.some((b) => b.id === batchFilter)) {
+          return false
+        }
       }
       // Search filter
       if (searchQuery.trim()) {
@@ -41,9 +59,9 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
       }
       return true
     })
-  }, [students, searchQuery, statusFilter])
+  }, [students, searchQuery, statusFilter, batchFilter, studentBatchesMap])
 
-  const hasFilters = searchQuery.trim().length > 0 || statusFilter !== 'all'
+  const hasFilters = searchQuery.trim().length > 0 || statusFilter !== 'all' || batchFilter !== 'all'
 
   async function handleConfirmArchive() {
     if (!studentToArchive) return
@@ -92,9 +110,13 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
         onSearchChange={setSearchQuery}
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
+        batches={batches}
+        batchFilter={batchFilter}
+        onBatchChange={setBatchFilter}
         onClearFilters={() => {
           setSearchQuery('')
           setStatusFilter('all')
+          setBatchFilter('all')
         }}
         hasFilters={hasFilters}
       />
@@ -104,7 +126,7 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
         <EmptyState
           icon={<UserX className="h-8 w-8 text-gray-400" />}
           title="No matching students found"
-          description="Try adjusting your search query or changing the status filter."
+          description="Try adjusting your search query or changing the batch/status filter."
           action={
             <Button
               variant="outline"
@@ -112,6 +134,7 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
               onClick={() => {
                 setSearchQuery('')
                 setStatusFilter('all')
+                setBatchFilter('all')
               }}
             >
               Clear Filters
@@ -131,6 +154,7 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
             <StudentTable
               students={filteredStudents}
               onArchive={(s) => setStudentToArchive(s)}
+              studentBatchesMap={studentBatchesMap}
             />
           </div>
 
@@ -141,6 +165,7 @@ export function StudentListClient({ initialStudents }: { initialStudents: Studen
                 key={s.id}
                 student={s}
                 onArchive={(st) => setStudentToArchive(st)}
+                batches={studentBatchesMap[s.id] || []}
               />
             ))}
           </div>

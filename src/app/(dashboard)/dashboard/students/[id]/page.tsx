@@ -14,10 +14,15 @@ import {
   BookOpen,
   CreditCard,
   User,
+  Layers,
+  Video,
+  School,
+  Clock,
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { StudentStatusBadge } from '@/components/students/student-status-badge'
 import { StudentParentsSection } from '@/components/parents/student-parents-section'
 import { StudentFeesSection } from '@/components/fees/student-fees-section'
@@ -29,6 +34,7 @@ import { getFees, getStudentBalance } from '@/lib/fees'
 import { formatCurrency } from '@/lib/fee-utils'
 import { getStudentHomework, getStudentHomeworkMetrics } from '@/lib/homework'
 import { getStudentTests, getStudentPerformance } from '@/lib/tests'
+import { getStudentEnrolledBatches } from '@/lib/batches'
 import type { Metadata } from 'next'
 
 interface StudentDetailPageProps {
@@ -56,6 +62,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
     hwMetrics,
     testRes,
     testPerformance,
+    batchesRes,
   ] = await Promise.all([
     getStudentById(id),
     getStudentLinkedParents(id),
@@ -65,6 +72,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
     getStudentHomeworkMetrics(id),
     getStudentTests(id),
     getStudentPerformance(id),
+    getStudentEnrolledBatches(id),
   ])
 
   const student = studentRes.data
@@ -72,6 +80,8 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
   if (studentRes.error || !student) {
     notFound()
   }
+
+  const enrolledBatches = batchesRes.data || []
 
   const formattedDob = student.date_of_birth
     ? new Date(student.date_of_birth).toLocaleDateString('en-IN', {
@@ -113,8 +123,9 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
 
       {/* Grid Layout */}
       <div className="grid gap-6 md:grid-cols-3">
-        {/* Left Column: Student Details Card */}
+        {/* Left Column: Student Details & Batches */}
         <div className="space-y-6 md:col-span-1">
+          {/* Student Profile Card */}
           <Card>
             <CardHeader className="flex flex-row items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold text-lg">
@@ -200,6 +211,60 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
             </CardBody>
           </Card>
 
+          {/* Enrolled Batches Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-indigo-600" />
+                <h3 className="text-sm font-bold text-gray-900">Enrolled Batches</h3>
+              </div>
+              <Badge variant="default">{enrolledBatches.length}</Badge>
+            </CardHeader>
+            <CardBody className="p-0">
+              {enrolledBatches.length === 0 ? (
+                <div className="p-4 text-center text-xs text-gray-400">
+                  Not enrolled in any batches yet.
+                  <div className="mt-2">
+                    <Link
+                      href="/dashboard/batches"
+                      className="text-xs font-semibold text-indigo-600 hover:underline"
+                    >
+                      Browse Batches →
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {enrolledBatches.map((b) => (
+                    <Link
+                      key={b.id}
+                      href={`/dashboard/batches/${b.id}`}
+                      className="p-3.5 flex items-center justify-between hover:bg-gray-50/70 transition-colors group block"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          {b.class_mode === 'online' ? (
+                            <Video className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                          ) : (
+                            <School className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                          )}
+                          <p className="text-xs font-bold text-gray-900 group-hover:text-indigo-600 truncate">
+                            {b.name}
+                          </p>
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+                          {b.subject || 'General'}
+                          {b.schedule ? ` • ${b.schedule}` : ''}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400 group-hover:text-indigo-600">→</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+
           {/* Tutor Private Notes */}
           {student.notes && (
             <Card>
@@ -217,30 +282,8 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
 
         {/* Right Column: Modules Activity */}
         <div className="space-y-6 md:col-span-2">
-          {/* Linked Parents Section */}
-          <StudentParentsSection linkedParents={parentsRes.data} />
-
-          {/* Fees & Payments Section */}
-          <StudentFeesSection
-            studentId={student.id}
-            fees={feesRes.data}
-            balanceInfo={balanceInfo}
-          />
-
-          {/* Homework & Assignments Section */}
-          <StudentHomeworkSection
-            assignments={hwRes.data}
-            metrics={hwMetrics}
-          />
-
-          {/* Tests & Examinations Section */}
-          <StudentTestsSection
-            tests={testRes.data}
-            performance={testPerformance}
-          />
-
           {/* Quick Metrics */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Card>
               <CardBody className="p-4 text-center">
                 <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-green-50 text-green-600">
@@ -287,6 +330,28 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
               </CardBody>
             </Card>
           </div>
+
+          {/* Linked Parents Section */}
+          <StudentParentsSection linkedParents={parentsRes.data} />
+
+          {/* Fees & Payments Section */}
+          <StudentFeesSection
+            studentId={student.id}
+            fees={feesRes.data}
+            balanceInfo={balanceInfo}
+          />
+
+          {/* Homework & Assignments Section */}
+          <StudentHomeworkSection
+            assignments={hwRes.data}
+            metrics={hwMetrics}
+          />
+
+          {/* Tests & Examinations Section */}
+          <StudentTestsSection
+            tests={testRes.data}
+            performance={testPerformance}
+          />
         </div>
       </div>
     </div>

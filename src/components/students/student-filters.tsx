@@ -10,6 +10,9 @@ interface StudentFiltersProps {
   onSearchChange: (q: string) => void
   statusFilter: string
   onStatusChange: (s: string) => void
+  batches?: { id: string; name: string }[]
+  batchFilter?: string
+  onBatchChange?: (b: string) => void
   onClearFilters: () => void
   hasFilters: boolean
 }
@@ -19,6 +22,9 @@ export function StudentFilters({
   onSearchChange,
   statusFilter,
   onStatusChange,
+  batches = [],
+  batchFilter = 'all',
+  onBatchChange,
   onClearFilters,
   hasFilters,
 }: StudentFiltersProps) {
@@ -43,7 +49,24 @@ export function StudentFilters({
         )}
       </div>
 
-      <div className="w-full sm:w-44">
+      {batches.length > 0 && onBatchChange && (
+        <div className="w-full sm:w-48">
+          <Select
+            value={batchFilter}
+            onChange={(e) => onBatchChange(e.target.value)}
+            aria-label="Filter students by batch"
+          >
+            <option value="all">All Batches</option>
+            {batches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+      )}
+
+      <div className="w-full sm:w-40">
         <Select
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}

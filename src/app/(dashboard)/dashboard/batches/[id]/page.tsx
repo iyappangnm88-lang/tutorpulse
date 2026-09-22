@@ -6,8 +6,6 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BatchDetailsClient } from '@/components/batches/batch-details-client'
-import { BatchHomeworkSection } from '@/components/homework/batch-homework-section'
-import { BatchTestsSection } from '@/components/tests/batch-tests-section'
 import { getBatchById, getBatchEnrolledStudents, getAvailableStudentsForBatch } from '@/lib/batches'
 import { getBatchHomework } from '@/lib/homework'
 import { getBatchTests } from '@/lib/tests'
@@ -75,17 +73,7 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
         enrolledStudents={enrolledRes.data}
         availableStudents={availableRes.data}
         upcomingSessions={upcomingSessionsRes.data || []}
-      />
-
-      {/* Batch Homework Section */}
-      <BatchHomeworkSection
-        batchId={batch.id}
         homeworkList={homeworkRes.data}
-      />
-
-      {/* Batch Tests Section */}
-      <BatchTestsSection
-        batchId={batch.id}
         tests={testsRes.data}
       />
     </div>

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Eye, Edit2, Archive, Phone, Mail, GraduationCap } from 'lucide-react'
+import { Eye, Edit2, Archive, Phone, Mail, GraduationCap, Layers } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/card'
 import { StudentStatusBadge } from './student-status-badge'
 import type { Student } from '@/types'
@@ -10,9 +10,10 @@ import type { Student } from '@/types'
 interface StudentCardProps {
   student: Student
   onArchive: (student: Student) => void
+  batches?: { id: string; name: string }[]
 }
 
-export function StudentCard({ student, onArchive }: StudentCardProps) {
+export function StudentCard({ student, onArchive, batches = [] }: StudentCardProps) {
   return (
     <Card className="hover:border-indigo-200 transition-colors">
       <CardBody className="space-y-3">
@@ -34,6 +35,22 @@ export function StudentCard({ student, onArchive }: StudentCardProps) {
           </div>
           <StudentStatusBadge status={student.status} />
         </div>
+
+        {/* Batches Chips */}
+        {batches.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-1">
+            {batches.map((b) => (
+              <Link
+                key={b.id}
+                href={`/dashboard/batches/${b.id}`}
+                className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200/60 transition-colors"
+              >
+                <Layers className="h-2.5 w-2.5 text-indigo-500" />
+                <span>{b.name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {(student.phone || student.email) && (
           <div className="space-y-1 text-xs text-gray-600 pt-1 border-t border-gray-100">

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SidebarInstallButton } from '@/components/pwa/install-prompt'
-import { TUTOR_NAV_ITEMS, getTutorNavItems, NavItem } from '@/lib/navigation'
+import { TUTOR_NAV_ITEMS, getTutorNavGroups, NavItem } from '@/lib/navigation'
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useAuth } from '@/contexts/auth-context'
@@ -46,7 +46,7 @@ function NavLink({
       className={cn(
         'group flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[40px]',
         isActive
-          ? 'bg-indigo-50/80 text-indigo-700 shadow-2xs'
+          ? 'bg-indigo-50/90 text-indigo-700 shadow-2xs'
           : 'text-gray-600 hover:bg-gray-100/70 hover:text-gray-900'
       )}
       aria-current={isActive ? 'page' : undefined}
@@ -74,7 +74,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const [loggingOut, setLoggingOut] = React.useState(false)
 
   const isOffline = workspaceType === 'offline'
-  const navItems = getTutorNavItems(workspaceType)
+  const { main, secondary } = getTutorNavGroups(workspaceType)
 
   const displayName = user?.user_metadata?.name ?? user?.email?.split('@')[0] ?? 'Tutor'
 
@@ -114,11 +114,13 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             <Activity className="h-4 w-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-gray-900 tracking-tight flex items-center gap-1">
+            <span className="text-sm font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
               TutorPulse
-              <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1 rounded">V1</span>
+              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                V2
+              </span>
             </span>
-            <span className="text-[10px] text-gray-400 font-medium">Modern Tutor SaaS</span>
+            <span className="text-[10px] text-gray-400 font-medium">Teaching Operating System</span>
           </div>
         </Link>
 
@@ -139,23 +141,40 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
 
       {/* Nav items */}
       <nav
-        className="flex-1 overflow-y-auto py-2 space-y-0.5 overscroll-contain"
+        className="flex-1 overflow-y-auto py-2 space-y-3 overscroll-contain"
         aria-label="Sidebar navigation links"
       >
-        {navItems.map((item) => (
-          <NavLink
-            key={item.href}
-            item={item}
-            onItemClick={mobile ? onClose : undefined}
-          />
-        ))}
+        <div className="space-y-0.5">
+          {main.map((item) => (
+            <NavLink
+              key={item.href}
+              item={item}
+              onItemClick={mobile ? onClose : undefined}
+            />
+          ))}
+        </div>
+
+        <div className="pt-2.5 border-t border-gray-100">
+          <p className="px-5 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+            Management & Settings
+          </p>
+          <div className="space-y-0.5">
+            {secondary.map((item) => (
+              <NavLink
+                key={item.href}
+                item={item}
+                onItemClick={mobile ? onClose : undefined}
+              />
+            ))}
+          </div>
+        </div>
       </nav>
 
       {/* Footer Status & Actions */}
       <div className="border-t border-gray-100 p-4 space-y-2.5 bg-gray-50/40">
         <SidebarInstallButton />
 
-        <div className="rounded-xl bg-white border border-gray-100 p-3 flex items-center justify-between shadow-2xs">
+        <div className="rounded-xl bg-white border border-gray-100 p-2.5 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
             <span
               className={cn(
@@ -177,28 +196,27 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           </span>
         </div>
 
-        {mobile && (
-          <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2 truncate pr-2">
-              <div className="h-7 w-7 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 text-[10px] font-bold">
-                <UserIcon className="h-3.5 w-3.5" />
-              </div>
-              <div className="truncate">
-                <p className="text-xs font-bold text-gray-800 truncate">{displayName}</p>
-                <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
-              </div>
+        {/* User Account / Sign Out for Both Desktop & Mobile */}
+        <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-2 truncate pr-2">
+            <div className="h-7 w-7 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 text-[11px] font-bold shrink-0">
+              {displayName.charAt(0).toUpperCase()}
             </div>
-            <button
-              onClick={handleLogout}
-              disabled={loggingOut}
-              className="p-2 text-gray-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors disabled:opacity-50"
-              title="Sign out"
-              aria-label="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="truncate min-w-0">
+              <p className="text-xs font-bold text-gray-800 truncate">{displayName}</p>
+              <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
+            </div>
           </div>
-        )}
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="p-1.5 text-gray-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors disabled:opacity-50 shrink-0"
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </aside>
   )
