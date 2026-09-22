@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { updateStudentProfileAction } from '@/app/onboarding/actions'
+import { updateStudentProfileAction } from '@/app/student/actions'
 
 interface StudentSettingsClientProps {
   initialData: {
@@ -23,6 +23,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
   const [fullName, setFullName] = useState(initialData.fullName)
   const [gradeLevel, setGradeLevel] = useState(initialData.gradeLevel || '')
   const [schoolName, setSchoolName] = useState(initialData.schoolName || '')
+  const [interestsStr, setInterestsStr] = useState((initialData.interests || []).join(', '))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -38,17 +39,22 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
     setError(null)
     setSuccess(false)
 
+    const parsedInterests = interestsStr
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+
     const res = await updateStudentProfileAction({
       fullName: fullName.trim(),
       gradeLevel: gradeLevel.trim() || undefined,
       schoolName: schoolName.trim() || undefined,
-      interests: initialData.interests,
+      interests: parsedInterests,
     })
 
     setLoading(false)
 
-    if (res.error) {
-      setError(res.error)
+    if (!res.success) {
+      setError(res.error || 'Failed to update profile.')
     } else {
       setSuccess(true)
       router.refresh()
@@ -61,7 +67,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
       <div>
         <h1 className="text-xl font-bold text-gray-900">Student Profile & Settings</h1>
         <p className="text-xs text-gray-500 mt-0.5">
-          Manage your personal details and academic grade preferences
+          Manage your personal details, academic grade, and study interests
         </p>
       </div>
 
@@ -86,10 +92,10 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
           <Input
             value={initialData.email}
             disabled
-            className="mt-1 bg-gray-50 text-gray-500 text-xs"
+            className="mt-1 bg-gray-50 text-gray-500 text-xs font-medium cursor-not-allowed"
           />
           <p className="text-[11px] text-gray-400 mt-1">
-            Linked to your authentication identity.
+            Linked to your primary authentication identity.
           </p>
         </div>
 
@@ -136,6 +142,23 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
           />
         </div>
 
+        {/* Academic Interests / Subjects */}
+        <div>
+          <Label htmlFor="interests" className="text-xs font-semibold text-gray-700">
+            Academic Subjects & Interests
+          </Label>
+          <Input
+            id="interests"
+            value={interestsStr}
+            onChange={(e) => setInterestsStr(e.target.value)}
+            className="mt-1 text-xs"
+            placeholder="e.g. Mathematics, Physics, Computer Science, Biology"
+          />
+          <p className="text-[11px] text-gray-400 mt-1">
+            Separate subjects with commas.
+          </p>
+        </div>
+
         <div className="pt-2">
           <Button
             type="submit"
@@ -156,3 +179,4 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
     </div>
   )
 }
+
