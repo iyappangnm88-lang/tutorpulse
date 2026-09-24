@@ -425,6 +425,7 @@ export interface Database {
           attendance_date: string
           status: 'present' | 'absent' | 'late'
           note: string | null
+          notes?: string | null
           created_at: string
           updated_at: string
         }
@@ -438,6 +439,7 @@ export interface Database {
           attendance_date: string
           status: 'present' | 'absent' | 'late'
           note?: string | null
+          notes?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -451,6 +453,7 @@ export interface Database {
           attendance_date?: string
           status?: 'present' | 'absent' | 'late'
           note?: string | null
+          notes?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -666,6 +669,7 @@ export interface Database {
           status: 'Pending' | 'Completed' | 'Excused'
           completed_at: string | null
           notes: string | null
+          remarks?: string | null
           created_at: string
           updated_at: string
         }
@@ -677,6 +681,7 @@ export interface Database {
           status?: 'Pending' | 'Completed' | 'Excused'
           completed_at?: string | null
           notes?: string | null
+          remarks?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -688,6 +693,7 @@ export interface Database {
           status?: 'Pending' | 'Completed' | 'Excused'
           completed_at?: string | null
           notes?: string | null
+          remarks?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -699,6 +705,7 @@ export interface Database {
           workspace_id: string | null
           batch_id: string
           title: string
+          subject: string | null
           description: string | null
           test_date: string
           max_marks: number
@@ -712,6 +719,7 @@ export interface Database {
           workspace_id?: string | null
           batch_id: string
           title: string
+          subject?: string | null
           description?: string | null
           test_date: string
           max_marks: number
@@ -725,6 +733,7 @@ export interface Database {
           workspace_id?: string | null
           batch_id?: string
           title?: string
+          subject?: string | null
           description?: string | null
           test_date?: string
           max_marks?: number
@@ -740,6 +749,8 @@ export interface Database {
           test_id: string
           student_id: string
           marks: number | null
+          marks_obtained?: number | null
+          is_absent?: boolean
           status: 'Not Graded' | 'Graded' | 'Absent' | 'Excused'
           remarks: string | null
           created_at: string
@@ -751,6 +762,8 @@ export interface Database {
           test_id: string
           student_id: string
           marks?: number | null
+          marks_obtained?: number | null
+          is_absent?: boolean
           status?: 'Not Graded' | 'Graded' | 'Absent' | 'Excused'
           remarks?: string | null
           created_at?: string
@@ -762,6 +775,8 @@ export interface Database {
           test_id?: string
           student_id?: string
           marks?: number | null
+          marks_obtained?: number | null
+          is_absent?: boolean
           status?: 'Not Graded' | 'Graded' | 'Absent' | 'Excused'
           remarks?: string | null
           created_at?: string
@@ -1058,6 +1073,29 @@ export interface Database {
           is_tutor?: boolean
           linked_count?: number
           error?: string
+        }
+      }
+      join_tutor_by_invite_code: {
+        Args: {
+          p_invite_code: string
+          p_notes?: string | null
+        }
+        Returns: {
+          success: boolean
+          message?: string
+          error?: string
+          connection?: any
+        }
+      }
+      accept_join_request: {
+        Args: {
+          p_request_id: string
+        }
+        Returns: {
+          success: boolean
+          message?: string
+          error?: string
+          connection?: any
         }
       }
     }

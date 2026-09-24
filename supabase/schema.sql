@@ -673,6 +673,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tutor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     fee_id UUID NOT NULL REFERENCES public.fees(id) ON DELETE CASCADE,
+    student_id UUID REFERENCES public.students(id) ON DELETE CASCADE,
     amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
     payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
     payment_method TEXT NOT NULL DEFAULT 'Cash' CHECK (payment_method IN ('Cash', 'UPI', 'Bank Transfer', 'Cheque', 'Other')),
@@ -684,6 +685,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
 
 CREATE INDEX IF NOT EXISTS idx_payments_tutor_id ON public.payments(tutor_id);
 CREATE INDEX IF NOT EXISTS idx_payments_fee_id ON public.payments(fee_id);
+CREATE INDEX IF NOT EXISTS idx_payments_student_id ON public.payments(student_id);
 CREATE INDEX IF NOT EXISTS idx_payments_payment_date ON public.payments(payment_date DESC);
 
 DROP TRIGGER IF EXISTS set_payments_updated_at ON public.payments;
@@ -1137,11 +1139,13 @@ DECLARE
     batch_ws UUID;
     student_ws UUID;
 BEGIN
-    SELECT workspace_id INTO batch_ws FROM public.batches WHERE id = NEW.batch_id;
-    SELECT workspace_id INTO student_ws FROM public.students WHERE id = NEW.student_id;
+    IF (TG_OP = 'INSERT' OR (OLD.batch_id IS DISTINCT FROM NEW.batch_id OR OLD.student_id IS DISTINCT FROM NEW.student_id)) THEN
+        SELECT workspace_id INTO batch_ws FROM public.batches WHERE id = NEW.batch_id;
+        SELECT workspace_id INTO student_ws FROM public.students WHERE id = NEW.student_id;
 
-    IF batch_ws IS NOT NULL AND student_ws IS NOT NULL AND batch_ws <> student_ws THEN
-        RAISE EXCEPTION 'Cross-workspace violation: Student workspace (%) does not match batch workspace (%)', student_ws, batch_ws;
+        IF batch_ws IS NOT NULL AND student_ws IS NOT NULL AND batch_ws <> student_ws THEN
+            RAISE EXCEPTION 'Cross-workspace violation: Student workspace (%) does not match batch workspace (%)', student_ws, batch_ws;
+        END IF;
     END IF;
     RETURN NEW;
 END;
@@ -1159,11 +1163,13 @@ DECLARE
     parent_ws UUID;
     student_ws UUID;
 BEGIN
-    SELECT workspace_id INTO parent_ws FROM public.parents WHERE id = NEW.parent_id;
-    SELECT workspace_id INTO student_ws FROM public.students WHERE id = NEW.student_id;
+    IF (TG_OP = 'INSERT' OR (OLD.parent_id IS DISTINCT FROM NEW.parent_id OR OLD.student_id IS DISTINCT FROM NEW.student_id)) THEN
+        SELECT workspace_id INTO parent_ws FROM public.parents WHERE id = NEW.parent_id;
+        SELECT workspace_id INTO student_ws FROM public.students WHERE id = NEW.student_id;
 
-    IF parent_ws IS NOT NULL AND student_ws IS NOT NULL AND parent_ws <> student_ws THEN
-        RAISE EXCEPTION 'Cross-workspace violation: Parent workspace (%) does not match student workspace (%)', parent_ws, student_ws;
+        IF parent_ws IS NOT NULL AND student_ws IS NOT NULL AND parent_ws <> student_ws THEN
+            RAISE EXCEPTION 'Cross-workspace violation: Parent workspace (%) does not match student workspace (%)', parent_ws, student_ws;
+        END IF;
     END IF;
     RETURN NEW;
 END;
