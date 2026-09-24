@@ -6,6 +6,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next')
+  const rawRoleParam = searchParams.get('role')
+  const requestedRole = rawRoleParam === 'student' || rawRoleParam === 'tutor' ? rawRoleParam : null
   const oauthError = searchParams.get('error')
   const errorDescription = searchParams.get('error_description')
 
@@ -48,13 +50,15 @@ export async function GET(request: Request) {
         // Fallback: If trigger did not create profile, create it now
         if (!profile) {
           const isLinkedParent = Boolean(linkResult?.is_parent)
-          const assignedRole = isLinkedParent ? 'parent' : 'tutor'
+          const assignedRole = isLinkedParent
+            ? 'parent'
+            : requestedRole
           isOnboardingCompleted = isLinkedParent
           const fullName =
             user.user_metadata?.full_name ||
             user.user_metadata?.name ||
             user.email?.split('@')[0] ||
-            (assignedRole === 'parent' ? 'Parent' : 'User')
+            (assignedRole === 'parent' ? 'Parent' : assignedRole === 'student' ? 'Student' : 'User')
 
           await supabase.from('profiles').insert({
             id: user.id,
@@ -69,6 +73,17 @@ export async function GET(request: Request) {
           // If RPC identified as parent and not an active tutor, align role
           userRole = 'parent'
           isOnboardingCompleted = true
+        } else if (requestedRole && !isOnboardingCompleted && userRole !== 'parent') {
+          // If user specifically initiated student or tutor OAuth and hasn't completed onboarding, align role
+          userRole = requestedRole
+          await supabase
+            .from('profiles')
+            .update({ role: requestedRole, updated_at: new Date().toISOString() })
+            .eq('id', user.id)
+
+          if (requestedRole === 'student') {
+            await supabase.from('workspaces').delete().eq('tutor_id', user.id)
+          }
         }
 
         // Check if an unlinked user was attempting to access the parent portal
@@ -92,18 +107,20 @@ export async function GET(request: Request) {
         if (userRole === 'parent') {
           defaultDestination = '/parent'
         } else if (!isOnboardingCompleted) {
-          // New user needs role selection or onboarding completion
+          // User needs role selection or onboarding completion
           if (userRole === 'student') {
             defaultDestination = '/onboarding/student'
           } else if (userRole === 'tutor') {
-            defaultDestination = '/onboarding/role'
+            defaultDestination = '/onboarding/tutor'
           } else {
             defaultDestination = '/onboarding/role'
           }
         } else if (userRole === 'student') {
           defaultDestination = '/student'
-        } else {
+        } else if (userRole === 'tutor') {
           defaultDestination = '/dashboard'
+        } else {
+          defaultDestination = '/onboarding/role'
         }
 
         // Check role boundaries for redirect

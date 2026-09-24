@@ -75,7 +75,17 @@ export function getAppBaseUrl(request?: Request): string {
  * Development: "http://localhost:3000/auth/callback"
  * Production:  "https://tutorpulse-three.vercel.app/auth/callback"
  */
-export function getOAuthRedirectUrl(request?: Request): string {
+export function getOAuthRedirectUrl(
+  request?: Request,
+  params?: { role?: string; next?: string }
+): string {
   const base = getAppBaseUrl(request)
-  return `${base}/auth/callback`
+  const url = new URL(`${base}/auth/callback`)
+  if (params?.role) {
+    url.searchParams.set('role', params.role)
+  }
+  if (params?.next) {
+    url.searchParams.set('next', params.next)
+  }
+  return url.toString()
 }

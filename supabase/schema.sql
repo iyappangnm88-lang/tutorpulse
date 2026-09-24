@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT NOT NULL,
     email TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'tutor' CHECK (role IN ('tutor', 'parent')),
+    role TEXT CHECK (role IS NULL OR role IN ('tutor', 'student', 'parent')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -60,6 +60,7 @@ DECLARE
     v_initial_role TEXT;
     v_raw_role TEXT;
     v_display_name TEXT;
+    v_onboarding_completed BOOLEAN := false;
 BEGIN
     v_raw_role := NEW.raw_user_meta_data->>'role';
 
@@ -72,11 +73,18 @@ BEGIN
         ) INTO v_has_parent;
     END IF;
 
-    -- If parent records exist and no explicit role was requested in metadata, default to 'parent'
+    -- If parent records exist and no explicit role was requested in metadata, assign 'parent'
     IF v_has_parent AND (v_raw_role IS NULL OR v_raw_role = 'parent') THEN
         v_initial_role := 'parent';
+        v_onboarding_completed := true;
+    ELSIF v_raw_role IN ('tutor', 'student', 'parent') THEN
+        v_initial_role := v_raw_role;
+        v_onboarding_completed := false;
     ELSE
-        v_initial_role := COALESCE(v_raw_role, 'tutor');
+        -- When role is not explicitly provided and not a parent, leave as NULL
+        -- so the user selects their role cleanly in /onboarding/role
+        v_initial_role := NULL;
+        v_onboarding_completed := false;
     END IF;
 
     v_display_name := COALESCE(
@@ -86,20 +94,25 @@ BEGIN
         'User'
     );
 
-    INSERT INTO public.profiles (id, full_name, email, role)
+    INSERT INTO public.profiles (id, full_name, email, role, onboarding_completed)
     VALUES (
         NEW.id,
         v_display_name,
         COALESCE(NEW.email, ''),
-        v_initial_role
+        v_initial_role,
+        v_onboarding_completed
     )
     ON CONFLICT (id) DO UPDATE
     SET full_name = EXCLUDED.full_name,
         email = EXCLUDED.email,
         role = CASE
-            -- If user has matching parent records and was previously a tutor without workspaces, switch to parent
             WHEN v_has_parent AND NOT EXISTS (SELECT 1 FROM public.workspaces WHERE tutor_id = NEW.id) THEN 'parent'
+            WHEN EXCLUDED.role IS NOT NULL THEN EXCLUDED.role
             ELSE profiles.role
+        END,
+        onboarding_completed = CASE
+            WHEN v_has_parent THEN true
+            ELSE profiles.onboarding_completed
         END;
 
     -- If parent records exist, link them immediately
@@ -151,24 +164,7 @@ CREATE POLICY "Tutors can manage their own workspaces"
     USING (auth.uid() = tutor_id)
     WITH CHECK (auth.uid() = tutor_id);
 
--- Auto-provision both workspaces on signup
-CREATE OR REPLACE FUNCTION public.provision_tutor_workspaces()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO public.workspaces (tutor_id, type, name)
-    VALUES 
-        (NEW.id, 'offline', 'Offline Teaching'),
-        (NEW.id, 'online', 'Online Teaching')
-    ON CONFLICT (tutor_id, type) DO NOTHING;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_provision_workspaces ON auth.users;
-CREATE TRIGGER on_auth_user_provision_workspaces
-    AFTER INSERT ON auth.users
-    FOR EACH ROW
-    EXECUTE FUNCTION public.provision_tutor_workspaces();
+-- Workspaces are provisioned explicitly when a tutor completes onboarding or accesses tutor workspace.
 
 -- ==============================================================================
 -- TABLE: students

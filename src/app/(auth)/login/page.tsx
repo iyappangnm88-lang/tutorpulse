@@ -76,7 +76,7 @@ export default function LoginPage() {
           id: data.user.id,
           full_name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
           email: data.user.email || '',
-          role: 'tutor',
+          role: data.user.user_metadata?.role || null,
           onboarding_completed: false,
         }).select('role, onboarding_completed').maybeSingle()
         profile = insertRes.data

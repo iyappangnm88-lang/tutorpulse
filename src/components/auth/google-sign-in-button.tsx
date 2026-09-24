@@ -9,6 +9,8 @@ interface GoogleSignInButtonProps {
   disabled?: boolean
   className?: string
   text?: string
+  role?: 'student' | 'tutor'
+  next?: string
 }
 
 export function GoogleIcon({ className = 'h-5 w-5' }: { className?: string }) {
@@ -42,6 +44,8 @@ export function GoogleSignInButton({
   disabled = false,
   className,
   text = 'Continue with Google',
+  role,
+  next,
 }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false)
 
@@ -51,7 +55,7 @@ export function GoogleSignInButton({
     setLoading(true)
     try {
       const supabase = createClient()
-      const redirectTo = getOAuthRedirectUrl()
+      const redirectTo = getOAuthRedirectUrl(undefined, { role, next })
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

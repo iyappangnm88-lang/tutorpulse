@@ -21,15 +21,15 @@ export default async function StudentOnboardingPage() {
     .eq('id', user.id)
     .maybeSingle()
 
-  // Guard: If tutor or parent, redirect to proper flow
-  if (profile?.role === 'tutor') {
-    redirect('/onboarding/tutor')
+  // Guard: If tutor with completed onboarding or parent, redirect to proper flow
+  if (profile?.role === 'tutor' && profile?.onboarding_completed) {
+    redirect('/dashboard')
   } else if (profile?.role === 'parent') {
     redirect('/parent')
   }
 
-  // If already completed onboarding, redirect to student home
-  if (profile?.onboarding_completed) {
+  // If already completed onboarding as student, redirect to student home
+  if (profile?.onboarding_completed && profile?.role === 'student') {
     redirect('/student')
   }
 

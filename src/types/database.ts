@@ -14,7 +14,7 @@ export interface Database {
           id: string
           full_name: string
           email: string
-          role: 'tutor' | 'student' | 'parent'
+          role: 'tutor' | 'student' | 'parent' | null
           onboarding_completed: boolean
           bio: string | null
           primary_subjects: string[] | null
@@ -37,7 +37,7 @@ export interface Database {
           id: string
           full_name: string
           email: string
-          role?: 'tutor' | 'student' | 'parent'
+          role?: 'tutor' | 'student' | 'parent' | null
           onboarding_completed?: boolean
           bio?: string | null
           primary_subjects?: string[] | null
@@ -60,7 +60,7 @@ export interface Database {
           id?: string
           full_name?: string
           email?: string
-          role?: 'tutor' | 'student' | 'parent'
+          role?: 'tutor' | 'student' | 'parent' | null
           onboarding_completed?: boolean
           bio?: string | null
           primary_subjects?: string[] | null

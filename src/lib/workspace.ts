@@ -35,7 +35,21 @@ export async function getTutorWorkspaces(tutorId: string): Promise<{
     let offlineWs = data?.find((w) => w.type === 'offline') as Workspace | undefined
     let onlineWs = data?.find((w) => w.type === 'online') as Workspace | undefined
 
-    // Auto-provision if either workspace is missing
+    // Only tutors are eligible for workspace auto-provisioning
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', tutorId)
+      .maybeSingle()
+
+    if (profile?.role !== 'tutor') {
+      return {
+        offline: offlineWs || null,
+        online: onlineWs || null,
+      }
+    }
+
+    // Auto-provision if either workspace is missing for a confirmed tutor
     if (!offlineWs) {
       const offCode = 'TP-' + Math.random().toString(36).substring(2, 8).toUpperCase()
       const { data: newOffline, error: offErr } = await supabase

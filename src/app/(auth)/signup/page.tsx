@@ -20,6 +20,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [roleParam, setRoleParam] = useState<'student' | 'tutor' | null>(null)
   const [errors, setErrors] = useState<{
     name?: string
     email?: string
@@ -30,6 +31,10 @@ export default function SignupPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
+      const role = params.get('role')
+      if (role === 'student' || role === 'tutor') {
+        setRoleParam(role)
+      }
       const err = params.get('error')
       if (err) {
         if (err === 'auth_callback_error') {
@@ -68,8 +73,11 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          data: { name },
-          emailRedirectTo: getOAuthRedirectUrl(),
+          data: {
+            name,
+            role: roleParam || undefined,
+          },
+          emailRedirectTo: getOAuthRedirectUrl(undefined, { role: roleParam || undefined }),
         },
       })
 
@@ -90,10 +98,17 @@ export default function SignupPage() {
           id: data.user.id,
           full_name: name,
           email: email,
+          role: roleParam || null,
           onboarding_completed: false,
         })
         toast('success', 'Welcome to TutorPulse!', "Let's set up your account.")
-        router.push('/onboarding/role')
+        if (roleParam === 'student') {
+          router.push('/onboarding/student')
+        } else if (roleParam === 'tutor') {
+          router.push('/onboarding/tutor')
+        } else {
+          router.push('/onboarding/role')
+        }
         return
       }
 
@@ -114,7 +129,13 @@ export default function SignupPage() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Create your account</h1>
+        <h1 className="text-xl font-bold text-gray-900">
+          {roleParam === 'student'
+            ? 'Create your student account'
+            : roleParam === 'tutor'
+            ? 'Create your tutor account'
+            : 'Create your account'}
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
           Already have an account?{' '}
           <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -136,7 +157,14 @@ export default function SignupPage() {
       <GoogleSignInButton
         onError={(msg) => setErrors({ general: msg })}
         disabled={loading}
-        text="Sign up with Google"
+        text={
+          roleParam === 'student'
+            ? 'Sign up as Student with Google'
+            : roleParam === 'tutor'
+            ? 'Sign up as Tutor with Google'
+            : 'Sign up with Google'
+        }
+        role={roleParam || undefined}
       />
 
       {/* Divider */}

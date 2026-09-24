@@ -46,18 +46,26 @@ export async function selectRoleAction(
       }
     }
 
-    // Check if an existing tutor with workspaces is trying to override role
-    const { data: workspaces } = await supabase
-      .from('workspaces')
-      .select('id')
-      .eq('tutor_id', user.id)
-      .limit(1)
+    // Check if an existing tutor with active batches or students is trying to override role
+    if (role === 'student') {
+      const [batchesRes, studentsRes] = await Promise.all([
+        supabase.from('batches').select('id').eq('tutor_id', user.id).limit(1),
+        supabase.from('students').select('id').eq('tutor_id', user.id).limit(1),
+      ])
 
-    if (workspaces && workspaces.length > 0 && role === 'student') {
-      return {
-        success: false,
-        error: 'This account is already configured as a Tutor with existing workspaces.',
+      const hasBatches = (batchesRes.data?.length ?? 0) > 0
+      const hasStudents = (studentsRes.data?.length ?? 0) > 0
+      const isCompletedTutor = profile?.role === 'tutor' && Boolean(profile?.onboarding_completed)
+
+      if (hasBatches || hasStudents || isCompletedTutor) {
+        return {
+          success: false,
+          error: 'This account is already configured as a Tutor with existing classes or students.',
+        }
       }
+
+      // Safely delete empty orphan workspaces created by legacy triggers
+      await supabase.from('workspaces').delete().eq('tutor_id', user.id)
     }
 
     // Update profile with chosen role
