@@ -8,7 +8,7 @@ import type { ReportFilters, ReportDateRange } from '@/types'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Reports & Data Export — TutorPulse',
+  title: 'Reports & Data Export — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

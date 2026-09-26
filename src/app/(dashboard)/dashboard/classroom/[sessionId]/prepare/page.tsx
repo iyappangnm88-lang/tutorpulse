@@ -26,6 +26,8 @@ import { formatTimeRange } from '@/lib/scheduling'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
+import { PrepareQuestionsCard } from './prepare-questions-card'
+import { getClassroomQuestionsAction } from '@/app/(dashboard)/dashboard/classroom/interaction-actions'
 import type { Metadata } from 'next'
 
 interface PrepareClassPageProps {
@@ -35,7 +37,7 @@ interface PrepareClassPageProps {
 export async function generateMetadata({ params }: PrepareClassPageProps): Promise<Metadata> {
   const { sessionId } = await params
   return {
-    title: `Prepare Live Class — TutorPulse`,
+    title: `Prepare Live Class — Nuzilo`,
   }
 }
 
@@ -79,16 +81,18 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
     redirect(`/dashboard/class/${sessionId}`)
   }
 
-  // Fetch batch context: students, homework, tests
-  const [enrolledRes, homeworkRes, testsRes] = await Promise.all([
+  // Fetch batch context: students, homework, tests, and interactive classroom questions
+  const [enrolledRes, homeworkRes, testsRes, questionsRes] = await Promise.all([
     getBatchEnrolledStudents(session.batch_id).catch(() => ({ data: [], error: null })),
     getBatchHomework(session.batch_id).catch(() => ({ data: [], error: null })),
     getBatchTests(session.batch_id).catch(() => ({ data: [], error: null })),
+    getClassroomQuestionsAction(session.id).catch(() => ({ data: [], error: null })),
   ])
 
   const enrolledStudents = enrolledRes.data || []
   const recentHomework = (homeworkRes.data || []).slice(0, 2)
   const recentTests = (testsRes.data || []).slice(0, 2)
+  const initialQuestions = questionsRes.data || []
 
   const isLive = session.status === 'in_progress'
 
@@ -240,6 +244,12 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
               </div>
             </CardBody>
           </Card>
+
+          {/* Interactive Fast Answer Questions (Classroom 2.0 Staging) */}
+          <PrepareQuestionsCard
+            sessionId={session.id}
+            initialQuestions={initialQuestions}
+          />
 
           {/* Batch Context (Homework & Tests) */}
           <div className="grid sm:grid-cols-2 gap-4">

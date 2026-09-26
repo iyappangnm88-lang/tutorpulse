@@ -101,7 +101,7 @@ export default function SignupPage() {
           role: roleParam || null,
           onboarding_completed: false,
         })
-        toast('success', 'Welcome to TutorPulse!', "Let's set up your account.")
+        toast('success', 'Welcome to Nuzilo!', "Let's set up your account.")
         if (roleParam === 'student') {
           router.push('/onboarding/student')
         } else if (roleParam === 'tutor') {

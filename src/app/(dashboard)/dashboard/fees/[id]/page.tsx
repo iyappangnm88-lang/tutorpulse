@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: FeeDetailPageProps): Promise<
   const { id } = await params
   const { data: fee } = await getFeeById(id)
   return {
-    title: fee ? `${fee.title} — TutorPulse` : 'Fee Details — TutorPulse',
+    title: fee ? `${fee.title} — Nuzilo` : 'Fee Details — Nuzilo',
   }
 }
 

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: EditParentPageProps): Promise
   const { id } = await params
   const { data: parent } = await getParentById(id)
   return {
-    title: parent ? `Edit ${parent.full_name} — TutorPulse` : 'Edit Parent — TutorPulse',
+    title: parent ? `Edit ${parent.full_name} — Nuzilo` : 'Edit Parent — Nuzilo',
   }
 }
 

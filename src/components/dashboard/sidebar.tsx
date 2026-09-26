@@ -110,17 +110,17 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           onClick={mobile ? onClose : undefined}
           className="flex items-center gap-2.5 group"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white shadow-xs group-hover:shadow-indigo-500/25 transition-all">
-            <Activity className="h-4 w-4" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#58CC02] border-b-2 border-[#3C9E00] text-white shadow-xs font-black text-base">
+            N
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
-              TutorPulse
-              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
-                V2
+              Nuzilo
+              <span className="text-[10px] font-bold text-[#3C9E00] bg-[#58CC02]/15 px-1.5 py-0.5 rounded border border-[#58CC02]/30">
+                Pro
               </span>
             </span>
-            <span className="text-[10px] text-gray-400 font-medium">Teaching Operating System</span>
+            <span className="text-[10px] text-gray-400 font-medium">Learning that feels alive</span>
           </div>
         </Link>
 

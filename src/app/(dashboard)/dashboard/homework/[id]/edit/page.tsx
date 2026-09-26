@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: EditHomeworkPageProps): Promi
   const { id } = await params
   const { data: hw } = await getHomeworkById(id)
   return {
-    title: hw ? `Edit ${hw.title} — TutorPulse` : 'Edit Homework — TutorPulse',
+    title: hw ? `Edit ${hw.title} — Nuzilo` : 'Edit Homework — Nuzilo',
   }
 }
 

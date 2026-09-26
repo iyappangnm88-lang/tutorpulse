@@ -8,7 +8,7 @@ import { StudentMobileNav } from '@/components/student/student-mobile-nav'
 import { StudentHeader } from '@/components/student/student-header'
 
 export const metadata: Metadata = {
-  title: 'Student Portal — TutorPulse',
+  title: 'Student Portal — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

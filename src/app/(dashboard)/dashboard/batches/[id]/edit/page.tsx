@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: EditBatchPageProps): Promise<
   const { id } = await params
   const { data: batch } = await getBatchById(id)
   return {
-    title: batch ? `Edit ${batch.name} — TutorPulse` : 'Edit Batch — TutorPulse',
+    title: batch ? `Edit ${batch.name} — Nuzilo` : 'Edit Batch — Nuzilo',
   }
 }
 

@@ -4,7 +4,7 @@ import { getPublicTutors } from '@/lib/marketplace'
 import { StudentMarketplaceClient } from '@/components/student/student-marketplace-client'
 
 export const metadata: Metadata = {
-  title: 'Find a Tutor — TutorPulse',
+  title: 'Find a Tutor — Nuzilo',
   description: 'Discover verified independent tutors, explore structured batch offerings, and send enrollment requests.',
 }
 

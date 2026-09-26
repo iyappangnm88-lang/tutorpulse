@@ -51,6 +51,10 @@ export type SignalType =
   | 'poll:response'
   | 'poll:closed'
   | 'poll:revealed'
+  | 'question:started'
+  | 'question:response'
+  | 'question:closed'
+  | 'question:revealed'
 
 export interface SignalingMessage {
   id: string

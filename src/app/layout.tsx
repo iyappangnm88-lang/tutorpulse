@@ -22,15 +22,15 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'TutorPulse — Teach, Track, Update, Collect',
+  title: 'Nuzilo — Learning that feels alive',
   description:
-    'A professional platform for solo tutors and small tuition centers to manage students, attendance, tests, fees, and more.',
+    'The gamified, live online classroom and management platform for tutors and students. Interactive speed quizzes, daily streaks, gold coins, and powerful batch workflows.',
   manifest: '/manifest.json',
-  applicationName: 'TutorPulse',
+  applicationName: 'Nuzilo',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'TutorPulse',
+    title: 'Nuzilo',
   },
   formatDetection: {
     telephone: false,

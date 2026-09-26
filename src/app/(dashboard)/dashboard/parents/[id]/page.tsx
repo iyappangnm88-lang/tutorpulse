@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: ParentDetailPageProps): Promi
   const { id } = await params
   const { data: parent } = await getParentById(id)
   return {
-    title: parent ? `${parent.full_name} — TutorPulse` : 'Parent Details — TutorPulse',
+    title: parent ? `${parent.full_name} — Nuzilo` : 'Parent Details — Nuzilo',
   }
 }
 

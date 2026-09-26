@@ -21,6 +21,7 @@ export interface SignalingCallbacks {
   onHandLowered?: (participantId: string) => void
   onHandAcknowledged?: (participantId: string) => void
   onPollEvent?: (event: { type: SignalType; pollId?: string; data?: any }) => void
+  onQuestionEvent?: (event: { type: SignalType; questionId?: string; data?: any }) => void
   onClassEnded?: () => void
   onError?: (err: Error) => void
 }
@@ -37,7 +38,7 @@ export interface LocalParticipantMeta {
 }
 
 /**
- * Supabase Realtime Signaling Client for TutorPulse Online Classroom.
+ * Supabase Realtime Signaling Client for Nuzilo Online Classroom.
  * Connects to a private session-scoped channel `classroom:{sessionId}`.
  * Provides presence tracking, WebRTC signaling dispatch, and in-session chat.
  */
@@ -172,6 +173,11 @@ export class ClassroomSignalingChannel {
 
       if (msg.type.startsWith('poll:')) {
         this.callbacks.onPollEvent?.({ type: msg.type, pollId: msg.data?.pollId, data: msg.data })
+        return
+      }
+
+      if (msg.type.startsWith('question:')) {
+        this.callbacks.onQuestionEvent?.({ type: msg.type, questionId: msg.data?.questionId, data: msg.data })
         return
       }
 
@@ -373,6 +379,19 @@ export class ClassroomSignalingChannel {
   ): Promise<void> {
     const payload = { pollId, ...data }
     this.callbacks.onPollEvent?.({ type, pollId, data })
+    await this.sendSignal(type, payload, null)
+  }
+
+  /**
+   * Broadcasts a live question event (started, response submitted, closed, revealed).
+   */
+  async sendQuestionBroadcast(
+    type: 'question:started' | 'question:response' | 'question:closed' | 'question:revealed',
+    questionId: string,
+    data?: any
+  ): Promise<void> {
+    const payload = { questionId, ...data }
+    this.callbacks.onQuestionEvent?.({ type, questionId, data })
     await this.sendSignal(type, payload, null)
   }
 

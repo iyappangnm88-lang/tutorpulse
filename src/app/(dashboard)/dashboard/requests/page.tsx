@@ -7,8 +7,8 @@ import { TutorRequestsClient } from '@/components/dashboard/tutor-requests-clien
 import { PageGuide } from '@/components/help/page-guide'
 
 export const metadata: Metadata = {
-  title: 'Student Join Requests — TutorPulse',
-  description: 'Manage and review prospective student enrollment requests from the TutorPulse Marketplace.',
+  title: 'Student Join Requests — Nuzilo',
+  description: 'Manage and review prospective student enrollment requests from the Nuzilo Marketplace.',
 }
 
 export const dynamic = 'force-dynamic'

@@ -7,7 +7,7 @@ import { getAuthorizedChild } from '@/lib/parent-portal'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Parent Portal — TutorPulse',
+  title: 'Parent Portal — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'
@@ -21,7 +21,7 @@ export default async function ParentLayout({
 
   if (error || !parent) {
     // If user is not authenticated or not a parent
-    const errMessage = encodeURIComponent('This Google account is not linked to a TutorPulse parent account.')
+    const errMessage = encodeURIComponent('This Google account is not linked to a Nuzilo parent account.')
     redirect(`/login?error=${errMessage}`)
   }
 

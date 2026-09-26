@@ -28,6 +28,9 @@ import {
   Smile,
   BarChart2,
   Check,
+  Zap,
+  Trophy,
+  Wifi,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -37,11 +40,17 @@ import { DigitalWhiteboard } from '@/components/whiteboard/digital-whiteboard'
 import { EndClassDialog } from './end-class-dialog'
 import { ClassroomChatPanel } from './classroom-chat-panel'
 import { ClassroomPollsPanel } from './classroom-polls-panel'
+import { ClassroomQuestionsPanel } from './classroom-questions-panel'
+import { ClassroomRankingPanel } from './classroom-ranking-panel'
+import { PostClassResultsDialog } from './post-class-results-dialog'
 import { ClassroomReactionOverlay } from './classroom-reaction-overlay'
 import {
   getClassroomMessagesAction,
   getClassroomPollsAction,
+  getClassroomQuestionsAction,
+  awardAttendanceRewardAction,
 } from '@/app/(dashboard)/dashboard/classroom/interaction-actions'
+import type { ClassroomQuestionRow } from '@/types/database'
 import {
   startClassSessionAction,
   endClassSessionAction,
@@ -230,15 +239,19 @@ export function ClassroomView({
   const [messages, setMessages] = useState<ClassroomChatMessage[]>([])
   // Side Drawer UI
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
-  const [sidePanelTab, setSidePanelTab] = useState<'participants' | 'chat' | 'polls'>('participants')
+  const [sidePanelTab, setSidePanelTab] = useState<'participants' | 'chat' | 'polls' | 'questions' | 'ranking'>('participants')
 
   // Live Classroom Interactions State
   const [reactions, setReactions] = useState<ClassroomReaction[]>([])
   const [polls, setPolls] = useState<ClassroomPoll[]>([])
+  const [questions, setQuestions] = useState<ClassroomQuestionRow[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [unreadPollsCount, setUnreadPollsCount] = useState(0)
+  const [unreadQuestionsCount, setUnreadQuestionsCount] = useState(0)
   const [isHandRaised, setIsHandRaised] = useState(false)
   const [showReactionPicker, setShowReactionPicker] = useState(false)
+  const [showPostClassDialog, setShowPostClassDialog] = useState(false)
+  const attendanceAwardedRef = useRef(false)
 
   // Stage View Mode: Video Grid vs Digital Whiteboard
   const [activeStageView, setActiveStageView] = useState<'video' | 'whiteboard'>('video')
@@ -409,8 +422,24 @@ export function ClassroomView({
             toast('info', 'New Poll Launched', 'Check the polls tab to vote.')
           }
         },
+        onQuestionEvent: (event) => {
+          getClassroomQuestionsAction(session.id).then((res) => {
+            if (res.success && res.data) {
+              setQuestions(res.data)
+            }
+          })
+          if (event.type === 'question:started') {
+            if (!isSidePanelOpen || sidePanelTab !== 'questions') {
+              setUnreadQuestionsCount((c) => c + 1)
+            }
+            toast('info', 'Fast Answer Question Live! ⚡', 'Tap Questions tab to answer and earn Gold Coins!')
+          } else if (event.type === 'question:revealed') {
+            toast('info', 'Answers Revealed! 🎯', 'Check the results and live leaderboard.')
+          }
+        },
         onClassEnded: () => {
           setStatus('completed')
+          setShowPostClassDialog(true)
           toast('info', 'Class Ended', 'The tutor has concluded the class session.')
         },
         onError: (err) => {
@@ -457,6 +486,21 @@ export function ClassroomView({
           setPolls(res.data)
         }
       })
+
+      // Fetch initial interactive questions
+      getClassroomQuestionsAction(session.id).then((res) => {
+        if (res.success && res.data) {
+          setQuestions(res.data)
+        }
+      })
+
+      // Award attendance reward if student
+      if (initialRole === 'participant' && userId && !attendanceAwardedRef.current) {
+        attendanceAwardedRef.current = true
+        awardAttendanceRewardAction(session.id, userId).catch((err) => {
+          console.warn('Attendance award error:', err)
+        })
+      }
     }
 
     return () => {
@@ -622,6 +666,25 @@ export function ClassroomView({
     await signalingRef.current?.sendPollBroadcast('poll:response', pollId, { optionIndex })
   }
 
+  // Live Classroom Questions (Fast Answer Engine) Handlers
+  const handleQuestionCreated = (newQ: ClassroomQuestionRow) => {
+    setQuestions((prev) => [...prev, newQ])
+  }
+
+  const handleQuestionUpdated = (questionId: string, updates: Partial<ClassroomQuestionRow>) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, ...updates } : q))
+    )
+  }
+
+  const handleQuestionBroadcast = async (
+    type: 'question:started' | 'question:response' | 'question:closed' | 'question:revealed',
+    questionId: string,
+    data?: any
+  ) => {
+    await signalingRef.current?.sendQuestionBroadcast(type, questionId, data)
+  }
+
   // Tutor starts the class
   const handleStartClass = async () => {
     setIsStarting(true)
@@ -652,8 +715,8 @@ export function ClassroomView({
       }
       setStatus('completed')
       setShowEndDialog(false)
+      setShowPostClassDialog(true)
       toast('success', 'Class Completed', 'The session has concluded successfully.')
-      router.push(`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`)
     } catch (err: any) {
       toast('error', 'Error', err.message || 'Could not end class')
     } finally {
@@ -670,7 +733,11 @@ export function ClassroomView({
     if (participantLogIdRef.current) {
       await recordClassroomLeaveAction(participantLogIdRef.current)
     }
-    router.push(portalType === 'tutor' ? '/dashboard' : portalType === 'student' ? '/student' : '/parent')
+    if (status === 'completed') {
+      setShowPostClassDialog(true)
+    } else {
+      router.push(portalType === 'student' ? '/student' : '/parent/dashboard')
+    }
   }
 
   const backHref = portalType === 'tutor' ? '/dashboard' : portalType === 'student' ? '/student' : '/parent'
@@ -722,15 +789,26 @@ export function ClassroomView({
 
         {/* Status Indicators & Control Buttons */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* WebRTC Connection State Pill */}
+          {/* Network Quality Indicator Pill */}
           {status === 'in_progress' && (
             <div
               className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
                 connectionState === 'connected'
-                  ? 'bg-emerald-950/70 text-emerald-400 border-emerald-800/80'
-                  : connectionState === 'reconnecting' || connectionState === 'connecting'
+                  ? 'bg-emerald-950/70 text-emerald-400 border-emerald-800/80 shadow-xs'
+                  : connectionState === 'reconnecting'
                   ? 'bg-amber-950/70 text-amber-400 border-amber-800/80'
-                  : 'bg-gray-800 text-gray-400 border-gray-700'
+                  : connectionState === 'connecting'
+                  ? 'bg-blue-950/70 text-blue-400 border-blue-800/80'
+                  : 'bg-rose-950/70 text-rose-400 border-rose-800/80'
+              }`}
+              title={`Network Quality: ${
+                connectionState === 'connected'
+                  ? 'Excellent (WebRTC Peer Mesh Active)'
+                  : connectionState === 'reconnecting'
+                  ? 'Unstable Network (Reconnecting...)'
+                  : connectionState === 'connecting'
+                  ? 'Connecting to classroom server...'
+                  : 'Poor/Disconnected'
               }`}
             >
               <span
@@ -739,10 +817,23 @@ export function ClassroomView({
                     ? 'bg-emerald-500 animate-pulse'
                     : connectionState === 'reconnecting'
                     ? 'bg-amber-500 animate-ping'
-                    : 'bg-gray-500'
+                    : connectionState === 'connecting'
+                    ? 'bg-blue-400 animate-pulse'
+                    : 'bg-rose-500'
                 }`}
               />
-              <span className="capitalize">{connectionState}</span>
+              <span className="flex items-center gap-1">
+                <Wifi className="h-3 w-3" />
+                <span>
+                  {connectionState === 'connected'
+                    ? 'Excellent'
+                    : connectionState === 'reconnecting'
+                    ? 'Unstable'
+                    : connectionState === 'connecting'
+                    ? 'Connecting'
+                    : 'Poor'}
+                </span>
+              </span>
             </div>
           )}
 
@@ -1114,7 +1205,7 @@ export function ClassroomView({
                 <button
                   type="button"
                   onClick={() => setSidePanelTab('participants')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     sidePanelTab === 'participants'
                       ? 'bg-indigo-600 text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
@@ -1125,10 +1216,46 @@ export function ClassroomView({
                 <button
                   type="button"
                   onClick={() => {
+                    setSidePanelTab('questions')
+                    setUnreadQuestionsCount(0)
+                  }}
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
+                    sidePanelTab === 'questions'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <span className="flex items-center gap-1">
+                    <Zap className="h-3 w-3 text-emerald-400" />
+                    <span>Quiz</span>
+                  </span>
+                  {unreadQuestionsCount > 0 && (
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-500 text-white font-bold">
+                      {unreadQuestionsCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSidePanelTab('ranking')}
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
+                    sidePanelTab === 'ranking'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <span className="flex items-center gap-1">
+                    <Trophy className="h-3 w-3 text-amber-400" />
+                    <span>Rank</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setSidePanelTab('chat')
                     setUnreadCount(0)
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
                     sidePanelTab === 'chat'
                       ? 'bg-indigo-600 text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
@@ -1136,7 +1263,7 @@ export function ClassroomView({
                 >
                   Chat
                   {unreadCount > 0 && (
-                    <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">
                       {unreadCount}
                     </span>
                   )}
@@ -1147,7 +1274,7 @@ export function ClassroomView({
                     setSidePanelTab('polls')
                     setUnreadPollsCount(0)
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
                     sidePanelTab === 'polls'
                       ? 'bg-indigo-600 text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
@@ -1155,7 +1282,7 @@ export function ClassroomView({
                 >
                   Polls
                   {unreadPollsCount > 0 && (
-                    <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">
                       {unreadPollsCount}
                     </span>
                   )}
@@ -1292,6 +1419,31 @@ export function ClassroomView({
                 onPollVoted={handlePollVoted}
               />
             )}
+
+            {/* TAB 4: LIVE QUESTIONS (FAST ANSWER ENGINE) */}
+            {sidePanelTab === 'questions' && (
+              <ClassroomQuestionsPanel
+                sessionId={session.id}
+                isTutor={initialRole === 'host'}
+                sessionStatus={status}
+                questions={questions}
+                onQuestionCreated={handleQuestionCreated}
+                onQuestionUpdated={handleQuestionUpdated}
+                onQuestionBroadcast={handleQuestionBroadcast}
+                currentUserId={userId}
+              />
+            )}
+
+            {/* TAB 5: LIVE LEADERBOARD & RANKING */}
+            {sidePanelTab === 'ranking' && (
+              <ClassroomRankingPanel
+                sessionId={session.id}
+                isTutor={initialRole === 'host'}
+                questions={questions}
+                currentUserId={userId}
+                participants={participants}
+              />
+            )}
           </aside>
         )}
       </div>
@@ -1417,6 +1569,58 @@ export function ClassroomView({
             )}
           </div>
 
+          {/* Questions (Quiz) Panel Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isSidePanelOpen && sidePanelTab === 'questions') {
+                setIsSidePanelOpen(false)
+              } else {
+                setIsSidePanelOpen(true)
+                setSidePanelTab('questions')
+                setUnreadQuestionsCount(0)
+              }
+            }}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
+              isSidePanelOpen && sidePanelTab === 'questions'
+                ? 'bg-emerald-600 text-white shadow-lg ring-2 ring-emerald-400'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title="Fast Answer Questions"
+            aria-label="Fast Answer Questions"
+          >
+            <Zap className="h-5 w-5 text-emerald-400" />
+            {unreadQuestionsCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-gray-950">
+                {unreadQuestionsCount}
+              </span>
+            )}
+            <span className="text-[8px] font-bold mt-0.5 hidden sm:inline">Quiz</span>
+          </button>
+
+          {/* Leaderboard Ranking Panel Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isSidePanelOpen && sidePanelTab === 'ranking') {
+                setIsSidePanelOpen(false)
+              } else {
+                setIsSidePanelOpen(true)
+                setSidePanelTab('ranking')
+              }
+            }}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
+              isSidePanelOpen && sidePanelTab === 'ranking'
+                ? 'bg-amber-600 text-white shadow-lg ring-2 ring-amber-400'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title="Classroom Ranking Leaderboard"
+            aria-label="Classroom Ranking Leaderboard"
+          >
+            <Trophy className="h-5 w-5 text-amber-400" />
+            <span className="text-[8px] font-bold mt-0.5 hidden sm:inline">Rank</span>
+          </button>
+
           {/* Polls Panel Toggle */}
           <button
             type="button"
@@ -1520,6 +1724,24 @@ export function ClassroomView({
           onConfirm={handleConfirmEndClass}
         />
       )}
+
+      {/* Post-Class Celebration & Summary Dialog */}
+      <PostClassResultsDialog
+        isOpen={showPostClassDialog}
+        onClose={() => {
+          setShowPostClassDialog(false)
+          if (initialRole === 'host') {
+            router.push(`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`)
+          } else {
+            router.push(portalType === 'student' ? '/student' : '/parent/dashboard')
+          }
+        }}
+        isTutor={initialRole === 'host'}
+        batchName={session.batch.name}
+        sessionId={session.id}
+        batchId={session.batch_id}
+        sessionDate={session.session_date}
+      />
     </div>
   )
 }

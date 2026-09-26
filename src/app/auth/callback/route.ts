@@ -90,7 +90,7 @@ export async function GET(request: Request) {
         const isTryingParentPortal = typeof next === 'string' && next.startsWith('/parent')
         if (isTryingParentPortal && userRole !== 'parent') {
           const errMessage = encodeURIComponent(
-            'This Google account is not linked to a TutorPulse parent account.'
+            'This Google account is not linked to a Nuzilo parent account.'
           )
           return NextResponse.redirect(`${baseUrl}/login?error=${errMessage}`)
         }

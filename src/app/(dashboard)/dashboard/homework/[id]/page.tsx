@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: HomeworkDetailPageProps): Pro
   const { id } = await params
   const { data: hw } = await getHomeworkById(id)
   return {
-    title: hw ? `${hw.title} — TutorPulse` : 'Homework Details — TutorPulse',
+    title: hw ? `${hw.title} — Nuzilo` : 'Homework Details — Nuzilo',
   }
 }
 

@@ -6,7 +6,7 @@ import { StudentForm } from '@/components/students/student-form'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Add Student — TutorPulse',
+  title: 'Add Student — Nuzilo',
 }
 
 export default function NewStudentPage() {

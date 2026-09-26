@@ -11,7 +11,7 @@ import { WorkspaceNotice } from '@/components/dashboard/workspace-notice'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Calendar & Class Sessions — TutorPulse',
+  title: 'Calendar & Class Sessions — Nuzilo',
   description: 'View and manage scheduled class sessions, track active classes, and reschedule occurrences.',
 }
 

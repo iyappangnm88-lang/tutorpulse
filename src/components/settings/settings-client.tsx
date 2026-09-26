@@ -193,7 +193,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
         'success',
         isPublicMarketplace ? 'Public Profile Live' : 'Public Profile Saved',
         isPublicMarketplace
-          ? 'Your profile is now visible on the TutorPulse Marketplace.'
+          ? 'Your profile is now visible on the Nuzilo Marketplace.'
           : 'Your public profile settings have been saved (marketplace visibility is currently OFF).'
       )
       router.refresh()

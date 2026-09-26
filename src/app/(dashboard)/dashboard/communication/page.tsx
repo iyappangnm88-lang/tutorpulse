@@ -11,7 +11,7 @@ import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Communication & Notification Center — TutorPulse',
+  title: 'Communication & Notification Center — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

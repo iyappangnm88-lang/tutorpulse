@@ -10,7 +10,7 @@ import { getTests, getTestSummary } from '@/lib/tests'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Tests & Exams — TutorPulse',
+  title: 'Tests & Exams — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

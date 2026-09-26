@@ -6,7 +6,7 @@ import { BatchForm } from '@/components/batches/batch-form'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Create Batch — TutorPulse',
+  title: 'Create Batch — Nuzilo',
 }
 
 export default function NewBatchPage() {

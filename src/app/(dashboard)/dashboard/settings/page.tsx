@@ -6,7 +6,7 @@ import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Settings — TutorPulse',
+  title: 'Settings — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

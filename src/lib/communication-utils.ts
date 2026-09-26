@@ -33,7 +33,7 @@ export function constructWhatsAppReminderUrl(params: {
   if (params.paid > 0) {
     message += `Amount paid: ₹${params.paid.toLocaleString('en-IN')}\n`
   }
-  message += `Amount pending: ₹${params.balance.toLocaleString('en-IN')}\n\nThank you.\n— TutorPulse`
+  message += `Amount pending: ₹${params.balance.toLocaleString('en-IN')}\n\nThank you.\n— Nuzilo`
 
   const encodedMessage = encodeURIComponent(message)
   return `https://wa.me/${cleanPhone}?text=${encodedMessage}`

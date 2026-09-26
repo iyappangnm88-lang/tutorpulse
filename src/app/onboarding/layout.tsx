@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Welcome to TutorPulse — Onboarding',
+  title: 'Welcome to Nuzilo — Onboarding',
 }
 
 export default function OnboardingLayout({
@@ -13,19 +13,19 @@ export default function OnboardingLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 flex flex-col justify-between text-gray-900 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFFDF5] via-white to-[#FFFDF5] flex flex-col justify-between text-slate-900 selection:bg-[#58CC02] selection:text-white">
       {/* Header */}
-      <header className="w-full border-b border-gray-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-30">
+      <header className="w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white shadow-xs">
-              <Activity className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#58CC02] text-white font-black text-lg shadow-sm">
+              N
             </div>
-            <span className="text-base font-extrabold text-gray-900 tracking-tight">
-              TutorPulse
+            <span className="text-base font-extrabold text-slate-900 tracking-tight">
+              Nuzilo
             </span>
           </Link>
-          <span className="text-xs font-semibold text-gray-600">
+          <span className="text-xs font-semibold text-slate-600">
             Account Setup
           </span>
         </div>
@@ -37,8 +37,8 @@ export default function OnboardingLayout({
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t border-gray-200/70 bg-white/60 text-center text-xs text-gray-600">
-        TutorPulse &copy; {new Date().getFullYear()} • Secure Teaching & Learning Platform
+      <footer className="py-6 border-t border-slate-200/70 bg-white/60 text-center text-xs text-slate-600">
+        Nuzilo &copy; {new Date().getFullYear()} • Learning that feels alive
       </footer>
     </div>
   )

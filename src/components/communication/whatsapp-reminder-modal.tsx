@@ -87,7 +87,7 @@ export function WhatsAppReminderModal({ isOpen, onClose, item }: WhatsAppReminde
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-gray-700">Message Preview</label>
           <div className="rounded-xl border border-gray-200 bg-white p-3.5 text-xs text-gray-800 font-mono whitespace-pre-wrap leading-relaxed shadow-2xs">
-            {`Hello ${item.parent_name || 'Parent'},\n\nThis is a friendly reminder regarding ${item.student_name}'s tuition fee for ${item.title}.\n\nAmount due: ${formatCurrency(item.amount)}\n${item.total_paid > 0 ? `Amount paid: ${formatCurrency(item.total_paid)}\n` : ''}Amount pending: ${formatCurrency(item.balance)}\n\nThank you.\n— TutorPulse`}
+            {`Hello ${item.parent_name || 'Parent'},\n\nThis is a friendly reminder regarding ${item.student_name}'s tuition fee for ${item.title}.\n\nAmount due: ${formatCurrency(item.amount)}\n${item.total_paid > 0 ? `Amount paid: ${formatCurrency(item.total_paid)}\n` : ''}Amount pending: ${formatCurrency(item.balance)}\n\nThank you.\n— Nuzilo`}
           </div>
         </div>
       </div>

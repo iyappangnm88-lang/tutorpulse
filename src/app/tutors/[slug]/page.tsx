@@ -20,13 +20,13 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 
   if (!tutorData) {
     return {
-      title: 'Tutor Not Found — TutorPulse',
+      title: 'Tutor Not Found — Nuzilo',
     }
   }
 
   const { profile } = tutorData
   return {
-    title: `${profile.fullName} | Tutor Profile — TutorPulse`,
+    title: `${profile.fullName} | Tutor Profile — Nuzilo`,
     description:
       profile.headline ||
       `Learn with ${profile.fullName}. Explore active coaching batches, schedule, and request to enroll on TutorPulse.`,

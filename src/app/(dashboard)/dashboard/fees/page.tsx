@@ -10,7 +10,7 @@ import { getFees, getFeeSummary } from '@/lib/fees'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Fees & Payments — TutorPulse',
+  title: 'Fees & Payments — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

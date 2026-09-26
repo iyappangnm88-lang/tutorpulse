@@ -319,7 +319,7 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
                   </span>
                 </div>
                 <p className="text-xs text-gray-600">
-                  Allow prospective students on TutorPulse Marketplace to discover this batch and send join requests.
+                  Allow prospective students on Nuzilo Marketplace to discover this batch and send join requests.
                   Existing student rosters and private attendance remain 100% confidential.
                 </p>
               </div>

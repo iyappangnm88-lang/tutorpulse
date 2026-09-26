@@ -46,7 +46,7 @@ import type { Metadata } from 'next'
 import type { ClassSessionWithBatch } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'Dashboard — TutorPulse',
+  title: 'Dashboard — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

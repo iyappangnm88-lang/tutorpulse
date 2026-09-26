@@ -126,7 +126,7 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/login'
         url.searchParams.set(
           'error',
-          'This Google account is not linked to a TutorPulse parent account.'
+          'This Google account is not linked to a Nuzilo parent account.'
         )
       }
       return NextResponse.redirect(url)

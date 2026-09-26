@@ -23,13 +23,17 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { JoinTutorModal } from './join-tutor-modal'
+import { NuziloPath } from './nuzilo-path'
 import type { StudentDashboardData } from '@/lib/student-portal'
+import type { StudentGamificationOverview } from '@/lib/gamification'
+import { Flame, Trophy } from 'lucide-react'
 
 interface StudentDashboardClientProps {
   data: StudentDashboardData
+  gamification?: StudentGamificationOverview
 }
 
-export function StudentDashboardClient({ data }: StudentDashboardClientProps) {
+export function StudentDashboardClient({ data, gamification }: StudentDashboardClientProps) {
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const {
     profile,
@@ -46,62 +50,114 @@ export function StudentDashboardClient({ data }: StudentDashboardClientProps) {
   const hasTutors = connectedTutors.length > 0
   const isNextClassOnline = nextClass?.class_mode === 'online'
 
+  const streak = gamification?.streakCount ?? 1
+  const goldCoins = gamification?.goldCoins ?? 0
+  const xp = gamification?.xp ?? 0
+  const badges = gamification?.badges ?? []
+  const nodes = gamification?.learningNodes ?? []
+
+  // Dynamic time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good morning'
+    if (hour < 17) return 'Good afternoon'
+    return 'Good evening'
+  }
+
   return (
     <div className="space-y-6">
-      {/* 1. Welcoming Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 p-6 sm:p-8 text-white shadow-md">
+      {/* 1. NUZILO TOP STATS BAR */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="h-9 w-9 rounded-xl bg-[#58CC02] flex items-center justify-center text-white font-black text-lg shadow-sm">
+            N
+          </span>
+          <div>
+            <div className="text-xs font-bold tracking-wider uppercase text-[#3C9E00]">Nuzilo Learning</div>
+            <div className="text-xs text-slate-500 font-medium">Level 1 Scholar</div>
+          </div>
+        </div>
+
+        {/* Gamification Pills */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Streak */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200/80 text-orange-700 font-bold text-xs shadow-2xs">
+            <span className="text-base leading-none">🔥</span>
+            <span>{streak}d Streak</span>
+          </div>
+
+          {/* Gold Coins */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 font-bold text-xs shadow-2xs">
+            <span className="text-base leading-none">🪙</span>
+            <span>{goldCoins}</span>
+          </div>
+
+          {/* XP */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-50 border border-violet-200/80 text-violet-700 font-bold text-xs shadow-2xs">
+            <span className="text-base leading-none">⚡</span>
+            <span>{xp} XP</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. WELCOMING GREETING & HERO */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#172B4D] via-[#1E3A8A] to-[#172B4D] p-6 sm:p-8 text-white shadow-lg">
         <div className="relative z-10 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-indigo-100 backdrop-blur-xs">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Student Portal
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#58CC02] px-3 py-1 text-xs font-bold text-white shadow-xs">
+              <Sparkles className="h-3.5 w-3.5" />
+              Nuzilo Student
             </span>
             {profile.gradeLevel && (
-              <span className="inline-flex items-center rounded-full bg-indigo-500/30 px-3 py-1 text-xs font-medium text-indigo-100 backdrop-blur-xs">
+              <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-slate-100 backdrop-blur-xs">
                 {profile.gradeLevel}
               </span>
             )}
             {profile.schoolName && (
-              <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-indigo-200">
+              <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-slate-200">
                 {profile.schoolName}
               </span>
             )}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome back, {profile.fullName} 👋
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            {getGreeting()}, {profile.fullName} 👋
           </h1>
-          <p className="mt-2 text-sm text-indigo-200 leading-relaxed">
+          <p className="mt-1 text-lg font-bold text-[#FFC800]">
+            Ready to learn?
+          </p>
+          <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
             {hasTutors
               ? `You are connected to ${connectedTutors.length} ${
                   connectedTutors.length === 1 ? 'tutor' : 'tutors'
                 } across ${enrolledBatches.length} ${
                   enrolledBatches.length === 1 ? 'batch' : 'batches'
-                }. Review today's schedule, homework, and live sessions below.`
-              : 'Welcome to TutorPulse! Connect with your teachers using an invite code to access live interactive classrooms, homework assignments, and academic reports.'}
+                }. Complete milestones on your Nuzilo Path below to collect XP, level up, and earn Gold Coins.`
+              : 'Welcome to Nuzilo! Connect with your teachers using an invite code or explore verified tutors to start your live interactive learning journey.'}
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Button
+            <button
+              type="button"
               onClick={() => setJoinModalOpen(true)}
-              className="bg-white text-indigo-900 hover:bg-indigo-50 font-semibold text-xs shadow-sm"
+              className="btn-nuzilo-primary px-4 py-2 text-xs flex items-center gap-1.5 shadow-sm"
             >
-              <UserPlus className="mr-1.5 h-4 w-4 text-indigo-600" />
+              <UserPlus className="h-4 w-4" />
               {hasTutors ? 'Connect Another Tutor' : 'Join with Invite Code'}
-            </Button>
+            </button>
             <Link href="/student/marketplace">
               <Button
                 variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-11"
               >
                 <Compass className="mr-1.5 h-3.5 w-3.5" />
-                Find a Tutor
+                Explore Tutors
               </Button>
             </Link>
             <Link href="/student/classes">
               <Button
                 variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-11"
               >
                 Timetable
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
@@ -110,10 +166,65 @@ export function StudentDashboardClient({ data }: StudentDashboardClientProps) {
           </div>
         </div>
 
-        {/* Decorative background styling */}
-        <div className="absolute -right-12 -bottom-12 h-56 w-56 rounded-full bg-indigo-500/20 blur-2xl pointer-events-none" />
-        <div className="absolute right-20 -top-10 h-40 w-40 rounded-full bg-violet-500/20 blur-xl pointer-events-none" />
+        {/* Decorative background glow */}
+        <div className="absolute -right-12 -bottom-12 h-64 w-64 rounded-full bg-[#58CC02]/20 blur-3xl pointer-events-none" />
+        <div className="absolute right-20 -top-10 h-44 w-44 rounded-full bg-[#FFC800]/15 blur-2xl pointer-events-none" />
       </div>
+
+      {/* 3. NUZILO PATH SECTION */}
+      {nodes.length > 0 && (
+        <div className="card-nuzilo p-6 sm:p-8" id="path">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#58CC02]/15 text-[#3C9E00] text-xs font-extrabold tracking-wide uppercase mb-1">
+                <Sparkles className="h-3.5 w-3.5" /> Learning Journey
+              </div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">Your Nuzilo Path</h2>
+            </div>
+            <div className="text-xs font-semibold text-slate-500">
+              Tap a node to preview and begin
+            </div>
+          </div>
+
+          <NuziloPath nodes={nodes} />
+        </div>
+      )}
+
+      {/* 4. BADGES & ACHIEVEMENTS SHELF */}
+      {badges.length > 0 && (
+        <div className="card-nuzilo p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🏆</span>
+              <h3 className="text-base font-black text-slate-900">Your Badges & Achievements</h3>
+            </div>
+            <span className="text-xs font-bold text-[#3C9E00] bg-[#58CC02]/15 px-2.5 py-0.5 rounded-full">
+              {badges.length} Earned
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {badges.map((sb) => (
+              <div
+                key={sb.id}
+                className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:border-amber-200 transition-colors"
+              >
+                <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shadow-2xs">
+                  {sb.badge?.icon || '🏅'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    {sb.badge?.name || 'Achievement'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 truncate">
+                    +{sb.badge?.xp_reward || 50} XP
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2. Next Live / In-Person Class Banner */}
       {nextClass && (

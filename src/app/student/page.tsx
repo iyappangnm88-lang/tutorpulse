@@ -2,6 +2,7 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getStudentDashboardData } from '@/lib/student-portal'
+import { getStudentGamificationOverview } from '@/lib/gamification'
 import { StudentDashboardClient } from '@/components/student/student-dashboard-client'
 
 export const dynamic = 'force-dynamic'
@@ -16,7 +17,11 @@ export default async function StudentDashboardPage() {
     redirect('/login')
   }
 
-  const data = await getStudentDashboardData(user.id)
+  const [dashboardData, gamificationData] = await Promise.all([
+    getStudentDashboardData(user.id),
+    getStudentGamificationOverview(user.id),
+  ])
 
-  return <StudentDashboardClient data={data} />
+  return <StudentDashboardClient data={dashboardData} gamification={gamificationData} />
 }
+

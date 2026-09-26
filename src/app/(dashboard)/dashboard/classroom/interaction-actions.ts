@@ -559,3 +559,319 @@ export async function getClassroomPollsAction(
     return { success: false, error: err.message || 'Failed to fetch polls.' }
   }
 }
+
+// ==============================================================================
+// 3. FAST ANSWER ENGINE: QUESTIONS & LIVE REWARDS
+// ==============================================================================
+
+export interface CreateQuestionInput {
+  sessionId: string
+  questionText: string
+  questionType: 'multiple_choice' | 'true_false' | 'short_answer'
+  options: Array<{ id: string; text: string }>
+  correctAnswer: string
+  explanation?: string
+  pointsXp?: number
+  coinsReward?: number
+  firstXCount?: number
+  timeLimitSeconds?: number
+}
+
+/**
+ * Creates an interactive Fast Answer question for a class session. (Tutor only)
+ */
+export async function createClassroomQuestionAction(
+  input: CreateQuestionInput
+): Promise<InteractionActionResult<any>> {
+  try {
+    const authResult = await verifySessionAccess(input.sessionId)
+    if (!authResult.authorized || authResult.role !== 'host') {
+      return { success: false, error: 'Only the session tutor can create interactive questions.' }
+    }
+
+    const trimmedText = input.questionText.trim()
+    if (!trimmedText) {
+      return { success: false, error: 'Question text is required.' }
+    }
+
+    const supabase = await createClient()
+
+    // Determine current max order_index
+    const { data: existing } = await supabase
+      .from('classroom_questions')
+      .select('order_index')
+      .eq('class_session_id', input.sessionId)
+      .order('order_index', { ascending: false })
+      .limit(1)
+
+    const nextOrder = existing && existing.length > 0 ? existing[0].order_index + 1 : 0
+
+    const { data, error } = await supabase
+      .from('classroom_questions')
+      .insert({
+        class_session_id: input.sessionId,
+        tutor_id: authResult.user!.id,
+        question_text: trimmedText,
+        question_type: input.questionType,
+        options: input.options,
+        correct_answer: input.correctAnswer,
+        explanation: input.explanation?.trim() || null,
+        points_xp: input.pointsXp ?? 20,
+        coins_reward: input.coinsReward ?? 5,
+        first_x_count: input.firstXCount ?? 3,
+        time_limit_seconds: input.timeLimitSeconds ?? 30,
+        status: 'draft',
+        order_index: nextOrder,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to create question.' }
+  }
+}
+
+/**
+ * Launches a question in the live classroom (sets status to 'active' and started_at = NOW()).
+ */
+export async function launchClassroomQuestionAction(
+  questionId: string
+): Promise<InteractionActionResult<any>> {
+  try {
+    const supabase = await createClient()
+
+    const { data: q } = await supabase
+      .from('classroom_questions')
+      .select('class_session_id, tutor_id')
+      .eq('id', questionId)
+      .single()
+
+    if (!q) {
+      return { success: false, error: 'Question not found.' }
+    }
+
+    const authResult = await verifySessionAccess(q.class_session_id)
+    if (!authResult.authorized || authResult.role !== 'host') {
+      return { success: false, error: 'Unauthorized.' }
+    }
+
+    const { data, error } = await supabase
+      .from('classroom_questions')
+      .update({
+        status: 'active',
+        started_at: new Date().toISOString(),
+      })
+      .eq('id', questionId)
+      .select()
+      .single()
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to launch question.' }
+  }
+}
+
+/**
+ * Reveals question results to participants (status: 'revealed').
+ */
+export async function revealClassroomQuestionAction(
+  questionId: string
+): Promise<InteractionActionResult<any>> {
+  try {
+    const supabase = await createClient()
+    const { data: q } = await supabase
+      .from('classroom_questions')
+      .select('class_session_id')
+      .eq('id', questionId)
+      .single()
+
+    if (!q) return { success: false, error: 'Question not found.' }
+
+    const authResult = await verifySessionAccess(q.class_session_id)
+    if (!authResult.authorized || authResult.role !== 'host') {
+      return { success: false, error: 'Unauthorized.' }
+    }
+
+    const { data, error } = await supabase
+      .from('classroom_questions')
+      .update({
+        status: 'revealed',
+        revealed_at: new Date().toISOString(),
+      })
+      .eq('id', questionId)
+      .select()
+      .single()
+
+    if (error) return { success: false, error: error.message }
+    return { success: true, data }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to reveal results.' }
+  }
+}
+
+/**
+ * Closes an active or revealed question.
+ */
+export async function closeClassroomQuestionAction(
+  questionId: string
+): Promise<InteractionActionResult<any>> {
+  try {
+    const supabase = await createClient()
+    const { data: q } = await supabase
+      .from('classroom_questions')
+      .select('class_session_id')
+      .eq('id', questionId)
+      .single()
+
+    if (!q) return { success: false, error: 'Question not found.' }
+
+    const authResult = await verifySessionAccess(q.class_session_id)
+    if (!authResult.authorized || authResult.role !== 'host') {
+      return { success: false, error: 'Unauthorized.' }
+    }
+
+    const { data, error } = await supabase
+      .from('classroom_questions')
+      .update({
+        status: 'closed',
+        closed_at: new Date().toISOString(),
+      })
+      .eq('id', questionId)
+      .select()
+      .single()
+
+    if (error) return { success: false, error: error.message }
+    return { success: true, data }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to close question.' }
+  }
+}
+
+/**
+ * Submits an answer from a student using the server-authoritative submit_fast_answer RPC.
+ */
+export async function submitFastAnswerAction(
+  questionId: string,
+  selectedOption: string,
+  answerText?: string
+): Promise<InteractionActionResult<any>> {
+  try {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase.rpc('submit_fast_answer', {
+      p_question_id: questionId,
+      p_selected_option: selectedOption,
+      p_answer_text: answerText || null,
+    })
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    const res = data as any
+    if (!res.success) {
+      return { success: false, error: res.error || 'Failed to submit answer.' }
+    }
+
+    return { success: true, data: res }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to submit answer.' }
+  }
+}
+
+/**
+ * Fetches all interactive questions for a session.
+ */
+export async function getClassroomQuestionsAction(
+  sessionId: string
+): Promise<InteractionActionResult<any[]>> {
+  try {
+    const authResult = await verifySessionAccess(sessionId)
+    if (!authResult.authorized) {
+      return { success: false, error: 'Unauthorized.' }
+    }
+
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('classroom_questions')
+      .select('*')
+      .eq('class_session_id', sessionId)
+      .order('order_index', { ascending: true })
+
+    if (error) return { success: false, error: error.message }
+
+    // If student: do not leak correct_answer unless status is revealed or closed
+    if (authResult.role !== 'host') {
+      const sanitized = (data || []).map((q) => {
+        if (q.status === 'active' || q.status === 'draft') {
+          return { ...q, correct_answer: 'HIDDEN', explanation: null }
+        }
+        return q
+      })
+      return { success: true, data: sanitized }
+    }
+
+    return { success: true, data: data || [] }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch questions.' }
+  }
+}
+
+/**
+ * Fetches answers for a question (with ranking and time taken).
+ */
+export async function getClassroomQuestionAnswersAction(
+  questionId: string
+): Promise<InteractionActionResult<any[]>> {
+  try {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('classroom_answers')
+      .select('*')
+      .eq('question_id', questionId)
+      .order('is_correct', { ascending: false })
+      .order('answer_time_ms', { ascending: true })
+
+    if (error) return { success: false, error: error.message }
+    return { success: true, data: data || [] }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch answers.' }
+  }
+}
+
+/**
+ * Awards attendance reward to a student.
+ */
+export async function awardAttendanceRewardAction(
+  sessionId: string,
+  studentUserId: string,
+  coins = 10,
+  xp = 50
+): Promise<InteractionActionResult<any>> {
+  try {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase.rpc('award_attendance_reward', {
+      p_session_id: sessionId,
+      p_student_user_id: studentUserId,
+      p_reward_coins: coins,
+      p_reward_xp: xp,
+    })
+
+    if (error) return { success: false, error: error.message }
+    return { success: true, data }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to award attendance.' }
+  }
+}
+

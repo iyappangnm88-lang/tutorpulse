@@ -88,6 +88,11 @@ export interface Database {
           school_name: string | null
           interests: string[]
           avatar_url: string | null
+          xp: number
+          streak_count: number
+          longest_streak: number
+          last_active_date: string | null
+          gold_coins_balance: number
           created_at: string
           updated_at: string
         }
@@ -98,6 +103,11 @@ export interface Database {
           school_name?: string | null
           interests?: string[]
           avatar_url?: string | null
+          xp?: number
+          streak_count?: number
+          longest_streak?: number
+          last_active_date?: string | null
+          gold_coins_balance?: number
           created_at?: string
           updated_at?: string
         }
@@ -108,6 +118,11 @@ export interface Database {
           school_name?: string | null
           interests?: string[]
           avatar_url?: string | null
+          xp?: number
+          streak_count?: number
+          longest_streak?: number
+          last_active_date?: string | null
+          gold_coins_balance?: number
           created_at?: string
           updated_at?: string
         }
@@ -1063,6 +1078,267 @@ export interface Database {
           responded_at?: string | null
         }
       }
+      classroom_questions: {
+        Row: {
+          id: string
+          class_session_id: string
+          tutor_id: string
+          question_text: string
+          question_type: 'multiple_choice' | 'true_false' | 'short_answer'
+          options: any[]
+          correct_answer: string
+          explanation: string | null
+          points_xp: number
+          coins_reward: number
+          first_x_count: number
+          time_limit_seconds: number
+          status: 'draft' | 'active' | 'revealed' | 'closed'
+          order_index: number
+          started_at: string | null
+          revealed_at: string | null
+          closed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          class_session_id: string
+          tutor_id: string
+          question_text: string
+          question_type?: 'multiple_choice' | 'true_false' | 'short_answer'
+          options?: any[]
+          correct_answer: string
+          explanation?: string | null
+          points_xp?: number
+          coins_reward?: number
+          first_x_count?: number
+          time_limit_seconds?: number
+          status?: 'draft' | 'active' | 'revealed' | 'closed'
+          order_index?: number
+          started_at?: string | null
+          revealed_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          class_session_id?: string
+          tutor_id?: string
+          question_text?: string
+          question_type?: 'multiple_choice' | 'true_false' | 'short_answer'
+          options?: any[]
+          correct_answer?: string
+          explanation?: string | null
+          points_xp?: number
+          coins_reward?: number
+          first_x_count?: number
+          time_limit_seconds?: number
+          status?: 'draft' | 'active' | 'revealed' | 'closed'
+          order_index?: number
+          started_at?: string | null
+          revealed_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      classroom_answers: {
+        Row: {
+          id: string
+          question_id: string
+          class_session_id: string
+          user_id: string
+          student_id: string | null
+          selected_option: string | null
+          answer_text: string | null
+          is_correct: boolean
+          answer_time_ms: number
+          awarded_xp: number
+          awarded_coins: number
+          rank_position: number | null
+          submitted_at: string
+        }
+        Insert: {
+          id?: string
+          question_id: string
+          class_session_id: string
+          user_id: string
+          student_id?: string | null
+          selected_option?: string | null
+          answer_text?: string | null
+          is_correct?: boolean
+          answer_time_ms?: number
+          awarded_xp?: number
+          awarded_coins?: number
+          rank_position?: number | null
+          submitted_at?: string
+        }
+        Update: {
+          id?: string
+          question_id?: string
+          class_session_id?: string
+          user_id?: string
+          student_id?: string | null
+          selected_option?: string | null
+          answer_text?: string | null
+          is_correct?: boolean
+          answer_time_ms?: number
+          awarded_xp?: number
+          awarded_coins?: number
+          rank_position?: number | null
+          submitted_at?: string
+        }
+      }
+      gold_coin_transactions: {
+        Row: {
+          id: string
+          student_user_id: string
+          amount: number
+          transaction_type: 'FAST_ANSWER' | 'FIRST_X_BONUS' | 'ATTENDANCE_REWARD' | 'BADGE_REWARD' | 'MANUAL_TUTOR_REWARD' | 'LESSON_COMPLETE' | 'STREAK_BONUS'
+          source: 'classroom' | 'attendance' | 'badge' | 'milestone' | 'tutor' | 'streak'
+          classroom_session_id: string | null
+          activity_id: string | null
+          description: string
+          metadata: Record<string, any>
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          student_user_id: string
+          amount: number
+          transaction_type: 'FAST_ANSWER' | 'FIRST_X_BONUS' | 'ATTENDANCE_REWARD' | 'BADGE_REWARD' | 'MANUAL_TUTOR_REWARD' | 'LESSON_COMPLETE' | 'STREAK_BONUS'
+          source: 'classroom' | 'attendance' | 'badge' | 'milestone' | 'tutor' | 'streak'
+          classroom_session_id?: string | null
+          activity_id?: string | null
+          description: string
+          metadata?: Record<string, any>
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_user_id?: string
+          amount?: number
+          transaction_type?: 'FAST_ANSWER' | 'FIRST_X_BONUS' | 'ATTENDANCE_REWARD' | 'BADGE_REWARD' | 'MANUAL_TUTOR_REWARD' | 'LESSON_COMPLETE' | 'STREAK_BONUS'
+          source?: 'classroom' | 'attendance' | 'badge' | 'milestone' | 'tutor' | 'streak'
+          classroom_session_id?: string | null
+          activity_id?: string | null
+          description?: string
+          metadata?: Record<string, any>
+          created_at?: string
+        }
+      }
+      badges: {
+        Row: {
+          id: string
+          slug: string
+          name: string
+          description: string
+          icon: string
+          category: 'attendance' | 'speed' | 'streak' | 'accuracy' | 'mastery'
+          xp_reward: number
+          coin_reward: number
+          criteria: Record<string, any>
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          name: string
+          description: string
+          icon: string
+          category: 'attendance' | 'speed' | 'streak' | 'accuracy' | 'mastery'
+          xp_reward?: number
+          coin_reward?: number
+          criteria?: Record<string, any>
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          name?: string
+          description?: string
+          icon?: string
+          category?: 'attendance' | 'speed' | 'streak' | 'accuracy' | 'mastery'
+          xp_reward?: number
+          coin_reward?: number
+          criteria?: Record<string, any>
+          created_at?: string
+        }
+      }
+      student_badges: {
+        Row: {
+          id: string
+          student_user_id: string
+          badge_id: string
+          classroom_session_id: string | null
+          earned_at: string
+          metadata: Record<string, any>
+        }
+        Insert: {
+          id?: string
+          student_user_id: string
+          badge_id: string
+          classroom_session_id?: string | null
+          earned_at?: string
+          metadata?: Record<string, any>
+        }
+        Update: {
+          id?: string
+          student_user_id?: string
+          badge_id?: string
+          classroom_session_id?: string | null
+          earned_at?: string
+          metadata?: Record<string, any>
+        }
+      }
+      student_learning_nodes: {
+        Row: {
+          id: string
+          student_user_id: string
+          batch_id: string | null
+          title: string
+          description: string | null
+          node_type: 'lesson' | 'quiz' | 'challenge' | 'test' | 'practice' | 'live_class'
+          status: 'locked' | 'available' | 'current' | 'completed' | 'special_challenge'
+          order_index: number
+          xp_reward: number
+          coins_reward: number
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_user_id: string
+          batch_id?: string | null
+          title: string
+          description?: string | null
+          node_type: 'lesson' | 'quiz' | 'challenge' | 'test' | 'practice' | 'live_class'
+          status?: 'locked' | 'available' | 'current' | 'completed' | 'special_challenge'
+          order_index?: number
+          xp_reward?: number
+          coins_reward?: number
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_user_id?: string
+          batch_id?: string | null
+          title?: string
+          description?: string | null
+          node_type?: 'lesson' | 'quiz' | 'challenge' | 'test' | 'practice' | 'live_class'
+          status?: 'locked' | 'available' | 'current' | 'completed' | 'special_challenge'
+          order_index?: number
+          xp_reward?: number
+          coins_reward?: number
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Functions: {
       link_parent_account_by_verified_email: {
@@ -1096,6 +1372,38 @@ export interface Database {
           message?: string
           error?: string
           connection?: any
+        }
+      }
+      submit_fast_answer: {
+        Args: {
+          p_question_id: string
+          p_selected_option: string
+          p_answer_text?: string | null
+        }
+        Returns: {
+          success: boolean
+          is_correct?: boolean
+          elapsed_ms?: number
+          rank_position?: number
+          awarded_xp?: number
+          awarded_coins?: number
+          bonus_coins?: number
+          explanation?: string
+          error?: string
+        }
+      }
+      award_attendance_reward: {
+        Args: {
+          p_session_id: string
+          p_student_user_id: string
+          p_reward_coins?: number
+          p_reward_xp?: number
+        }
+        Returns: {
+          success: boolean
+          coins_awarded?: number
+          xp_awarded?: number
+          error?: string
         }
       }
     }
@@ -1205,4 +1513,28 @@ export type ClassroomPollResponseUpdate = Database['public']['Tables']['classroo
 export type JoinRequest = Database['public']['Tables']['join_requests']['Row']
 export type JoinRequestInsert = Database['public']['Tables']['join_requests']['Insert']
 export type JoinRequestUpdate = Database['public']['Tables']['join_requests']['Update']
+
+export type ClassroomQuestionRow = Database['public']['Tables']['classroom_questions']['Row']
+export type ClassroomQuestionInsert = Database['public']['Tables']['classroom_questions']['Insert']
+export type ClassroomQuestionUpdate = Database['public']['Tables']['classroom_questions']['Update']
+
+export type ClassroomAnswerRow = Database['public']['Tables']['classroom_answers']['Row']
+export type ClassroomAnswerInsert = Database['public']['Tables']['classroom_answers']['Insert']
+export type ClassroomAnswerUpdate = Database['public']['Tables']['classroom_answers']['Update']
+
+export type GoldCoinTransactionRow = Database['public']['Tables']['gold_coin_transactions']['Row']
+export type GoldCoinTransactionInsert = Database['public']['Tables']['gold_coin_transactions']['Insert']
+export type GoldCoinTransactionUpdate = Database['public']['Tables']['gold_coin_transactions']['Update']
+
+export type BadgeRow = Database['public']['Tables']['badges']['Row']
+export type BadgeInsert = Database['public']['Tables']['badges']['Insert']
+export type BadgeUpdate = Database['public']['Tables']['badges']['Update']
+
+export type StudentBadgeRow = Database['public']['Tables']['student_badges']['Row']
+export type StudentBadgeInsert = Database['public']['Tables']['student_badges']['Insert']
+export type StudentBadgeUpdate = Database['public']['Tables']['student_badges']['Update']
+
+export type StudentLearningNodeRow = Database['public']['Tables']['student_learning_nodes']['Row']
+export type StudentLearningNodeInsert = Database['public']['Tables']['student_learning_nodes']['Insert']
+export type StudentLearningNodeUpdate = Database['public']['Tables']['student_learning_nodes']['Update']
 

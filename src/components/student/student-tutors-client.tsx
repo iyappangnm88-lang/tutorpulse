@@ -169,7 +169,7 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
           <div className="space-y-1">
             <h3 className="text-base font-bold text-gray-900">No active tutors connected yet</h3>
             <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
-              Connect to your tutor using their unique 6-character invite code, or discover top verified educators in the TutorPulse Marketplace.
+              Connect to your tutor using their unique 6-character invite code, or discover top verified educators in the Nuzilo Marketplace.
             </p>
           </div>
 
