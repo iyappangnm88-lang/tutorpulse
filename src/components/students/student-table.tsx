@@ -34,7 +34,7 @@ export function StudentTable({ students, onArchive, studentBatchesMap = {} }: St
                 <td className="px-5 py-4">
                   <Link
                     href={`/dashboard/students/${student.id}`}
-                    className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                    className="font-semibold text-[#318A25] hover:text-[#172B4D] hover:underline"
                   >
                     {student.full_name}
                   </Link>
@@ -52,9 +52,9 @@ export function StudentTable({ students, onArchive, studentBatchesMap = {} }: St
                         <Link
                           key={b.id}
                           href={`/dashboard/batches/${b.id}`}
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200/60 transition-colors"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#318A25] bg-[#FAFBEF] hover:bg-[#55C832]/20 px-2 py-0.5 rounded-md border border-[#55C832]/30/60 transition-colors"
                         >
-                          <Layers className="h-3 w-3 text-indigo-500" />
+                          <Layers className="h-3 w-3 text-[#55C832]" />
                           <span>{b.name}</span>
                         </Link>
                       ))}
@@ -87,7 +87,7 @@ export function StudentTable({ students, onArchive, studentBatchesMap = {} }: St
                   <div className="flex items-center justify-end gap-2">
                     <Link
                       href={`/dashboard/students/${student.id}`}
-                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="View Details"
                       aria-label="View Details"
                     >
@@ -95,7 +95,7 @@ export function StudentTable({ students, onArchive, studentBatchesMap = {} }: St
                     </Link>
                     <Link
                       href={`/dashboard/students/${student.id}/edit`}
-                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="Edit Student"
                       aria-label="Edit Student"
                     >

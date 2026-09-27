@@ -48,7 +48,7 @@ export function EmptyStateGuide({
     >
       {/* Icon */}
       {icon && (
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50/80 text-indigo-600 border border-indigo-100/80 shadow-2xs">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/20 shadow-2xs">
           {icon}
         </div>
       )}
@@ -73,7 +73,7 @@ export function EmptyStateGuide({
         </div>
 
         <div className="border-t border-gray-100 pt-2">
-          <span className="font-bold text-indigo-900 block text-[11px] uppercase tracking-wider text-indigo-600 font-bold">
+          <span className="font-bold text-[#172B4D] block text-[11px] uppercase tracking-wider text-[#318A25] font-bold">
             What to do next
           </span>
           <p className="text-gray-800 font-medium mt-0.5">{whatToDoNext}</p>
@@ -100,7 +100,7 @@ export function EmptyStateGuide({
           <button
             type="button"
             onClick={openHelp}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:text-[#318A25] hover:bg-[#FAFBEF] border border-transparent hover:border-gray-200 transition-colors"
           >
             <BookOpen className="h-4 w-4" />
             <span>Read Section Guide</span>

@@ -94,13 +94,13 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
           onClick={() => setActiveTab('pending')}
           className={`pb-3 px-1 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
             activeTab === 'pending'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-[#55C832] text-[#318A25]'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
           <span>Pending Review</span>
           {data.pendingCount > 0 ? (
-            <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">
+            <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-[#55C832] text-white text-[10px] font-bold flex items-center justify-center">
               {data.pendingCount}
             </span>
           ) : (
@@ -112,7 +112,7 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
           onClick={() => setActiveTab('accepted')}
           className={`pb-3 px-1 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
             activeTab === 'accepted'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-[#55C832] text-[#318A25]'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -126,7 +126,7 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
           onClick={() => setActiveTab('rejected')}
           className={`pb-3 px-1 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
             activeTab === 'rejected'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-[#55C832] text-[#318A25]'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -142,11 +142,11 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
         <div className="space-y-4">
           {data.pending.length > 0 ? (
             data.pending.map((req) => (
-              <Card key={req.id} className="border-indigo-100 shadow-xs">
+              <Card key={req.id} className="border-gray-200 shadow-xs">
                 <CardBody className="p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex items-start gap-3.5">
-                      <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-sm flex items-center justify-center shrink-0 border border-indigo-100">
+                      <div className="h-10 w-10 rounded-xl bg-[#FAFBEF] text-[#318A25] font-bold text-sm flex items-center justify-center shrink-0 border border-gray-200">
                         {req.studentName.slice(0, 2).toUpperCase()}
                       </div>
 
@@ -180,7 +180,7 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
 
                         <div className="pt-1 flex items-center gap-2 text-xs">
                           <span className="text-gray-500">Requested Batch:</span>
-                          <span className="font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100/60">
+                          <span className="font-semibold text-[#318A25] bg-[#FAFBEF] px-2 py-0.5 rounded border border-gray-200/60">
                             {req.batchName} {req.batchSubject ? `(${req.batchSubject})` : ''}
                           </span>
                         </div>
@@ -204,7 +204,7 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
                         size="sm"
                         loading={processingId === req.id}
                         onClick={() => handleRespond(req.id, 'accept')}
-                        className="text-xs bg-indigo-600 hover:bg-indigo-700 font-semibold gap-1.5"
+                        className="text-xs bg-[#55C832] hover:bg-[#318A25] font-semibold gap-1.5"
                       >
                         <UserCheck className="h-3.5 w-3.5" />
                         <span>Accept & Enroll</span>

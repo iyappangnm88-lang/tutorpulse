@@ -18,7 +18,7 @@ export type WhiteboardColor = string
 
 export const WHITEBOARD_PALETTE: { label: string; value: string; bgClass: string }[] = [
   { label: 'Dark Slate', value: '#1e293b', bgClass: 'bg-slate-800' },
-  { label: 'Indigo', value: '#4f46e5', bgClass: 'bg-indigo-600' },
+  { label: 'Indigo', value: '#4f46e5', bgClass: 'bg-[#55C832]' },
   { label: 'Emerald Green', value: '#10b981', bgClass: 'bg-emerald-500' },
   { label: 'Amber Orange', value: '#f59e0b', bgClass: 'bg-amber-500' },
   { label: 'Rose Red', value: '#ef4444', bgClass: 'bg-rose-500' },

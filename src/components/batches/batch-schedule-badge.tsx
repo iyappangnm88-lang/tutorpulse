@@ -59,7 +59,7 @@ export function BatchScheduleBadge({
           className={cn(
             'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border',
             mode === 'online'
-              ? 'bg-blue-50 text-blue-700 border-blue-200/80'
+              ? 'bg-[#FAFBEF] text-[#318A25] border-[#55C832]/30'
               : mode === 'hybrid'
               ? 'bg-purple-50 text-purple-700 border-purple-200/80'
               : 'bg-gray-100 text-gray-700 border-gray-200/80'

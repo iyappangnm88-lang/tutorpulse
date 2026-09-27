@@ -96,7 +96,7 @@ export function JoinTutorModal({ isOpen, onClose, onSuccess }: JoinTutorModalPro
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl border border-gray-100 relative">
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FAFBEF] text-[#318A25]">
             <UserPlus className="h-5 w-5" />
           </div>
           <div>
@@ -153,7 +153,7 @@ export function JoinTutorModal({ isOpen, onClose, onSuccess }: JoinTutorModalPro
               <Button
                 type="submit"
                 disabled={loading || !inviteCode.trim() || !!successMessage}
-                className="text-xs bg-indigo-600 hover:bg-indigo-700 font-semibold"
+                className="text-xs bg-[#55C832] hover:bg-[#318A25] font-semibold"
               >
                 {loading ? (
                   <>
@@ -172,24 +172,24 @@ export function JoinTutorModal({ isOpen, onClose, onSuccess }: JoinTutorModalPro
         ) : (
           <div className="space-y-4">
             {/* Preview Card */}
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
-              <div className="flex items-center gap-2 text-indigo-700 text-xs font-bold">
+            <div className="rounded-xl border border-gray-200 bg-[#FAFBEF]/50 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-[#318A25] text-xs font-bold">
                 <Sparkles className="h-4 w-4 text-amber-500" />
                 Invitation Found!
               </div>
 
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-indigo-600 shrink-0" />
+                  <GraduationCap className="h-4 w-4 text-[#318A25] shrink-0" />
                   <span className="text-gray-500">Tutor:</span>
                   <span className="font-bold text-gray-900">{preview.tutorName}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-indigo-600 shrink-0" />
+                  <Building2 className="h-4 w-4 text-[#318A25] shrink-0" />
                   <span className="text-gray-500">Workspace:</span>
                   <span className="font-semibold text-gray-900">{preview.workspaceName}</span>
-                  <span className="capitalize px-1.5 py-0.5 rounded text-[10px] bg-indigo-100 text-indigo-700 font-medium">
+                  <span className="capitalize px-1.5 py-0.5 rounded text-[10px] bg-[#55C832]/20 text-[#318A25] font-medium">
                     {preview.workspaceType}
                   </span>
                 </div>
@@ -199,7 +199,7 @@ export function JoinTutorModal({ isOpen, onClose, onSuccess }: JoinTutorModalPro
                     {preview.primarySubjects.map((sub) => (
                       <span
                         key={sub}
-                        className="rounded-md bg-white border border-indigo-100 px-2 py-0.5 text-[10px] font-medium text-indigo-800"
+                        className="rounded-md bg-white border border-gray-200 px-2 py-0.5 text-[10px] font-medium text-[#172B4D]"
                       >
                         {sub}
                       </span>
@@ -234,7 +234,7 @@ export function JoinTutorModal({ isOpen, onClose, onSuccess }: JoinTutorModalPro
                   type="button"
                   onClick={handleConfirmJoin}
                   disabled={loading || !!successMessage}
-                  className="text-xs bg-indigo-600 hover:bg-indigo-700 font-semibold"
+                  className="text-xs bg-[#55C832] hover:bg-[#318A25] font-semibold"
                 >
                   {loading ? (
                     <>

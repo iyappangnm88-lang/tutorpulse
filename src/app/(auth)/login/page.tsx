@@ -115,7 +115,7 @@ export default function LoginPage() {
         <h1 className="text-xl font-bold text-gray-900">Sign in to your account</h1>
         <p className="mt-1 text-sm text-gray-500">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <Link href="/signup" className="font-medium text-[#318A25] hover:text-[#172B4D]">
             Sign up free
           </Link>
         </p>
@@ -173,7 +173,7 @@ export default function LoginPage() {
             </Label>
             <Link
               href="/forgot-password"
-              className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
+              className="text-xs font-medium text-[#318A25] hover:text-[#172B4D]"
             >
               Forgot password?
             </Link>

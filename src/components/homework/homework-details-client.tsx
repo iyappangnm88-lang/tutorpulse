@@ -160,9 +160,9 @@ export function HomeworkDetailsClient({ homework }: HomeworkDetailsClientProps) 
           </p>
         </div>
 
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 text-center">
-          <p className="text-xs text-indigo-700 font-medium">Completion Rate</p>
-          <p className="text-xl sm:text-2xl font-bold text-indigo-800 mt-1">
+        <div className="rounded-xl border border-[#55C832]/30 bg-[#FAFBEF]/50 p-4 text-center">
+          <p className="text-xs text-[#318A25] font-medium">Completion Rate</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#172B4D] mt-1">
             {homework.completion_rate}%
           </p>
         </div>
@@ -196,7 +196,7 @@ export function HomeworkDetailsClient({ homework }: HomeworkDetailsClientProps) 
                   <p className="text-xs text-gray-500">Batch</p>
                   <Link
                     href={`/dashboard/batches/${homework.batch_id}`}
-                    className="font-medium text-indigo-600 hover:underline"
+                    className="font-medium text-[#318A25] hover:underline"
                   >
                     {homework.batch?.name}
                   </Link>
@@ -318,7 +318,7 @@ export function HomeworkDetailsClient({ homework }: HomeworkDetailsClientProps) 
                           <div>
                             <Link
                               href={`/dashboard/students/${item.student_id}`}
-                              className="font-semibold text-gray-900 text-sm hover:text-indigo-600 hover:underline"
+                              className="font-semibold text-gray-900 text-sm hover:text-[#318A25] hover:underline"
                             >
                               {item.student.full_name}
                             </Link>

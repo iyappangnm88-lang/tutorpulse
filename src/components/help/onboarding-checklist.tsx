@@ -156,7 +156,7 @@ export function OnboardingChecklist({
           onClick={handleRestore}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-gray-200 text-xs font-semibold text-gray-700 shadow-2xs hover:bg-gray-50 transition-colors"
         >
-          <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+          <Sparkles className="h-3.5 w-3.5 text-[#318A25]" />
           <span>Setup Guide ({totalCompleted}/{steps.length})</span>
         </button>
       </div>
@@ -166,7 +166,7 @@ export function OnboardingChecklist({
   return (
     <div
       className={cn(
-        'rounded-3xl border border-indigo-100 bg-white p-5 sm:p-6 shadow-2xs transition-all duration-200',
+        'rounded-3xl border border-gray-200 bg-white p-5 sm:p-6 shadow-2xs transition-all duration-200',
         className
       )}
     >
@@ -174,7 +174,7 @@ export function OnboardingChecklist({
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25]">
               <Sparkles className="h-3.5 w-3.5" />
             </span>
             <h2 className="text-sm sm:text-base font-bold text-gray-900">
@@ -211,12 +211,12 @@ export function OnboardingChecklist({
       {/* Progress Bar */}
       <div className="mt-4 space-y-1.5">
         <div className="flex items-center justify-between text-xs font-semibold">
-          <span className="text-indigo-950 font-bold">Setup Progress</span>
-          <span className="text-indigo-600 font-mono">{progressPercent}% complete ({totalCompleted}/{steps.length})</span>
+          <span className="text-[#172B4D] font-bold">Setup Progress</span>
+          <span className="text-[#318A25] font-mono">{progressPercent}% complete ({totalCompleted}/{steps.length})</span>
         </div>
         <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-500"
+            className="h-full rounded-full bg-gradient-to-r from-[#55C832] to-[#318A25] transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -240,7 +240,7 @@ export function OnboardingChecklist({
                   <button
                     type="button"
                     onClick={() => toggleStep(step.id)}
-                    className="mt-0.5 text-gray-400 hover:text-indigo-600 transition-colors cursor-pointer shrink-0"
+                    className="mt-0.5 text-gray-400 hover:text-[#318A25] transition-colors cursor-pointer shrink-0"
                     aria-label={isDone ? `Mark "${step.title}" incomplete` : `Mark "${step.title}" complete`}
                   >
                     {isDone ? (
@@ -254,7 +254,7 @@ export function OnboardingChecklist({
                     <p
                       className={cn(
                         'text-xs font-bold transition-colors',
-                        isDone ? 'text-gray-500 line-through' : 'text-gray-900 group-hover:text-indigo-600'
+                        isDone ? 'text-gray-500 line-through' : 'text-gray-900 group-hover:text-[#318A25]'
                       )}
                     >
                       {idx + 1}. {step.title}
@@ -268,7 +268,7 @@ export function OnboardingChecklist({
                 {!isDone && (
                   <Link
                     href={step.href}
-                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FAFBEF] text-[#318A25] hover:bg-[#55C832]/20 text-xs font-semibold transition-colors"
                   >
                     <span>{step.ctaText}</span>
                     <ArrowRight className="h-3 w-3" />

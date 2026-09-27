@@ -47,8 +47,8 @@ export default function RoleSelectionPage() {
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       {/* Page Title & Intro */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold tracking-wide">
-          <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAFBEF] border border-gray-200 text-[#318A25] text-xs font-bold tracking-wide">
+          <Sparkles className="h-3.5 w-3.5 text-[#318A25]" />
           <span>Step 1 of 2</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -75,7 +75,7 @@ export default function RoleSelectionPage() {
           onClick={() => setSelectedRole('tutor')}
           className={`relative group rounded-3xl p-6 border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between text-left ${
             selectedRole === 'tutor'
-              ? 'border-indigo-600 bg-indigo-50/40 shadow-md ring-4 ring-indigo-500/10'
+              ? 'border-[#55C832] bg-[#FAFBEF]/40 shadow-md ring-4 ring-[#55C832]/25'
               : 'border-gray-200/90 bg-white hover:border-gray-300 hover:shadow-sm'
           }`}
           role="radio"
@@ -89,17 +89,17 @@ export default function RoleSelectionPage() {
           }}
         >
           {selectedRole === 'tutor' && (
-            <div className="absolute top-4 right-4 text-indigo-600">
+            <div className="absolute top-4 right-4 text-[#318A25]">
               <CheckCircle2 className="h-6 w-6 fill-indigo-600 text-white" />
             </div>
           )}
 
           <div className="space-y-4">
-            <div className="h-14 w-14 rounded-2xl bg-indigo-100/80 text-indigo-600 flex items-center justify-center text-2xl shadow-xs">
+            <div className="h-14 w-14 rounded-2xl bg-[#55C832]/20/80 text-[#318A25] flex items-center justify-center text-2xl shadow-xs">
               👨🏫
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+              <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#318A25] transition-colors">
                 Tutor
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
@@ -110,15 +110,15 @@ export default function RoleSelectionPage() {
 
           <div className="mt-6 pt-4 border-t border-gray-200/60 space-y-1.5 text-[11px] text-gray-500">
             <div className="flex items-center gap-1.5 font-medium text-gray-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" />
               <span>Offline & Online Workspaces</span>
             </div>
             <div className="flex items-center gap-1.5 font-medium text-gray-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" />
               <span>Attendance, Fees & Reports</span>
             </div>
             <div className="flex items-center gap-1.5 font-medium text-gray-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" />
               <span>Live Whiteboard & Classroom</span>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function RoleSelectionPage() {
           onClick={() => setSelectedRole('student')}
           className={`relative group rounded-3xl p-6 border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between text-left ${
             selectedRole === 'student'
-              ? 'border-indigo-600 bg-indigo-50/40 shadow-md ring-4 ring-indigo-500/10'
+              ? 'border-[#55C832] bg-[#FAFBEF]/40 shadow-md ring-4 ring-[#55C832]/25'
               : 'border-gray-200/90 bg-white hover:border-gray-300 hover:shadow-sm'
           }`}
           role="radio"
@@ -143,7 +143,7 @@ export default function RoleSelectionPage() {
           }}
         >
           {selectedRole === 'student' && (
-            <div className="absolute top-4 right-4 text-indigo-600">
+            <div className="absolute top-4 right-4 text-[#318A25]">
               <CheckCircle2 className="h-6 w-6 fill-indigo-600 text-white" />
             </div>
           )}
@@ -153,7 +153,7 @@ export default function RoleSelectionPage() {
               🎓
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+              <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#318A25] transition-colors">
                 Student
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
@@ -190,7 +190,7 @@ export default function RoleSelectionPage() {
           loading={isSubmitting}
           disabled={!selectedRole}
           size="lg"
-          className="w-full sm:w-auto px-8 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-8 h-12 bg-[#55C832] hover:bg-[#318A25] text-white font-bold rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2"
         >
           <span>Continue as {selectedRole ? (selectedRole === 'tutor' ? 'Tutor' : 'Student') : '...'}</span>
           <ArrowRight className="h-4 w-4" />

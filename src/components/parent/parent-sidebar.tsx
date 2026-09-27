@@ -52,7 +52,7 @@ export function ParentSidebar({
           onClick={mobile ? onClose : undefined}
           className="flex items-center gap-2.5"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white shadow-xs">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#55C832] to-[#318A25] text-white shadow-xs">
             <Activity className="h-4 w-4" />
           </div>
           <span className="text-sm font-bold text-gray-900 tracking-tight">Nuzigo</span>
@@ -94,7 +94,7 @@ export function ParentSidebar({
               className={cn(
                 'group flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[40px]',
                 isActive
-                  ? 'bg-indigo-50/80 text-indigo-700 shadow-2xs'
+                  ? 'bg-[#FAFBEF] text-[#318A25] shadow-2xs'
                   : 'text-gray-600 hover:bg-gray-100/70 hover:text-gray-900'
               )}
               aria-current={isActive ? 'page' : undefined}
@@ -102,13 +102,13 @@ export function ParentSidebar({
               <item.icon
                 className={cn(
                   'h-4 w-4 flex-shrink-0 transition-colors',
-                  isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'
+                  isActive ? 'text-[#318A25]' : 'text-gray-400 group-hover:text-gray-600'
                 )}
                 aria-hidden="true"
               />
               <span className="flex-1">{item.label}</span>
               {isActive && (
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" aria-hidden="true" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" aria-hidden="true" />
               )}
             </Link>
           )

@@ -116,7 +116,7 @@ export function BatchCard({ batch, onArchive }: BatchCardProps) {
           <span className="text-gray-300">•</span>
           <div className="flex items-center gap-1 text-gray-600 font-medium">
             {isOnline ? (
-              <Video className="h-3.5 w-3.5 text-blue-500" />
+              <Video className="h-3.5 w-3.5 text-[#55C832]" />
             ) : (
               <Building2 className="h-3.5 w-3.5 text-amber-500" />
             )}

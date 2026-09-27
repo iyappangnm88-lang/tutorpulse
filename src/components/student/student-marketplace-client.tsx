@@ -48,11 +48,11 @@ export function StudentMarketplaceClient({
   return (
     <div className="space-y-6">
       {/* Dual Discovery Hero Banner */}
-      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/70 via-white to-violet-50/70 p-6 sm:p-8 shadow-xs">
+      <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-[#FAFBEF] via-white to-violet-50/70 p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-900">
-              <Compass className="h-3.5 w-3.5 text-indigo-600" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832]/20 px-3 py-1 text-xs font-semibold text-[#172B4D]">
+              <Compass className="h-3.5 w-3.5 text-[#318A25]" />
               Tutor Directory & Marketplace
             </span>
             <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight">
@@ -66,7 +66,7 @@ export function StudentMarketplaceClient({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
             <Button
               onClick={() => setJoinModalOpen(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold gap-1.5 shadow-xs"
+              className="bg-[#55C832] hover:bg-[#318A25] text-xs font-semibold gap-1.5 shadow-xs"
             >
               <UserPlus className="h-4 w-4" />
               <span>Enter Invite Code</span>
@@ -124,7 +124,7 @@ export function StudentMarketplaceClient({
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-700 font-bold text-sm flex items-center justify-center border border-indigo-100 shrink-0">
+                        <div className="h-10 w-10 rounded-xl bg-[#FAFBEF] text-[#318A25] font-bold text-sm flex items-center justify-center border border-gray-200 shrink-0">
                           {initials}
                         </div>
                         <div>
@@ -165,7 +165,7 @@ export function StudentMarketplaceClient({
                         {tutor.primarySubjects.slice(0, 3).map((sub) => (
                           <span
                             key={sub}
-                            className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-semibold text-[10px] border border-indigo-100"
+                            className="px-2 py-0.5 rounded-md bg-[#FAFBEF] text-[#318A25] font-semibold text-[10px] border border-gray-200"
                           >
                             {sub}
                           </span>
@@ -184,7 +184,7 @@ export function StudentMarketplaceClient({
                     </span>
 
                     <Link href={`/tutors/${tutor.profileSlug}`}>
-                      <Button size="sm" className="text-xs gap-1 bg-indigo-600 hover:bg-indigo-700">
+                      <Button size="sm" className="text-xs gap-1 bg-[#55C832] hover:bg-[#318A25]">
                         <span>View Classes</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
@@ -212,7 +212,7 @@ export function StudentMarketplaceClient({
             <Button
               onClick={() => setJoinModalOpen(true)}
               size="sm"
-              className="bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold gap-1.5"
+              className="bg-[#55C832] hover:bg-[#318A25] text-xs font-semibold gap-1.5"
             >
               <UserPlus className="h-3.5 w-3.5" />
               <span>Enter Invite Code</span>

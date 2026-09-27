@@ -30,7 +30,7 @@ export function ParentListClient({ initialParents }: { initialParents: ParentWit
   if (parents.length === 0) {
     return (
       <EmptyState
-        icon={<HeartHandshake className="h-8 w-8 text-indigo-500" />}
+        icon={<HeartHandshake className="h-8 w-8 text-[#55C832]" />}
         title="No parent contacts yet"
         description="Add parents and legal guardians to link them with enrolled students for communication and reports."
         action={

@@ -245,14 +245,14 @@ export function StudentDashboardClient({
 
       {/* 2. Next Live / In-Person Class Banner */}
       {nextClass && (
-        <div className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-xs transition-all hover:border-indigo-200">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs transition-all hover:border-[#55C832]/30">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
               <div
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold ${
                   nextClass.status === 'in_progress'
                     ? 'bg-rose-50 text-rose-600'
-                    : 'bg-indigo-50 text-indigo-600'
+                    : 'bg-[#FAFBEF] text-[#318A25]'
                 }`}
               >
                 {isNextClassOnline ? <Video className="h-6 w-6" /> : <MapPin className="h-6 w-6" />}
@@ -265,7 +265,7 @@ export function StudentDashboardClient({
                       LIVE NOW
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#FAFBEF] px-2.5 py-0.5 text-[11px] font-semibold text-[#318A25]">
                       <Calendar className="h-3 w-3" />
                       Next Class
                     </span>
@@ -309,7 +309,7 @@ export function StudentDashboardClient({
                     className={
                       nextClass.status === 'in_progress'
                         ? 'bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs'
+                        : 'bg-[#55C832] hover:bg-[#318A25] text-white font-semibold text-xs'
                     }
                   >
                     <Video className="mr-1.5 h-4 w-4" />
@@ -334,14 +334,14 @@ export function StudentDashboardClient({
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-500">My Tutors</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25]">
               <Users className="h-3.5 w-3.5" />
             </div>
           </div>
           <p className="mt-2 text-2xl font-bold text-gray-900">{stats.totalTutors}</p>
           <Link
             href="/student/tutors"
-            className="mt-1 text-[11px] font-medium text-indigo-600 hover:underline inline-flex items-center"
+            className="mt-1 text-[11px] font-medium text-[#318A25] hover:underline inline-flex items-center"
           >
             Manage tutors →
           </Link>
@@ -403,7 +403,7 @@ export function StudentDashboardClient({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-indigo-600" />
+              <Sparkles className="h-4 w-4 text-[#318A25]" />
               Today&apos;s Learning
             </h2>
             <p className="text-[11px] text-gray-400 mt-0.5">
@@ -436,7 +436,7 @@ export function StudentDashboardClient({
                       item.type === 'class'
                         ? item.isLive
                           ? 'bg-rose-100 text-rose-700 animate-pulse'
-                          : 'bg-indigo-100 text-indigo-700'
+                          : 'bg-[#55C832]/20 text-[#318A25]'
                         : item.type === 'homework'
                         ? 'bg-amber-100 text-amber-700'
                         : item.type === 'test'
@@ -485,10 +485,10 @@ export function StudentDashboardClient({
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-indigo-600" />
+                <GraduationCap className="h-4 w-4 text-[#318A25]" />
                 My Enrolled Batches
               </h2>
-              <Link href="/student/classes" className="text-xs font-semibold text-indigo-600 hover:underline">
+              <Link href="/student/classes" className="text-xs font-semibold text-[#318A25] hover:underline">
                 View Timetable
               </Link>
             </div>
@@ -506,7 +506,7 @@ export function StudentDashboardClient({
                 {enrolledBatches.map((batch) => (
                   <div
                     key={batch.id}
-                    className="p-3.5 rounded-xl border border-gray-100 bg-white hover:border-indigo-100 transition-all flex flex-col justify-between"
+                    className="p-3.5 rounded-xl border border-gray-100 bg-white hover:border-gray-200 transition-all flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-1">
@@ -515,7 +515,7 @@ export function StudentDashboardClient({
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
                             batch.class_mode === 'online'
                               ? 'bg-purple-50 text-purple-700 border border-purple-100'
-                              : 'bg-blue-50 text-blue-700 border border-blue-100'
+                              : 'bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/30'
                           }`}
                         >
                           {batch.class_mode}
@@ -538,7 +538,7 @@ export function StudentDashboardClient({
                       </span>
                       <Link
                         href="/student/classes"
-                        className="font-medium text-indigo-600 hover:underline flex items-center gap-0.5"
+                        className="font-medium text-[#318A25] hover:underline flex items-center gap-0.5"
                       >
                         Schedule <ChevronRight className="h-3 w-3" />
                       </Link>
@@ -553,10 +553,10 @@ export function StudentDashboardClient({
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Video className="h-4 w-4 text-indigo-600" />
+                <Video className="h-4 w-4 text-[#318A25]" />
                 Upcoming Live & Physical Classes
               </h2>
-              <Link href="/student/classes" className="text-xs font-semibold text-indigo-600 hover:underline">
+              <Link href="/student/classes" className="text-xs font-semibold text-[#318A25] hover:underline">
                 View All
               </Link>
             </div>
@@ -576,7 +576,7 @@ export function StudentDashboardClient({
                 {upcomingClasses.slice(0, 4).map((c) => (
                   <div key={c.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 text-xs font-bold">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25] text-xs font-bold">
                         {c.status === 'in_progress' ? '🔴' : '📅'}
                       </div>
                       <div>
@@ -616,7 +616,7 @@ export function StudentDashboardClient({
                 <BookOpen className="h-4 w-4 text-amber-600" />
                 Recent Homework & Assignments
               </h2>
-              <Link href="/student/homework" className="text-xs font-semibold text-indigo-600 hover:underline">
+              <Link href="/student/homework" className="text-xs font-semibold text-[#318A25] hover:underline">
                 View All
               </Link>
             </div>
@@ -666,13 +666,13 @@ export function StudentDashboardClient({
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Users className="h-4 w-4 text-indigo-600" />
+                <Users className="h-4 w-4 text-[#318A25]" />
                 My Tutors
               </h2>
               <button
                 type="button"
                 onClick={() => setJoinModalOpen(true)}
-                className="text-xs font-semibold text-indigo-600 hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-[#318A25] hover:underline flex items-center gap-1"
               >
                 <UserPlus className="h-3 w-3" />
                 Add Code
@@ -688,7 +688,7 @@ export function StudentDashboardClient({
                 <Button
                   size="sm"
                   onClick={() => setJoinModalOpen(true)}
-                  className="w-full text-xs bg-indigo-600 hover:bg-indigo-700"
+                  className="w-full text-xs bg-[#55C832] hover:bg-[#318A25]"
                 >
                   Enter Invite Code
                 </Button>
@@ -700,7 +700,7 @@ export function StudentDashboardClient({
                     key={tutor.connectionId}
                     className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#55C832]/20 text-[#318A25] text-xs font-bold">
                       {tutor.fullName.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -713,7 +713,7 @@ export function StudentDashboardClient({
                 ))}
                 <Link
                   href="/student/tutors"
-                  className="block text-center text-xs font-semibold text-indigo-600 hover:underline pt-1"
+                  className="block text-center text-xs font-semibold text-[#318A25] hover:underline pt-1"
                 >
                   Manage Tutors →
                 </Link>

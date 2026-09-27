@@ -26,7 +26,7 @@ export function ParentHeader({
         {/* Mobile menu hamburger toggle */}
         <button
           type="button"
-          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#55C832]"
           onClick={() => setMobileMenuOpen(true)}
           aria-label="Open parent navigation menu"
           aria-expanded={mobileMenuOpen}

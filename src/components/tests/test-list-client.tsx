@@ -52,7 +52,7 @@ export function TestListClient({
   if (tests.length === 0) {
     return (
       <EmptyState
-        icon={<FileText className="h-8 w-8 text-indigo-500" />}
+        icon={<FileText className="h-8 w-8 text-[#55C832]" />}
         title="No tests created yet"
         description="Schedule tests for your batches and enter marks to track student performance."
         action={
@@ -99,7 +99,7 @@ export function TestListClient({
               onClick={() => setSelectedStatus(tab.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
                 selectedStatus === tab.value
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-[#55C832] text-white shadow-xs'
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >

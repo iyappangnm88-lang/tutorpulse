@@ -97,7 +97,7 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
           <Button
             onClick={() => setJoinModalOpen(true)}
             size="sm"
-            className="text-xs bg-indigo-600 hover:bg-indigo-700 font-semibold gap-1.5"
+            className="text-xs bg-[#55C832] hover:bg-[#318A25] font-semibold gap-1.5"
           >
             <UserPlus className="h-3.5 w-3.5" />
             <span>Join with Code</span>
@@ -126,7 +126,7 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-gray-900">{req.batchName}</span>
                     {req.batchSubject && (
-                      <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] font-semibold text-[#318A25] bg-[#FAFBEF] px-1.5 py-0.2 rounded">
                         {req.batchSubject}
                       </span>
                     )}
@@ -163,7 +163,7 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
       {/* Tutors Grid */}
       {tutors.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center shadow-2xs space-y-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FAFBEF] text-[#318A25]">
             <GraduationCap className="h-7 w-7" />
           </div>
           <div className="space-y-1">
@@ -177,7 +177,7 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
             <Button
               onClick={() => setJoinModalOpen(true)}
               size="sm"
-              className="text-xs bg-indigo-600 hover:bg-indigo-700 font-semibold"
+              className="text-xs bg-[#55C832] hover:bg-[#318A25] font-semibold"
             >
               <UserPlus className="mr-1.5 h-3.5 w-3.5" />
               Enter Invite Code
@@ -185,7 +185,7 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
 
             <Link href="/student/marketplace">
               <Button size="sm" variant="outline" className="text-xs font-semibold">
-                <Compass className="mr-1.5 h-3.5 w-3.5 text-indigo-600" />
+                <Compass className="mr-1.5 h-3.5 w-3.5 text-[#318A25]" />
                 Find a Tutor
               </Button>
             </Link>
@@ -196,12 +196,12 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
           {tutors.map((tutor) => (
             <div
               key={tutor.connectionId}
-              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs hover:border-indigo-100 transition-all flex flex-col justify-between"
+              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs hover:border-gray-200 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 font-bold text-base shadow-2xs">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#55C832]/20 text-[#318A25] font-bold text-base shadow-2xs">
                       {tutor.fullName.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -246,7 +246,7 @@ export function StudentTutorsClient({ tutors, joinRequests = [] }: StudentTutors
                     {tutor.primarySubjects.map((sub) => (
                       <span
                         key={sub}
-                        className="rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100"
+                        className="rounded-md bg-[#FAFBEF] px-2 py-0.5 text-[10px] font-semibold text-[#318A25] border border-gray-200"
                       >
                         {sub}
                       </span>

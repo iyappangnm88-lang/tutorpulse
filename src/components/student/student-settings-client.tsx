@@ -163,7 +163,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
           <Button
             type="submit"
             disabled={loading}
-            className="text-xs bg-indigo-600 hover:bg-indigo-700 font-semibold"
+            className="text-xs bg-[#55C832] hover:bg-[#318A25] font-semibold"
           >
             {loading ? (
               <>

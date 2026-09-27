@@ -90,10 +90,10 @@ export function SidebarInstallButton() {
   return (
     <button
       onClick={promptInstall}
-      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100/90 active:bg-indigo-200/90 transition-all border border-indigo-200/60 cursor-pointer shadow-2xs"
+      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#318A25] bg-[#FAFBEF]/80 hover:bg-[#55C832]/20/90 active:bg-[#55C832]/25 transition-all border border-[#55C832]/30/60 cursor-pointer shadow-2xs"
       title="Install Nuzigo on your device"
     >
-      <Download className="h-4 w-4 text-indigo-600 shrink-0" />
+      <Download className="h-4 w-4 text-[#318A25] shrink-0" />
       <span className="truncate">Install Nuzigo App</span>
     </button>
   )
@@ -136,9 +136,9 @@ export function InstallBanner() {
   }
 
   return (
-    <div className="fixed bottom-20 lg:bottom-6 right-4 left-4 sm:left-auto sm:w-96 z-40 bg-white border border-indigo-100 rounded-2xl shadow-xl p-4 flex items-center justify-between gap-3 animate-fade-in">
+    <div className="fixed bottom-20 lg:bottom-6 right-4 left-4 sm:left-auto sm:w-96 z-40 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 flex items-center justify-between gap-3 animate-fade-in">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white shadow-xs">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#55C832] to-[#318A25] text-white shadow-xs">
           <Smartphone className="h-5 w-5" />
         </div>
         <div className="min-w-0">
@@ -154,7 +154,7 @@ export function InstallBanner() {
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={handleInstallClick}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-all cursor-pointer shadow-xs"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#55C832] hover:bg-[#318A25] active:bg-[#172B4D] transition-all cursor-pointer shadow-xs"
         >
           Install
         </button>

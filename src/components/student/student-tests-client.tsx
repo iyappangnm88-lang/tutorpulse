@@ -42,7 +42,7 @@ export function StudentTestsClient({ initialTests }: StudentTestsClientProps) {
   function getGradeColor(grade: string | null) {
     if (!grade) return 'bg-gray-100 text-gray-700'
     if (grade.startsWith('A')) return 'bg-emerald-100 text-emerald-800 border-emerald-200'
-    if (grade.startsWith('B')) return 'bg-blue-100 text-blue-800 border-blue-200'
+    if (grade.startsWith('B')) return 'bg-[#55C832]/15 text-[#318A25] border-[#55C832]/30'
     if (grade.startsWith('C')) return 'bg-amber-100 text-amber-800 border-amber-200'
     return 'bg-rose-100 text-rose-800 border-rose-200'
   }
@@ -75,14 +75,14 @@ export function StudentTestsClient({ initialTests }: StudentTestsClientProps) {
           onClick={() => setCurrentTab('all')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             currentTab === 'all'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
           All Tests
           <span
             className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              currentTab === 'all' ? 'bg-indigo-700 text-white' : 'bg-gray-200 text-gray-700'
+              currentTab === 'all' ? 'bg-[#318A25] text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
             {initialTests.length}
@@ -113,14 +113,14 @@ export function StudentTestsClient({ initialTests }: StudentTestsClientProps) {
           onClick={() => setCurrentTab('upcoming')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             currentTab === 'upcoming'
-              ? 'bg-blue-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
           Upcoming
           <span
             className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              currentTab === 'upcoming' ? 'bg-blue-700 text-white' : 'bg-gray-200 text-gray-700'
+              currentTab === 'upcoming' ? 'bg-[#318A25] text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
             {upcomingCount}
@@ -153,11 +153,11 @@ export function StudentTestsClient({ initialTests }: StudentTestsClientProps) {
             return (
               <div
                 key={test.id}
-                className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs hover:border-indigo-100 transition-all flex flex-col justify-between"
+                className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs hover:border-gray-200 transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                    <span className="font-semibold text-indigo-600">{test.batch_name}</span>
+                    <span className="font-semibold text-[#318A25]">{test.batch_name}</span>
                     <span className="flex items-center gap-1 text-[11px]">
                       <Calendar className="h-3 w-3" />
                       {test.test_date

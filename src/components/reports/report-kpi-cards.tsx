@@ -14,7 +14,7 @@ export function ReportKpiCards({ kpis }: { kpis: ReportOverviewKPIs }) {
         <CardBody className="p-4 flex flex-col justify-between h-full">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-500">Students</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#55C832]/10 text-[#318A25]">
               <Users className="h-4 w-4" />
             </div>
           </div>
@@ -46,7 +46,7 @@ export function ReportKpiCards({ kpis }: { kpis: ReportOverviewKPIs }) {
         <CardBody className="p-4 flex flex-col justify-between h-full">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-500">Tests Avg</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25]">
               <Award className="h-4 w-4" />
             </div>
           </div>
@@ -56,7 +56,7 @@ export function ReportKpiCards({ kpis }: { kpis: ReportOverviewKPIs }) {
                 {kpis.test_average_pct !== null ? `${kpis.test_average_pct}%` : '—'}
               </p>
               {kpis.test_grade !== '—' && (
-                <span className="text-xs font-bold text-indigo-600">({kpis.test_grade})</span>
+                <span className="text-xs font-bold text-[#318A25]">({kpis.test_grade})</span>
               )}
             </div>
             <p className="text-[11px] text-gray-400 mt-0.5">{kpis.tests_conducted} tests conducted</p>

@@ -185,7 +185,7 @@ export function CreateSessionDialog({
               {classMode === 'online' ? 'Classroom Environment' : 'Physical Location'}
             </Label>
             {classMode === 'online' ? (
-              <div className="mt-1 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-700 font-medium">
+              <div className="mt-1 px-3 py-2 bg-[#FAFBEF] border border-gray-200 rounded-lg text-xs text-[#318A25] font-medium">
                 Live WebRTC Classroom
               </div>
             ) : (

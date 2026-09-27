@@ -54,7 +54,7 @@ export function HelpTooltip({
         onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
-        className="inline-flex items-center justify-center h-5 w-5 rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors cursor-pointer"
+        className="inline-flex items-center justify-center h-5 w-5 rounded-full text-gray-400 hover:text-[#318A25] hover:bg-[#FAFBEF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832] transition-colors cursor-pointer"
         aria-label={title || 'Help info'}
         aria-expanded={open}
       >

@@ -53,7 +53,7 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
       {/* Mobile menu toggle */}
       <button
         id="mobile-menu-toggle"
-        className="lg:hidden mr-3 flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className="lg:hidden mr-3 flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#55C832]"
         onClick={onMenuToggle}
         aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={mobileMenuOpen}
@@ -82,7 +82,7 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
         <div className="relative">
           <button
             onClick={() => setProfileMenuOpen((p) => !p)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FAFBEF] border border-gray-200 text-xs font-bold text-[#318A25] hover:bg-[#55C832]/20 transition-colors focus-visible:ring-2 focus-visible:ring-[#55C832]"
             aria-label="Account menu"
             aria-expanded={profileMenuOpen}
           >
@@ -106,7 +106,7 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
                 <Link
                   href="/dashboard/help"
                   onClick={() => setProfileMenuOpen(false)}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-[#318A25] transition-colors"
                 >
                   <HelpCircle className="h-4 w-4 text-gray-400" />
                   <span>Help Center & Guides</span>
@@ -114,7 +114,7 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
                 <Link
                   href="/dashboard/settings"
                   onClick={() => setProfileMenuOpen(false)}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-[#318A25] transition-colors"
                 >
                   <Settings className="h-4 w-4 text-gray-400" />
                   <span>Settings & Preferences</span>

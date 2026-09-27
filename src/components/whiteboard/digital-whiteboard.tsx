@@ -414,7 +414,7 @@ export function DigitalWhiteboard({
   if (isLoading) {
     return (
       <div className="flex-1 w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-gray-950 p-6 space-y-3">
-        <Loader2 className="h-7 w-7 animate-spin text-indigo-400" />
+        <Loader2 className="h-7 w-7 animate-spin text-[#55C832]" />
         <p className="text-xs text-gray-400">Loading interactive digital whiteboard...</p>
       </div>
     )

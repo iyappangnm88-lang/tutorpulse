@@ -37,10 +37,10 @@ export function ParentMobileNav() {
             href={`${tab.href}${queryStr}`}
             className={cn(
               'flex flex-col items-center justify-center gap-1 rounded-lg py-1 px-2.5 text-center min-w-[56px] transition-colors',
-              isActive ? 'text-indigo-600 font-semibold' : 'text-gray-500 hover:text-gray-900'
+              isActive ? 'text-[#318A25] font-semibold' : 'text-gray-500 hover:text-gray-900'
             )}
           >
-            <tab.icon className={cn('h-5 w-5', isActive ? 'text-indigo-600' : 'text-gray-400')} />
+            <tab.icon className={cn('h-5 w-5', isActive ? 'text-[#318A25]' : 'text-gray-400')} />
             <span className="text-[10px] tracking-tight">{tab.label}</span>
           </Link>
         )

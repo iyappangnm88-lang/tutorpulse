@@ -68,7 +68,7 @@ export function ParentDetailsClient({
         <div className="space-y-6 md:col-span-1">
           <Card>
             <CardHeader className="flex flex-row items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold text-lg">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#55C832]/20 text-[#318A25] font-bold text-lg">
                 {parent.full_name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -84,7 +84,7 @@ export function ParentDetailsClient({
                   <Phone className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-500">Primary Phone</p>
-                    <a href={`tel:${parent.phone}`} className="font-medium text-indigo-600 hover:underline">
+                    <a href={`tel:${parent.phone}`} className="font-medium text-[#318A25] hover:underline">
                       {parent.phone}
                     </a>
                   </div>
@@ -108,7 +108,7 @@ export function ParentDetailsClient({
                   <Mail className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-500">Email</p>
-                    <a href={`mailto:${parent.email}`} className="font-medium text-indigo-600 hover:underline break-all">
+                    <a href={`mailto:${parent.email}`} className="font-medium text-[#318A25] hover:underline break-all">
                       {parent.email}
                     </a>
                   </div>
@@ -158,7 +158,7 @@ export function ParentDetailsClient({
             <CardBody className="p-0">
               {linked.length === 0 ? (
                 <EmptyState
-                  icon={<UserCheck className="h-8 w-8 text-indigo-400" />}
+                  icon={<UserCheck className="h-8 w-8 text-[#55C832]" />}
                   title="No students linked yet"
                   description="Link children or wards to this guardian profile for unified communications."
                   action={
@@ -179,7 +179,7 @@ export function ParentDetailsClient({
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/dashboard/students/${item.student.id}`}
-                            className="font-semibold text-gray-900 text-sm hover:text-indigo-600 hover:underline"
+                            className="font-semibold text-gray-900 text-sm hover:text-[#318A25] hover:underline"
                           >
                             {item.student.full_name}
                           </Link>
@@ -201,7 +201,7 @@ export function ParentDetailsClient({
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/dashboard/students/${item.student.id}`}
-                          className="text-xs font-medium text-indigo-600 hover:underline px-2.5 py-1.5"
+                          className="text-xs font-medium text-[#318A25] hover:underline px-2.5 py-1.5"
                         >
                           View Student
                         </Link>

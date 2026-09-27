@@ -12,17 +12,17 @@ interface ParentCardProps {
 
 export function ParentCard({ parent }: ParentCardProps) {
   return (
-    <Card className="hover:border-indigo-200 transition-colors flex flex-col justify-between">
+    <Card className="hover:border-[#55C832]/30 transition-colors flex flex-col justify-between">
       <CardBody className="space-y-3">
         <div>
           <Link
             href={`/dashboard/parents/${parent.id}`}
-            className="text-base font-bold text-gray-900 hover:text-indigo-600 line-clamp-1"
+            className="text-base font-bold text-gray-900 hover:text-[#318A25] line-clamp-1"
           >
             {parent.full_name}
           </Link>
           <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
-            <GraduationCap className="h-3.5 w-3.5 text-indigo-500" />
+            <GraduationCap className="h-3.5 w-3.5 text-[#55C832]" />
             <span>
               {parent.student_count === 0
                 ? 'No students linked'
@@ -49,7 +49,7 @@ export function ParentCard({ parent }: ParentCardProps) {
             {parent.phone && (
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-gray-400" />
-                <a href={`tel:${parent.phone}`} className="hover:underline text-indigo-600 font-medium">
+                <a href={`tel:${parent.phone}`} className="hover:underline text-[#318A25] font-medium">
                   {parent.phone}
                 </a>
               </div>
@@ -75,7 +75,7 @@ export function ParentCard({ parent }: ParentCardProps) {
           </Link>
           <Link
             href={`/dashboard/parents/${parent.id}/edit`}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 min-h-[36px]"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#318A25] bg-[#FAFBEF] hover:bg-[#55C832]/20 min-h-[36px]"
           >
             <Edit2 className="h-3.5 w-3.5" />
             <span>Edit</span>

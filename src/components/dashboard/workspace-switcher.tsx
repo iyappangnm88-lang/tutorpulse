@@ -56,7 +56,7 @@ export function WorkspaceSwitcher({
               Teaching Workspace
             </span>
             {isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin text-indigo-600" />
+              <Loader2 className="h-3 w-3 animate-spin text-[#318A25]" />
             ) : (
               <span
                 className={cn(
@@ -94,11 +94,11 @@ export function WorkspaceSwitcher({
               className={cn(
                 'flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-xs font-semibold transition-all duration-150',
                 !isOffline
-                  ? 'bg-white text-indigo-900 shadow-xs font-bold'
+                  ? 'bg-white text-[#172B4D] shadow-xs font-bold'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
               )}
             >
-              <Video className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+              <Video className="h-3.5 w-3.5 text-[#318A25] shrink-0" />
               <span>Online</span>
             </button>
           </div>
@@ -117,10 +117,10 @@ export function WorkspaceSwitcher({
         aria-expanded={open}
         aria-haspopup="true"
         className={cn(
-          'group flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-all border shadow-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500',
+          'group flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-all border shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#55C832]',
           isOffline
             ? 'bg-amber-50/70 border-amber-200/90 text-amber-950 hover:bg-amber-100/80 hover:border-amber-300'
-            : 'bg-indigo-50/80 border-indigo-200/90 text-indigo-950 hover:bg-indigo-100/80 hover:border-indigo-300'
+            : 'bg-[#FAFBEF] border-[#55C832]/30/90 text-[#172B4D] hover:bg-[#55C832]/20/80 hover:border-[#55C832]/40'
         )}
       >
         <div
@@ -128,7 +128,7 @@ export function WorkspaceSwitcher({
             'flex h-6 w-6 items-center justify-center rounded-lg shadow-2xs',
             isOffline
               ? 'bg-amber-500 text-white'
-              : 'bg-indigo-600 text-white'
+              : 'bg-[#55C832] text-white'
           )}
         >
           {isPending ? (
@@ -148,7 +148,7 @@ export function WorkspaceSwitcher({
                 'hidden sm:inline-block rounded px-1.5 py-0.2 text-[9px] font-semibold uppercase tracking-wider',
                 isOffline
                   ? 'bg-amber-200/60 text-amber-800'
-                  : 'bg-indigo-200/60 text-indigo-800'
+                  : 'bg-[#55C832]/25 text-[#172B4D]'
               )}
             >
               {isOffline ? 'Physical' : 'Virtual'}
@@ -223,7 +223,7 @@ export function WorkspaceSwitcher({
             className={cn(
               'w-full flex items-start gap-3 rounded-xl p-2.5 text-left transition-colors mt-1',
               !isOffline
-                ? 'bg-indigo-50/80 border border-indigo-200/70 text-indigo-950'
+                ? 'bg-[#FAFBEF] border border-[#55C832]/30/70 text-[#172B4D]'
                 : 'hover:bg-gray-50 text-gray-800'
             )}
           >
@@ -231,8 +231,8 @@ export function WorkspaceSwitcher({
               className={cn(
                 'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold shadow-2xs',
                 !isOffline
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-indigo-100 text-indigo-700'
+                  ? 'bg-[#55C832] text-white'
+                  : 'bg-[#55C832]/20 text-[#318A25]'
               )}
             >
               <Video className="h-4 w-4" />
@@ -240,7 +240,7 @@ export function WorkspaceSwitcher({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold">💻 Online Teaching</span>
-                {!isOffline && <Check className="h-4 w-4 text-indigo-700" />}
+                {!isOffline && <Check className="h-4 w-4 text-[#318A25]" />}
               </div>
               <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
                 WebRTC live video, screen sharing, live chat, digital batches & calendar.

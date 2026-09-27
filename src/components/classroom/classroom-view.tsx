@@ -146,7 +146,7 @@ function ParticipantTile({
       {/* 2. Fallback Avatar (when video is muted or absent) */}
       {!hasActiveVideo && (
         <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-gray-950 to-gray-900">
-          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-gradient-to-tr from-indigo-700 to-teal-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-xl ring-2 ring-white/10">
+          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-gradient-to-tr from-[#172B4D] to-teal-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-xl ring-2 ring-white/10">
             {initials}
           </div>
           <p className="mt-3 text-xs sm:text-sm font-semibold text-gray-200 truncate max-w-[80%]">
@@ -159,7 +159,7 @@ function ParticipantTile({
       {/* 3. Top Status Pill (Screen share / Local indicator) */}
       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
         {isLocal && (
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/60 text-indigo-300 backdrop-blur-md border border-white/10">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/60 text-slate-300 backdrop-blur-md border border-white/10">
             You
           </span>
         )}
@@ -180,7 +180,7 @@ function ParticipantTile({
           <span
             className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md ${
               role === 'host'
-                ? 'bg-indigo-600/80 text-white'
+                ? 'bg-[#55C832]/80 text-white'
                 : 'bg-gray-800/80 text-gray-300'
             }`}
           >
@@ -773,7 +773,7 @@ export function ClassroomView({
                 {session.batch.name}
               </h1>
               {session.batch.subject && (
-                <span className="text-[10px] font-semibold text-indigo-300 bg-indigo-950/80 border border-indigo-800/60 px-2 py-0.5 rounded-full hidden sm:inline-block">
+                <span className="text-[10px] font-semibold text-slate-300 bg-[#0f1d33] border border-[#1f3860] px-2 py-0.5 rounded-full hidden sm:inline-block">
                   {session.batch.subject}
                 </span>
               )}
@@ -798,7 +798,7 @@ export function ClassroomView({
                   : connectionState === 'reconnecting'
                   ? 'bg-amber-950/70 text-amber-400 border-amber-800/80'
                   : connectionState === 'connecting'
-                  ? 'bg-blue-950/70 text-blue-400 border-blue-800/80'
+                  ? 'bg-[#0f1d33] text-[#55C832] border-[#1f3860]'
                   : 'bg-rose-950/70 text-rose-400 border-rose-800/80'
               }`}
               title={`Network Quality: ${
@@ -818,7 +818,7 @@ export function ClassroomView({
                     : connectionState === 'reconnecting'
                     ? 'bg-amber-500 animate-ping'
                     : connectionState === 'connecting'
-                    ? 'bg-blue-400 animate-pulse'
+                    ? 'bg-[#55C832] animate-pulse'
                     : 'bg-rose-500'
                 }`}
               />
@@ -861,7 +861,7 @@ export function ClassroomView({
                 onClick={() => setActiveStageView('video')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeStageView === 'video'
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-[#55C832] text-white shadow-xs'
                     : 'text-gray-400 hover:text-white'
                 }`}
                 title="Switch to full video grid"
@@ -874,7 +874,7 @@ export function ClassroomView({
                 onClick={() => setActiveStageView('whiteboard')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeStageView === 'whiteboard'
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-[#55C832] text-white shadow-xs'
                     : 'text-gray-400 hover:text-white'
                 }`}
                 title="Switch to digital whiteboard"
@@ -892,7 +892,7 @@ export function ClassroomView({
               variant="primary"
               onClick={handleStartClass}
               loading={isStarting}
-              className="h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs"
+              className="h-8 text-xs bg-[#55C832] hover:bg-[#55C832] text-white shadow-xs"
             >
               <Play className="h-3.5 w-3.5 mr-1.5 fill-current" />
               Start Class
@@ -975,7 +975,7 @@ export function ClassroomView({
                 <div className="pt-2 flex items-center justify-center gap-2">
                   <Link
                     href={backHref}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow-xs"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#55C832] hover:bg-[#55C832] text-white transition-colors shadow-xs"
                   >
                     Return to {portalType === 'tutor' ? 'Dashboard' : portalType === 'student' ? 'Student Space' : 'Portal'}
                   </Link>
@@ -986,9 +986,9 @@ export function ClassroomView({
             /* State B: Student Waiting Room */
             <div className="flex-1 flex items-center justify-center p-4">
               <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 sm:p-8 text-center space-y-4 shadow-2xl">
-                <div className="h-14 w-14 rounded-2xl bg-indigo-950/80 border border-indigo-800/80 text-indigo-400 flex items-center justify-center mx-auto relative">
+                <div className="h-14 w-14 rounded-2xl bg-[#0f1d33] border border-[#1f3860] text-[#55C832] flex items-center justify-center mx-auto relative">
                   <Video className="h-7 w-7" />
-                  <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-indigo-500 animate-ping" />
+                  <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-[#55C832] animate-ping" />
                 </div>
 
                 <div className="space-y-1">
@@ -1018,7 +1018,7 @@ export function ClassroomView({
                 </div>
 
                 <div className="pt-1 flex items-center justify-center gap-2 text-[11px] text-gray-500">
-                  <Radio className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+                  <Radio className="h-3.5 w-3.5 text-[#55C832] animate-pulse" />
                   <span>Listening for tutor launch signal...</span>
                 </div>
               </div>
@@ -1027,7 +1027,7 @@ export function ClassroomView({
             /* State C: Tutor Pre-Class Stage */
             <div className="flex-1 flex items-center justify-center p-4">
               <div className="max-w-md w-full rounded-2xl bg-gray-900 border border-gray-800 p-6 sm:p-8 text-center space-y-4 shadow-2xl">
-                <div className="h-14 w-14 rounded-2xl bg-indigo-950/80 border border-indigo-800/80 text-indigo-400 flex items-center justify-center mx-auto">
+                <div className="h-14 w-14 rounded-2xl bg-[#0f1d33] border border-[#1f3860] text-[#55C832] flex items-center justify-center mx-auto">
                   <Play className="h-7 w-7 fill-current ml-1" />
                 </div>
 
@@ -1045,7 +1045,7 @@ export function ClassroomView({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Class Mode:</span>
-                    <span className="text-indigo-300 font-semibold capitalize">{session.class_mode}</span>
+                    <span className="text-slate-300 font-semibold capitalize">{session.class_mode}</span>
                   </div>
                 </div>
 
@@ -1053,7 +1053,7 @@ export function ClassroomView({
                   variant="primary"
                   onClick={handleStartClass}
                   loading={isStarting}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-md font-semibold text-sm py-2.5"
+                  className="w-full bg-[#55C832] hover:bg-[#55C832] text-white shadow-md font-semibold text-sm py-2.5"
                 >
                   <Play className="h-4 w-4 mr-2 fill-current" />
                   Start Live Class Now
@@ -1116,7 +1116,7 @@ export function ClassroomView({
             <div className="flex-1 flex flex-col gap-2 sm:gap-3 overflow-hidden">
               {/* Screen Share Spotlight (if active) */}
               {(isLocalScreenSharing || activeScreenSharingPeer) && (
-                <div className="flex-[3] min-h-[260px] rounded-2xl overflow-hidden bg-black border border-indigo-500/50 relative shadow-2xl flex items-center justify-center">
+                <div className="flex-[3] min-h-[260px] rounded-2xl overflow-hidden bg-black border border-[#55C832]/50 relative shadow-2xl flex items-center justify-center">
                   <video
                     ref={(el) => {
                       if (el) {
@@ -1133,8 +1133,8 @@ export function ClassroomView({
                     muted={Boolean(isLocalScreenSharing)}
                     className="w-full h-full object-contain"
                   />
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-indigo-950/90 text-indigo-300 border border-indigo-700/80 backdrop-blur-md flex items-center gap-1.5">
-                    <Share2 className="h-3.5 w-3.5 text-indigo-400" />
+                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-[#0f1d33] text-slate-300 border border-[#1f3860] backdrop-blur-md flex items-center gap-1.5">
+                    <Share2 className="h-3.5 w-3.5 text-[#55C832]" />
                     <span>
                       {isLocalScreenSharing
                         ? 'You are sharing your screen'
@@ -1207,7 +1207,7 @@ export function ClassroomView({
                   onClick={() => setSidePanelTab('participants')}
                   className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     sidePanelTab === 'participants'
-                      ? 'bg-indigo-600 text-white shadow-xs'
+                      ? 'bg-[#55C832] text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
@@ -1257,7 +1257,7 @@ export function ClassroomView({
                   }}
                   className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
                     sidePanelTab === 'chat'
-                      ? 'bg-indigo-600 text-white shadow-xs'
+                      ? 'bg-[#55C832] text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
@@ -1276,7 +1276,7 @@ export function ClassroomView({
                   }}
                   className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer relative ${
                     sidePanelTab === 'polls'
-                      ? 'bg-indigo-600 text-white shadow-xs'
+                      ? 'bg-[#55C832] text-white shadow-xs'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
@@ -1305,13 +1305,13 @@ export function ClassroomView({
                 {/* Local user row */}
                 <div className="p-2.5 rounded-xl bg-gray-900/90 border border-gray-800 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    <div className="h-8 w-8 rounded-lg bg-[#55C832] text-white flex items-center justify-center font-bold text-xs shrink-0">
                       {currentUserName[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-white truncate flex items-center gap-1.5">
                         <span>{currentUserName}</span>
-                        <span className="text-[10px] text-indigo-400 font-normal">(You)</span>
+                        <span className="text-[10px] text-[#55C832] font-normal">(You)</span>
                         {isHandRaised && (
                           <span className="px-1.5 py-0.2 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[9px] font-bold animate-pulse">
                             ✋ Raised
@@ -1371,7 +1371,7 @@ export function ClassroomView({
                         <button
                           type="button"
                           onClick={() => handleAcknowledgeHand(p.id)}
-                          className="px-2 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold transition-colors flex items-center gap-1 mr-1 shadow-xs cursor-pointer"
+                          className="px-2 py-1 rounded-lg bg-[#55C832] hover:bg-[#55C832] text-white text-[10px] font-semibold transition-colors flex items-center gap-1 mr-1 shadow-xs cursor-pointer"
                           title="Acknowledge student's raised hand"
                         >
                           <Check className="h-3 w-3" />
@@ -1508,7 +1508,7 @@ export function ClassroomView({
             }}
             className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
               activeStageView === 'whiteboard'
-                ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-400'
+                ? 'bg-[#55C832] text-white shadow-lg ring-2 ring-[#55C832]'
                 : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
             }`}
             title={activeStageView === 'whiteboard' ? 'Return to Video Grid' : 'Open Digital Whiteboard'}
@@ -1543,7 +1543,7 @@ export function ClassroomView({
               onClick={() => setShowReactionPicker((v) => !v)}
               className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
                 showReactionPicker
-                  ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-400'
+                  ? 'bg-[#55C832] text-white shadow-lg ring-2 ring-[#55C832]'
                   : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
               }`}
               title="Send live reaction"
@@ -1635,7 +1635,7 @@ export function ClassroomView({
             }}
             className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
               isSidePanelOpen && sidePanelTab === 'polls'
-                ? 'bg-indigo-600 text-white shadow-lg'
+                ? 'bg-[#55C832] text-white shadow-lg'
                 : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
             }`}
             title="Classroom polls"
@@ -1663,7 +1663,7 @@ export function ClassroomView({
             }}
             className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
               isSidePanelOpen && sidePanelTab === 'participants'
-                ? 'bg-indigo-600 text-white shadow-lg'
+                ? 'bg-[#55C832] text-white shadow-lg'
                 : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
             }`}
             title="View participants"
@@ -1687,7 +1687,7 @@ export function ClassroomView({
             }}
             className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer relative ${
               isSidePanelOpen && sidePanelTab === 'chat'
-                ? 'bg-indigo-600 text-white shadow-lg'
+                ? 'bg-[#55C832] text-white shadow-lg'
                 : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
             }`}
             title="Classroom chat"

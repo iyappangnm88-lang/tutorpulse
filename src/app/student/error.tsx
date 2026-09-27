@@ -22,7 +22,7 @@ export default function StudentError({
       </p>
       <Button
         onClick={() => reset()}
-        className="mt-5 text-xs bg-indigo-600 hover:bg-indigo-700"
+        className="mt-5 text-xs bg-[#55C832] hover:bg-[#318A25]"
       >
         <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
         Try Again

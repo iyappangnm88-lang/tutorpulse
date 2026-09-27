@@ -27,13 +27,13 @@ export function FeeCard({ fee }: FeeCardProps) {
 
   return (
     <>
-      <Card className="hover:border-indigo-200 transition-colors flex flex-col justify-between">
+      <Card className="hover:border-[#55C832]/30 transition-colors flex flex-col justify-between">
         <CardBody className="space-y-3">
           <div className="flex items-start justify-between gap-2">
             <div>
               <Link
                 href={`/dashboard/fees/${fee.id}`}
-                className="font-bold text-gray-900 hover:text-indigo-600 line-clamp-1 text-base"
+                className="font-bold text-gray-900 hover:text-[#318A25] line-clamp-1 text-base"
               >
                 {fee.title}
               </Link>
@@ -41,7 +41,7 @@ export function FeeCard({ fee }: FeeCardProps) {
                 <User className="h-3.5 w-3.5 text-gray-400" />
                 <Link
                   href={`/dashboard/students/${fee.student_id}`}
-                  className="hover:underline hover:text-indigo-600 font-medium"
+                  className="hover:underline hover:text-[#318A25] font-medium"
                 >
                   {fee.student?.full_name}
                 </Link>

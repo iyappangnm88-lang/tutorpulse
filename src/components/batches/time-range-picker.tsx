@@ -72,7 +72,7 @@ export function TimeRangePicker({
               disabled={disabled}
               className={cn(
                 'w-full px-3 py-2.5 rounded-xl border bg-white text-sm text-gray-900 shadow-2xs transition-all',
-                'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+                'focus:outline-none focus:ring-2 focus:ring-[#55C832] focus:border-[#55C832]',
                 'disabled:opacity-50 disabled:bg-gray-50 min-h-[44px]',
                 startError ? 'border-red-500 bg-red-50/20' : 'border-gray-200'
               )}
@@ -107,7 +107,7 @@ export function TimeRangePicker({
               disabled={disabled}
               className={cn(
                 'w-full px-3 py-2.5 rounded-xl border bg-white text-sm text-gray-900 shadow-2xs transition-all',
-                'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+                'focus:outline-none focus:ring-2 focus:ring-[#55C832] focus:border-[#55C832]',
                 'disabled:opacity-50 disabled:bg-gray-50 min-h-[44px]',
                 endError ? 'border-red-500 bg-red-50/20' : 'border-gray-200'
               )}

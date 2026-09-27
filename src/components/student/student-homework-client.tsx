@@ -102,14 +102,14 @@ export function StudentHomeworkClient({ initialHomework }: StudentHomeworkClient
           onClick={() => setCurrentTab('all')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             currentTab === 'all'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
           All
           <span
             className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              currentTab === 'all' ? 'bg-indigo-700 text-white' : 'bg-gray-200 text-gray-700'
+              currentTab === 'all' ? 'bg-[#318A25] text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
             {homeworkList.length}
@@ -179,7 +179,7 @@ export function StudentHomeworkClient({ initialHomework }: StudentHomeworkClient
       {/* Homework List */}
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center shadow-2xs">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FAFBEF] text-[#318A25] mb-4">
             <CheckCircle2 className="h-7 w-7 text-emerald-500" />
           </div>
           <h3 className="text-base font-bold text-gray-900">
@@ -212,13 +212,13 @@ export function StudentHomeworkClient({ initialHomework }: StudentHomeworkClient
                     ? 'border-gray-100 bg-gray-50/30'
                     : hw.is_overdue
                     ? 'border-rose-200 bg-rose-50/10'
-                    : 'border-gray-100 hover:border-indigo-100'
+                    : 'border-gray-100 hover:border-gray-200'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-1.5 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-indigo-600">{hw.batch_name}</span>
+                      <span className="text-xs font-bold text-[#318A25]">{hw.batch_name}</span>
                       <span className="text-[10px] text-gray-400">•</span>
                       <span className="text-xs text-gray-500 font-medium">Tutor: {hw.tutor_name}</span>
                       <span className="text-[10px] text-gray-400">•</span>
@@ -253,7 +253,7 @@ export function StudentHomeworkClient({ initialHomework }: StudentHomeworkClient
                         <button
                           type="button"
                           onClick={() => setExpandedId(isExpanded ? null : hw.id)}
-                          className="text-xs font-semibold text-indigo-600 hover:underline inline-flex items-center gap-1"
+                          className="text-xs font-semibold text-[#318A25] hover:underline inline-flex items-center gap-1"
                         >
                           <FileText className="h-3.5 w-3.5" />
                           {isExpanded ? 'Hide Full Details' : 'View Instructions & Notes'}
@@ -321,7 +321,7 @@ export function StudentHomeworkClient({ initialHomework }: StudentHomeworkClient
                       className={`text-xs h-8 ${
                         isCompleted
                           ? 'text-gray-600 hover:text-gray-900'
-                          : 'bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-xs'
+                          : 'bg-[#55C832] hover:bg-[#318A25] text-white font-semibold shadow-xs'
                       }`}
                     >
                       {isLoading ? (

@@ -89,17 +89,17 @@ export function HelpCenterView() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Hero Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-950 p-6 sm:p-10 text-white shadow-md relative overflow-hidden">
-        <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
+      <div className="rounded-3xl bg-gradient-to-r from-[#0f1d33] via-[#172B4D] to-[#0a1424] p-6 sm:p-10 text-white shadow-md relative overflow-hidden">
+        <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-[#55C832] blur-2xl pointer-events-none" />
         <div className="relative z-10 max-w-2xl">
-          <div className="flex items-center gap-2 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-2">
-            <BookOpen className="h-4 w-4 text-indigo-400" />
+          <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">
+            <BookOpen className="h-4 w-4 text-[#55C832]" />
             <span>Nuzigo Knowledge Base</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
             How can we help you teach and manage today?
           </h1>
-          <p className="text-xs sm:text-sm text-indigo-200 mt-2">
+          <p className="text-xs sm:text-sm text-slate-300 mt-2">
             Simple, practical guides specifically tailored for solo tutors and small tuition centers.
           </p>
 
@@ -111,7 +111,7 @@ export function HelpCenterView() {
               placeholder="Search guides, form fields, concepts, or FAQs (e.g. attendance, batch schedule, fee dues)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border-0 bg-white pl-12 pr-4 py-3.5 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full rounded-2xl border-0 bg-white pl-12 pr-4 py-3.5 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:outline-none focus:ring-2 focus:ring-[#55C832]"
             />
             {searchQuery && (
               <button
@@ -137,7 +137,7 @@ export function HelpCenterView() {
               className={cn(
                 'px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer',
                 selectedCategory === cat.id
-                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  ? 'bg-[#55C832] text-white shadow-2xs'
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
@@ -164,14 +164,14 @@ export function HelpCenterView() {
                 return (
                   <div
                     key={topic.id}
-                    className="rounded-2xl border border-gray-200 bg-white p-5 hover:border-indigo-300 hover:shadow-xs transition-all flex flex-col justify-between"
+                    className="rounded-2xl border border-gray-200 bg-white p-5 hover:border-[#55C832]/40 hover:shadow-xs transition-all flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center gap-2.5 mb-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25] shrink-0">
                           <Icon className="h-4 w-4" />
                         </div>
-                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-bold text-[#318A25] uppercase tracking-wider bg-[#FAFBEF] px-2 py-0.5 rounded">
                           {topic.category}
                         </span>
                       </div>
@@ -190,7 +190,7 @@ export function HelpCenterView() {
                         setSearchQuery('')
                         setExpandedTopicId(topic.id)
                       }}
-                      className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#318A25] hover:text-[#172B4D]"
                     >
                       <span>Read full guide</span>
                       <ArrowRight className="h-3.5 w-3.5" />
@@ -214,12 +214,12 @@ export function HelpCenterView() {
                   key={topic.id}
                   className={cn(
                     'rounded-2xl border bg-white p-5 transition-all',
-                    isExpanded ? 'border-indigo-400 shadow-sm sm:col-span-2' : 'border-gray-200/80 hover:border-indigo-200 hover:shadow-2xs'
+                    isExpanded ? 'border-[#55C832] shadow-sm sm:col-span-2' : 'border-gray-200/80 hover:border-[#55C832]/30 hover:shadow-2xs'
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 shrink-0 mt-0.5">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FAFBEF] text-[#318A25] shrink-0 mt-0.5">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div>
@@ -247,9 +247,9 @@ export function HelpCenterView() {
                   {isExpanded && (
                     <div className="mt-5 pt-4 border-t border-gray-100 space-y-5 text-xs animate-in fade-in-0 duration-150">
                       {/* Why it exists */}
-                      <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100/80">
-                        <p className="font-bold text-indigo-900 uppercase tracking-wider text-[11px] mb-1 flex items-center gap-1.5">
-                          <Lightbulb className="h-3.5 w-3.5 text-indigo-600" />
+                      <div className="p-3.5 rounded-2xl bg-[#FAFBEF]/70 border border-[#55C832]/20">
+                        <p className="font-bold text-[#172B4D] uppercase tracking-wider text-[11px] mb-1 flex items-center gap-1.5">
+                          <Lightbulb className="h-3.5 w-3.5 text-[#318A25]" />
                           Why this feature exists
                         </p>
                         <p className="text-gray-700 leading-relaxed">{topic.whyItExists}</p>
@@ -264,7 +264,7 @@ export function HelpCenterView() {
                               key={idx}
                               className="flex items-start gap-2 text-xs text-gray-700 bg-gray-50/80 border border-gray-100 rounded-xl p-2.5"
                             >
-                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold shrink-0">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#55C832] text-white text-[10px] font-bold shrink-0">
                                 {idx + 1}
                               </span>
                               <span className="leading-tight mt-0.5">{step}</span>
@@ -355,7 +355,7 @@ export function HelpCenterView() {
                             <Link
                               key={link.href}
                               href={link.href}
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-lg transition-colors"
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-[#318A25] hover:text-[#172B4D] bg-[#FAFBEF] px-2.5 py-1 rounded-lg transition-colors"
                             >
                               <span>{link.label}</span>
                               <ExternalLink className="h-3 w-3" />
@@ -370,7 +370,7 @@ export function HelpCenterView() {
                     <button
                       type="button"
                       onClick={() => setExpandedTopicId(topic.id)}
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#318A25] hover:text-[#172B4D] transition-colors"
                     >
                       <span>Explore guide & FAQs</span>
                       <ArrowRight className="h-3 w-3" />

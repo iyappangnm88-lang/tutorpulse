@@ -2,6 +2,15 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
+  --color-brand-primary: #55C832;
+  --color-brand-primary-hover: #318A25;
+  --color-brand-primary-light: #FAFBEF;
+  --color-brand-primary-foreground: #FFFFFF;
+  --color-brand-navy: #172B4D;
+  --color-brand-cream: #FAFBEF;
+  --color-brand-yellow: #FFC928;
+  --color-brand-orange: #FF9F43;
+  --color-brand-red: #F05252;
   --color-nuzigo-green: #55C832;
   --color-nuzigo-deep-green: #318A25;
   --color-nuzigo-navy: #172B4D;
@@ -22,6 +31,15 @@
 }
 
 :root {
+  --brand-primary: #55C832;
+  --brand-primary-hover: #318A25;
+  --brand-primary-light: #FAFBEF;
+  --brand-primary-foreground: #FFFFFF;
+  --brand-navy: #172B4D;
+  --brand-cream: #FAFBEF;
+  --brand-yellow: #FFC928;
+  --brand-orange: #FF9F43;
+  --brand-red: #F05252;
   --nuzigo-green: #55C832;
   --nuzigo-deep-green: #318A25;
   --nuzigo-navy: #172B4D;
@@ -120,7 +138,7 @@ body {
 
 /* Focus ring consistency */
 :focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid #55C832;
   outline-offset: 2px;
 }
 
@@ -149,7 +167,7 @@ body {
 }
 
 .bg-radial-gradient {
-  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(85, 200, 50, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
 }
 
 /* Animations */

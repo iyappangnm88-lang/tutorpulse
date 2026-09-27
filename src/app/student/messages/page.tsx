@@ -55,7 +55,7 @@ export default async function StudentMessagesPage() {
           {announcements.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs hover:border-indigo-100 transition-all space-y-2"
+              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs hover:border-gray-200 transition-all space-y-2"
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700">

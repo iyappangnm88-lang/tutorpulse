@@ -32,7 +32,7 @@ export function StudentTestsSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-indigo-600" />
+          <FileText className="h-4 w-4 text-[#318A25]" />
           <h3 className="text-base font-semibold text-gray-900">Tests & Examination Results</h3>
         </div>
       </CardHeader>
@@ -45,7 +45,7 @@ export function StudentTestsSection({
           </div>
           <div>
             <p className="text-gray-400 text-[10px]">Average</p>
-            <p className="font-bold text-indigo-700 mt-0.5">
+            <p className="font-bold text-[#318A25] mt-0.5">
               {performance.average_percentage !== null ? `${performance.average_percentage}%` : '—'}
             </p>
           </div>
@@ -83,7 +83,7 @@ export function StudentTestsSection({
                   <div>
                     <Link
                       href={`/dashboard/tests/${item.test.id}`}
-                      className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline"
+                      className="font-semibold text-gray-900 hover:text-[#318A25] hover:underline"
                     >
                       {item.test.title}
                     </Link>

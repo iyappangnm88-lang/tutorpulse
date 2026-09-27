@@ -189,12 +189,12 @@ export function TestMarkEntry({ test }: TestMarkEntryProps) {
           </p>
         </div>
 
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-3.5 text-center">
-          <p className="text-xs text-indigo-700 font-medium">Class Average</p>
-          <p className="text-xl sm:text-2xl font-bold text-indigo-800 mt-1">
+        <div className="rounded-xl border border-[#55C832]/30 bg-[#FAFBEF]/50 p-3.5 text-center">
+          <p className="text-xs text-[#318A25] font-medium">Class Average</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#172B4D] mt-1">
             {liveStats.average_percentage !== null ? `${liveStats.average_percentage}%` : '—'}
           </p>
-          <p className="text-[10px] text-indigo-600 mt-0.5">
+          <p className="text-[10px] text-[#318A25] mt-0.5">
             {liveStats.average_marks !== null ? `${liveStats.average_marks} / ${test.max_marks}` : 'No marks yet'}
           </p>
         </div>
@@ -223,12 +223,12 @@ export function TestMarkEntry({ test }: TestMarkEntryProps) {
           </p>
         </div>
 
-        <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3.5 text-center col-span-2 sm:col-span-1">
-          <p className="text-xs text-blue-700 font-medium">Class Grade</p>
+        <div className="rounded-xl border border-[#55C832]/30 bg-[#FAFBEF] p-3.5 text-center col-span-2 sm:col-span-1">
+          <p className="text-xs text-[#318A25] font-medium">Class Grade</p>
           <div className="mt-1 flex items-center justify-center">
             <TestGradeBadge grade={calculateGrade(liveStats.average_percentage)} />
           </div>
-          <p className="text-[10px] text-blue-600 mt-0.5">Overall Performance</p>
+          <p className="text-[10px] text-[#318A25] mt-0.5">Overall Performance</p>
         </div>
       </div>
 
@@ -249,7 +249,7 @@ export function TestMarkEntry({ test }: TestMarkEntryProps) {
                   <p className="text-xs text-gray-500">Batch</p>
                   <Link
                     href={`/dashboard/batches/${test.batch_id}`}
-                    className="font-medium text-indigo-600 hover:underline"
+                    className="font-medium text-[#318A25] hover:underline"
                   >
                     {test.batch?.name}
                   </Link>
@@ -361,7 +361,7 @@ export function TestMarkEntry({ test }: TestMarkEntryProps) {
                             <td className="px-4 py-3">
                               <Link
                                 href={`/dashboard/students/${row.student_id}`}
-                                className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline text-sm"
+                                className="font-semibold text-gray-900 hover:text-[#318A25] hover:underline text-sm"
                               >
                                 {row.student_name}
                               </Link>
@@ -383,7 +383,7 @@ export function TestMarkEntry({ test }: TestMarkEntryProps) {
                                   className={`w-24 px-2.5 py-1.5 text-sm font-semibold rounded-lg border outline-none transition-all ${
                                     row.error
                                       ? 'border-red-500 bg-red-50 text-red-900 focus:ring-2 focus:ring-red-200'
-                                      : 'border-gray-200 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100'
+                                      : 'border-gray-200 focus:border-[#55C832] focus:ring-2 focus:ring-[#55C832]/20'
                                   } ${
                                     row.status === 'Absent' || row.status === 'Excused'
                                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -406,7 +406,7 @@ export function TestMarkEntry({ test }: TestMarkEntryProps) {
                                     e.target.value as 'Not Graded' | 'Graded' | 'Absent' | 'Excused'
                                   )
                                 }
-                                className="text-xs py-1 px-2 rounded border border-gray-200 bg-white font-medium text-gray-700 outline-none focus:border-indigo-600"
+                                className="text-xs py-1 px-2 rounded border border-gray-200 bg-white font-medium text-gray-700 outline-none focus:border-[#55C832]"
                               >
                                 <option value="Not Graded">Not Graded</option>
                                 <option value="Graded">Graded</option>

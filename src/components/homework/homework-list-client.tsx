@@ -52,7 +52,7 @@ export function HomeworkListClient({
   if (homeworkList.length === 0) {
     return (
       <EmptyState
-        icon={<BookOpen className="h-8 w-8 text-indigo-500" />}
+        icon={<BookOpen className="h-8 w-8 text-[#55C832]" />}
         title="No homework assignments yet"
         description="Create tasks and worksheets for your batches to track student completion."
         action={
@@ -99,7 +99,7 @@ export function HomeworkListClient({
               onClick={() => setSelectedStatus(tab.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
                 selectedStatus === tab.value
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-[#55C832] text-white shadow-xs'
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >

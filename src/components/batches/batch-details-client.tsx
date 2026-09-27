@@ -452,7 +452,7 @@ export function BatchDetailsClient({
                   onClick={() => setActiveTab('prepare')}
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 hover:border-[#55C832] hover:bg-[#FAFBEF] text-left font-semibold text-[#172B4D] transition-all"
                 >
-                  <Presentation className="h-4 w-4 text-blue-500" />
+                  <Presentation className="h-4 w-4 text-[#55C832]" />
                   <span>Prepare Class</span>
                 </button>
 
@@ -614,7 +614,7 @@ export function BatchDetailsClient({
                 </div>
 
                 <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                  <div className="w-8 h-8 rounded-lg bg-[#55C832]/10 flex items-center justify-center text-[#318A25]">
                     <Presentation className="h-4 w-4" />
                   </div>
                   <h4 className="text-xs font-bold text-[#172B4D]">Interactive Whiteboard</h4>

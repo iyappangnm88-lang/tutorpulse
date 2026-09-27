@@ -109,7 +109,7 @@ export function LinkStudentDialog({
                   key={s.id}
                   onClick={() => setSelectedStudentId(s.id)}
                   className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
-                    isSelected ? 'bg-indigo-50/80' : 'hover:bg-gray-50'
+                    isSelected ? 'bg-[#FAFBEF]' : 'hover:bg-gray-50'
                   }`}
                 >
                   <div>
@@ -121,7 +121,7 @@ export function LinkStudentDialog({
                   <div
                     className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors ${
                       isSelected
-                        ? 'bg-indigo-600 border-indigo-600 text-white'
+                        ? 'bg-[#55C832] border-[#55C832] text-white'
                         : 'border-gray-300 bg-white'
                     }`}
                   >
@@ -155,7 +155,7 @@ export function LinkStudentDialog({
                 type="checkbox"
                 checked={isPrimary}
                 onChange={(e) => setIsPrimary(e.target.checked)}
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                className="rounded border-gray-300 text-[#318A25] focus:ring-[#55C832] h-4 w-4"
               />
               <span className="text-xs font-medium text-gray-800">Primary Contact</span>
             </label>

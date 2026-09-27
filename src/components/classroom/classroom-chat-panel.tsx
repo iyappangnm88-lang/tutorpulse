@@ -106,7 +106,7 @@ export function ClassroomChatPanel({
                 <div className="flex items-center gap-1.5 mb-0.5 text-[10px] text-gray-400">
                   <span className="font-bold text-gray-300 flex items-center gap-1">
                     {isMsgFromTutor ? (
-                      <Shield className="h-2.5 w-2.5 text-indigo-400 fill-current" />
+                      <Shield className="h-2.5 w-2.5 text-[#55C832] fill-current" />
                     ) : (
                       <User className="h-2.5 w-2.5 text-gray-400" />
                     )}
@@ -134,9 +134,9 @@ export function ClassroomChatPanel({
                 <div
                   className={`px-3 py-2 rounded-2xl text-xs max-w-[85%] break-words shadow-xs ${
                     isMe
-                      ? 'bg-indigo-600 text-white rounded-tr-xs'
+                      ? 'bg-[#55C832] text-white rounded-tr-xs'
                       : isMsgFromTutor
-                      ? 'bg-gray-800 text-indigo-100 rounded-tl-xs border border-indigo-500/30'
+                      ? 'bg-gray-800 text-white rounded-tl-xs border border-[#55C832]/30'
                       : 'bg-gray-800 text-gray-200 rounded-tl-xs border border-gray-700'
                   }`}
                 >
@@ -177,12 +177,12 @@ export function ClassroomChatPanel({
                 placeholder="Type a message..."
                 maxLength={500}
                 disabled={isSending || !isSessionActive}
-                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#55C832] disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={!draft.trim() || isSending || cooldown}
-                className="h-8 w-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs"
+                className="h-8 w-8 rounded-xl bg-[#55C832] hover:bg-[#55C832] disabled:opacity-40 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs"
                 aria-label="Send message"
               >
                 <Send className="h-3.5 w-3.5" />

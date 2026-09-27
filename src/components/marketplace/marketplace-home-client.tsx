@@ -139,14 +139,14 @@ export function MarketplaceHomeClient({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-xs">
+              <div className="h-9 w-9 rounded-xl bg-[#55C832] flex items-center justify-center text-white font-bold text-lg shadow-xs">
                 T
               </div>
               <span className="font-extrabold text-gray-900 tracking-tight text-lg">
-                Tutor<span className="text-indigo-600">Pulse</span>
+                Tutor<span className="text-[#318A25]">Pulse</span>
               </span>
             </Link>
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FAFBEF] text-[#318A25] border border-gray-200">
               Directory
             </span>
           </div>
@@ -155,7 +155,7 @@ export function MarketplaceHomeClient({
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <Link href={portalHref}>
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-xs">
+                  <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-xs">
                     <span>Go to {currentUser.role ? `${currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)} Portal` : 'Dashboard'}</span>
                     <ArrowRight className="ml-1 h-3.5 w-3.5" />
                   </Button>
@@ -169,7 +169,7 @@ export function MarketplaceHomeClient({
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold">
+                  <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-xs font-semibold">
                     Sign Up
                   </Button>
                 </Link>
@@ -180,10 +180,10 @@ export function MarketplaceHomeClient({
       </header>
 
       {/* Hero Header */}
-      <section className="border-b border-indigo-100 bg-gradient-to-b from-indigo-50/70 via-white to-slate-50 py-10 sm:py-14 px-4 sm:px-6 lg:px-8 text-center">
+      <section className="border-b border-gray-200 bg-gradient-to-b from-[#FAFBEF] via-white to-slate-50 py-10 sm:py-14 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100/80 px-3 py-1 text-xs font-semibold text-indigo-900">
-            <Compass className="h-3.5 w-3.5 text-indigo-600" />
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832]/20/80 px-3 py-1 text-xs font-semibold text-[#172B4D]">
+            <Compass className="h-3.5 w-3.5 text-[#318A25]" />
             <span>Discover Verified Tutors & Batches</span>
           </div>
 
@@ -213,7 +213,7 @@ export function MarketplaceHomeClient({
                 type="submit"
                 size="sm"
                 loading={isPending}
-                className="bg-indigo-600 hover:bg-indigo-700 text-xs px-5 h-10 font-semibold"
+                className="bg-[#55C832] hover:bg-[#318A25] text-xs px-5 h-10 font-semibold"
               >
                 Search Tutors
               </Button>
@@ -239,7 +239,7 @@ export function MarketplaceHomeClient({
                 setSubject(e.target.value)
                 updateQueryParams({ subject: e.target.value || null, page: null })
               }}
-              className="text-xs rounded-lg border border-gray-200 bg-white py-1.5 px-3 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="text-xs rounded-lg border border-gray-200 bg-white py-1.5 px-3 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#55C832]"
             >
               <option value="">All Subjects</option>
               {COMMON_SUBJECTS.map((s) => (
@@ -256,7 +256,7 @@ export function MarketplaceHomeClient({
                 setGrade(e.target.value)
                 updateQueryParams({ grade: e.target.value || null, page: null })
               }}
-              className="text-xs rounded-lg border border-gray-200 bg-white py-1.5 px-3 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="text-xs rounded-lg border border-gray-200 bg-white py-1.5 px-3 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#55C832]"
             >
               <option value="">All Grades</option>
               {COMMON_GRADES.map((g) => (
@@ -273,7 +273,7 @@ export function MarketplaceHomeClient({
                 setMode(e.target.value)
                 updateQueryParams({ mode: e.target.value || null, page: null })
               }}
-              className="text-xs rounded-lg border border-gray-200 bg-white py-1.5 px-3 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="text-xs rounded-lg border border-gray-200 bg-white py-1.5 px-3 text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#55C832]"
             >
               <option value="all">All Modes</option>
               <option value="online">Online Classes</option>
@@ -320,7 +320,7 @@ export function MarketplaceHomeClient({
                       {/* Top Header with Avatar and Mode */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-xl bg-indigo-100 text-indigo-700 font-bold text-base flex items-center justify-center shrink-0 border border-indigo-200">
+                          <div className="h-12 w-12 rounded-xl bg-[#55C832]/20 text-[#318A25] font-bold text-base flex items-center justify-center shrink-0 border border-[#55C832]/30">
                             {initials}
                           </div>
                           <div>
@@ -375,7 +375,7 @@ export function MarketplaceHomeClient({
                             {tutor.primarySubjects.slice(0, 3).map((sub) => (
                               <span
                                 key={sub}
-                                className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-semibold text-[10px] border border-indigo-100"
+                                className="px-2 py-0.5 rounded-md bg-[#FAFBEF] text-[#318A25] font-semibold text-[10px] border border-gray-200"
                               >
                                 {sub}
                               </span>
@@ -418,7 +418,7 @@ export function MarketplaceHomeClient({
                       </div>
 
                       <Link href={`/tutors/${tutor.profileSlug}`}>
-                        <Button size="sm" className="text-xs gap-1 bg-indigo-600 hover:bg-indigo-700">
+                        <Button size="sm" className="text-xs gap-1 bg-[#55C832] hover:bg-[#318A25]">
                           <span>View Classes</span>
                           <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
@@ -432,7 +432,7 @@ export function MarketplaceHomeClient({
         ) : (
           /* Graceful Zero-Tutor Empty State */
           <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-8 sm:p-12 text-center max-w-xl mx-auto shadow-xs space-y-4">
-            <div className="h-14 w-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+            <div className="h-14 w-14 rounded-2xl bg-[#FAFBEF] text-[#318A25] flex items-center justify-center mx-auto">
               <Compass className="h-7 w-7" />
             </div>
 
@@ -457,7 +457,7 @@ export function MarketplaceHomeClient({
               ) : (
                 <>
                   <Link href="/register">
-                    <Button size="sm" className="text-xs bg-indigo-600 hover:bg-indigo-700">
+                    <Button size="sm" className="text-xs bg-[#55C832] hover:bg-[#318A25]">
                       <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                       Sign Up as Student
                     </Button>
@@ -506,13 +506,13 @@ export function MarketplaceHomeClient({
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>© {new Date().getFullYear()} Nuzigo. Empowering independent education.</p>
           <div className="flex items-center gap-4 text-[11px]">
-            <Link href="/tutors" className="hover:text-indigo-600">
+            <Link href="/tutors" className="hover:text-[#318A25]">
               Browse Directory
             </Link>
-            <Link href="/login" className="hover:text-indigo-600">
+            <Link href="/login" className="hover:text-[#318A25]">
               Tutor Login
             </Link>
-            <Link href="/register" className="hover:text-indigo-600">
+            <Link href="/register" className="hover:text-[#318A25]">
               Student Registration
             </Link>
           </div>

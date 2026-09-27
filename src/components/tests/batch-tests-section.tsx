@@ -24,12 +24,12 @@ export function BatchTestsSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-indigo-600" />
+          <FileText className="h-4 w-4 text-[#318A25]" />
           <h3 className="text-base font-semibold text-gray-900">Tests & Performance</h3>
         </div>
         <Link
           href={`/dashboard/tests/new?batch=${batchId}`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#318A25] hover:underline"
         >
           <Plus className="h-3.5 w-3.5" />
           <span>Create Test</span>
@@ -41,7 +41,7 @@ export function BatchTestsSection({
             No tests created for this batch yet.{' '}
             <Link
               href={`/dashboard/tests/new?batch=${batchId}`}
-              className="text-indigo-600 font-medium hover:underline"
+              className="text-[#318A25] font-medium hover:underline"
             >
               Schedule first test
             </Link>
@@ -53,7 +53,7 @@ export function BatchTestsSection({
                 <div>
                   <Link
                     href={`/dashboard/tests/${test.id}`}
-                    className="font-semibold text-sm text-gray-900 hover:text-indigo-600 hover:underline line-clamp-1"
+                    className="font-semibold text-sm text-gray-900 hover:text-[#318A25] hover:underline line-clamp-1"
                   >
                     {test.title}
                   </Link>
@@ -83,7 +83,7 @@ export function BatchTestsSection({
           <div className="pt-1 text-right">
             <Link
               href={`/dashboard/tests?batch=${batchId}`}
-              className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[#318A25] hover:underline"
             >
               <span>View all batch tests ({tests.length})</span>
               <ArrowRight className="h-3 w-3" />

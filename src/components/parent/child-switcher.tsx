@@ -19,11 +19,11 @@ export function ChildSwitcher({ childrenList, selectedChildId }: ChildSwitcherPr
     const onlyChild = childrenList[0]
     if (!onlyChild) return null
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-xs text-indigo-900">
-        <Users className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAFBEF] border border-gray-200 text-xs text-[#172B4D]">
+        <Users className="h-3.5 w-3.5 text-[#318A25] shrink-0" />
         <span className="font-semibold">{onlyChild.full_name}</span>
         {onlyChild.class_name && (
-          <span className="text-indigo-500 font-normal">({onlyChild.class_name})</span>
+          <span className="text-[#55C832] font-normal">({onlyChild.class_name})</span>
         )}
         {onlyChild.workspace_type && (
           <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-md ${
@@ -50,11 +50,11 @@ export function ChildSwitcher({ childrenList, selectedChildId }: ChildSwitcherPr
 
   return (
     <div className="relative inline-flex items-center">
-      <Users className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-600 pointer-events-none" />
+      <Users className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#318A25] pointer-events-none" />
       <select
         value={selectedChildId}
         onChange={handleChange}
-        className="appearance-none pl-8 pr-7 py-1.5 text-xs font-semibold rounded-xl bg-indigo-50/80 border border-indigo-200 text-indigo-900 hover:bg-indigo-100/70 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors cursor-pointer min-h-[36px]"
+        className="appearance-none pl-8 pr-7 py-1.5 text-xs font-semibold rounded-xl bg-[#FAFBEF] border border-[#55C832]/30 text-[#172B4D] hover:bg-[#55C832]/20/70 focus:outline-none focus:ring-2 focus:ring-[#55C832] transition-colors cursor-pointer min-h-[36px]"
       >
         {childrenList.map((c) => (
           <option key={c.student_id} value={c.student_id}>
@@ -62,7 +62,7 @@ export function ChildSwitcher({ childrenList, selectedChildId }: ChildSwitcherPr
           </option>
         ))}
       </select>
-      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500 pointer-events-none" />
+      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#55C832] pointer-events-none" />
     </div>
   )
 }

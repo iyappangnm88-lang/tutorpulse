@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
         </p>
         <Link
           href="/login"
-          className="mt-6 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+          className="mt-6 inline-block text-sm font-medium text-[#318A25] hover:text-[#172B4D]"
         >
           Back to sign in
         </Link>

@@ -31,7 +31,7 @@ export default async function ParentAttendancePage({ searchParams }: ParentAtten
       <div>
         <Link
           href={`/parent?child=${child.student_id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 mb-2"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#318A25] hover:text-[#172B4D] mb-2"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>Back to Home</span>
@@ -44,7 +44,7 @@ export default async function ParentAttendancePage({ searchParams }: ParentAtten
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card className="text-center p-4">
           <p className="text-xs text-gray-500 font-medium">Overall Attendance</p>
-          <p className="text-2xl font-bold text-indigo-600 mt-1">{stats.percentage}%</p>
+          <p className="text-2xl font-bold text-[#318A25] mt-1">{stats.percentage}%</p>
         </Card>
         <Card className="text-center p-4">
           <p className="text-xs text-gray-500 font-medium">Total Classes</p>

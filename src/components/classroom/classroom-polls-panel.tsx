@@ -135,7 +135,7 @@ export function ClassroomPollsPanel({
             variant="primary"
             onClick={() => setIsCreating(true)}
             fullWidth
-            className="h-9 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-xs"
+            className="h-9 text-xs bg-[#55C832] hover:bg-[#55C832] text-white rounded-xl shadow-xs"
           >
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Create Live Poll / Quick Question
@@ -150,7 +150,7 @@ export function ClassroomPollsPanel({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <HelpCircle className="h-3.5 w-3.5 text-indigo-400" />
+                <HelpCircle className="h-3.5 w-3.5 text-[#55C832]" />
                 New Question
               </span>
               <div className="flex items-center gap-1">
@@ -177,7 +177,7 @@ export function ClassroomPollsPanel({
               placeholder="e.g. What is the derivative of x²?"
               maxLength={300}
               rows={2}
-              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+              className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#55C832] resize-none"
             />
 
             <div className="space-y-1.5">
@@ -195,7 +195,7 @@ export function ClassroomPollsPanel({
                     }}
                     placeholder={`Option ${idx + 1}`}
                     maxLength={100}
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="flex-1 bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#55C832]"
                   />
                   {options.length > 2 && (
                     <button
@@ -212,7 +212,7 @@ export function ClassroomPollsPanel({
                 <button
                   type="button"
                   onClick={() => setOptions([...options, `Option ${String.fromCharCode(65 + options.length)}`])}
-                  className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium mt-1 inline-flex items-center gap-1"
+                  className="text-[11px] text-[#55C832] hover:text-slate-300 font-medium mt-1 inline-flex items-center gap-1"
                 >
                   <Plus className="h-3 w-3" /> Add Option
                 </button>
@@ -232,7 +232,7 @@ export function ClassroomPollsPanel({
                 size="sm"
                 variant="primary"
                 loading={isSubmitting}
-                className="h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-xs"
+                className="h-8 text-xs bg-[#55C832] hover:bg-[#55C832] text-white rounded-xl shadow-xs"
               >
                 Launch Poll
               </Button>
@@ -274,7 +274,7 @@ export function ClassroomPollsPanel({
                 className={`p-3.5 rounded-2xl border transition-all ${
                   isClosed
                     ? 'bg-gray-900/40 border-gray-800/60 opacity-90'
-                    : 'bg-gray-900/90 border-indigo-500/40 shadow-md'
+                    : 'bg-gray-900/90 border-[#55C832]/40 shadow-md'
                 }`}
               >
                 {/* Header */}
@@ -318,7 +318,7 @@ export function ClassroomPollsPanel({
                         onClick={() => handleToggleReveal(poll.id, poll.results_revealed)}
                         className={`p-1.5 rounded-lg text-xs transition-colors ${
                           poll.results_revealed
-                            ? 'bg-indigo-600/30 text-indigo-300'
+                            ? 'bg-[#55C832]/30 text-slate-300'
                             : 'bg-gray-800 hover:bg-gray-700 text-gray-400'
                         }`}
                         title={poll.results_revealed ? 'Hide results from students' : 'Reveal results to students'}
@@ -344,13 +344,13 @@ export function ClassroomPollsPanel({
                             type="button"
                             onClick={() => handleVote(poll.id, idx)}
                             disabled={votingPollId === poll.id}
-                            className="w-full text-left p-2.5 rounded-xl border border-gray-800 bg-gray-950/80 hover:bg-indigo-950/40 hover:border-indigo-500/60 text-xs text-gray-200 transition-all flex items-center justify-between group cursor-pointer"
+                            className="w-full text-left p-2.5 rounded-xl border border-gray-800 bg-gray-950/80 hover:bg-[#0f1d33] hover:border-[#55C832]/60 text-xs text-gray-200 transition-all flex items-center justify-between group cursor-pointer"
                           >
                             <span className="font-semibold flex items-center gap-2">
                               <span className="w-4 text-gray-500 font-bold">{String.fromCharCode(65 + idx)}.</span>
                               {opt}
                             </span>
-                            <span className="text-[10px] font-bold text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-[10px] font-bold text-[#55C832] opacity-0 group-hover:opacity-100 transition-opacity">
                               Vote
                             </span>
                           </button>
@@ -359,14 +359,14 @@ export function ClassroomPollsPanel({
                           <div
                             className={`p-2.5 rounded-xl border relative overflow-hidden text-xs ${
                               isMyPick
-                                ? 'bg-indigo-950/40 border-indigo-500/60'
+                                ? 'bg-[#0f1d33] border-[#55C832]/60'
                                 : 'bg-gray-950/60 border-gray-800/80'
                             }`}
                           >
                             {/* Percentage bar underlay */}
                             {showResults && (
                               <div
-                                className="absolute left-0 top-0 bottom-0 bg-indigo-600/20 rounded-xl transition-all duration-500"
+                                className="absolute left-0 top-0 bottom-0 bg-[#55C832]/20 rounded-xl transition-all duration-500"
                                 style={{ width: `${pct}%` }}
                               />
                             )}
@@ -376,14 +376,14 @@ export function ClassroomPollsPanel({
                                 <span className="w-4 text-gray-500 font-bold">{String.fromCharCode(65 + idx)}.</span>
                                 {opt}
                                 {isMyPick && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-indigo-600 text-white">
+                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[#55C832] text-white">
                                     Your Vote
                                   </span>
                                 )}
                               </span>
 
                               {showResults && (
-                                <span className="text-xs font-bold text-indigo-300">
+                                <span className="text-xs font-bold text-slate-300">
                                   {pct}% <span className="text-[10px] text-gray-500 font-normal">({voteCount})</span>
                                 </span>
                               )}
@@ -410,7 +410,7 @@ export function ClassroomPollsPanel({
                   )}
 
                   {!isTutor && poll.results_revealed && (
-                    <span className="text-[10px] text-indigo-400">Results revealed by tutor</span>
+                    <span className="text-[10px] text-[#55C832]">Results revealed by tutor</span>
                   )}
                 </div>
               </div>

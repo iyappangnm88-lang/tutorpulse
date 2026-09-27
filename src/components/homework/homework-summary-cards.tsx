@@ -19,7 +19,7 @@ export function HomeworkSummaryCards({ summary }: HomeworkSummaryCardsProps) {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Total Assignments
             </p>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25]">
               <BookOpen className="h-4 w-4" />
             </div>
           </div>
@@ -37,11 +37,11 @@ export function HomeworkSummaryCards({ summary }: HomeworkSummaryCardsProps) {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Active
             </p>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#55C832]/10 text-[#318A25]">
               <Clock className="h-4 w-4" />
             </div>
           </div>
-          <p className="mt-2 text-xl sm:text-2xl font-bold text-blue-600">
+          <p className="mt-2 text-xl sm:text-2xl font-bold text-[#318A25]">
             {summary.active}
           </p>
           <p className="mt-1 text-xs text-gray-400">In progress & on schedule</p>

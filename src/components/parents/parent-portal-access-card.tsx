@@ -48,7 +48,7 @@ export function ParentPortalAccessCard({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-indigo-600" />
+          <Globe className="h-4 w-4 text-[#318A25]" />
           <h3 className="text-base font-semibold text-gray-900">Parent Portal Access</h3>
         </div>
         <Badge variant={enabled ? 'success' : 'default'}>

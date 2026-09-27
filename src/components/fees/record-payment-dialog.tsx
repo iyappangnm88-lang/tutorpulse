@@ -95,9 +95,9 @@ export function RecordPaymentDialog({
     >
       <div className="space-y-4 pt-1 text-sm">
         {/* Remaining Balance Reminder */}
-        <div className="flex items-center justify-between p-3 rounded-lg bg-indigo-50/80 border border-indigo-100 text-xs">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-[#FAFBEF] border border-gray-200 text-xs">
           <span className="text-gray-600 font-medium">Remaining Balance:</span>
-          <span className="font-bold text-indigo-700 text-sm">{formatCurrency(fee.balance)}</span>
+          <span className="font-bold text-[#318A25] text-sm">{formatCurrency(fee.balance)}</span>
         </div>
 
         <div>

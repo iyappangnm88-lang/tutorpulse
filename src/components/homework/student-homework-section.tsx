@@ -34,7 +34,7 @@ export function StudentHomeworkSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-indigo-600" />
+          <BookOpen className="h-4 w-4 text-[#318A25]" />
           <h3 className="text-base font-semibold text-gray-900">Homework & Tasks</h3>
         </div>
       </CardHeader>
@@ -80,7 +80,7 @@ export function StudentHomeworkSection({
                   <div>
                     <Link
                       href={`/dashboard/homework/${item.homework.id}`}
-                      className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline"
+                      className="font-semibold text-gray-900 hover:text-[#318A25] hover:underline"
                     >
                       {item.homework.title}
                     </Link>

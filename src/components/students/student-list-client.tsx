@@ -88,7 +88,7 @@ export function StudentListClient({
   if (students.length === 0) {
     return (
       <EmptyStateGuide
-        icon={<Users className="h-7 w-7 text-indigo-600" />}
+        icon={<Users className="h-7 w-7 text-[#318A25]" />}
         title="Your Student Roster is Empty"
         whatIsMissing="You haven't added any students to Nuzigo yet."
         whyItMatters="Every attendance sheet, homework assignment, test result, and fee record is linked to a student."

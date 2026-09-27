@@ -50,7 +50,7 @@ export function FeeTable({ fees }: FeeTableProps) {
                   <td className="px-5 py-4">
                     <Link
                       href={`/dashboard/students/${fee.student_id}`}
-                      className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline"
+                      className="font-semibold text-gray-900 hover:text-[#318A25] hover:underline"
                     >
                       {fee.student?.full_name}
                     </Link>
@@ -61,7 +61,7 @@ export function FeeTable({ fees }: FeeTableProps) {
                   <td className="px-4 py-4">
                     <Link
                       href={`/dashboard/fees/${fee.id}`}
-                      className="font-medium text-indigo-600 hover:underline line-clamp-1"
+                      className="font-medium text-[#318A25] hover:underline line-clamp-1"
                     >
                       {fee.title}
                     </Link>
@@ -90,7 +90,7 @@ export function FeeTable({ fees }: FeeTableProps) {
                           size="sm"
                           variant="outline"
                           onClick={() => setPayingFee(fee)}
-                          className="text-xs gap-1 py-1 px-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                          className="text-xs gap-1 py-1 px-2 text-[#318A25] border-[#55C832]/30 hover:bg-[#FAFBEF]"
                           title="Record Payment"
                         >
                           <PlusCircle className="h-3.5 w-3.5" />
@@ -108,14 +108,14 @@ export function FeeTable({ fees }: FeeTableProps) {
                       )}
                       <Link
                         href={`/dashboard/fees/${fee.id}`}
-                        className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                        className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                         title="View Ledger Details"
                       >
                         <Eye className="h-4 w-4" />
                       </Link>
                       <Link
                         href={`/dashboard/fees/${fee.id}/edit`}
-                        className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                        className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                         title="Edit Fee"
                       >
                         <Edit2 className="h-4 w-4" />

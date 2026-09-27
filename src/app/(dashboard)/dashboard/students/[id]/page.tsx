@@ -103,7 +103,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
       <div>
         <Link
           href="/dashboard/students"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 mb-2"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#318A25] hover:text-[#172B4D] mb-2"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>Back to Students</span>
@@ -128,7 +128,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
           {/* Student Profile Card */}
           <Card>
             <CardHeader className="flex flex-row items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold text-lg">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#55C832]/20 text-[#318A25] font-bold text-lg">
                 {student.full_name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -160,7 +160,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                   <Phone className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-500">Phone</p>
-                    <a href={`tel:${student.phone}`} className="font-medium text-indigo-600 hover:underline">
+                    <a href={`tel:${student.phone}`} className="font-medium text-[#318A25] hover:underline">
                       {student.phone}
                     </a>
                   </div>
@@ -172,7 +172,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                   <Mail className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-500">Email</p>
-                    <a href={`mailto:${student.email}`} className="font-medium text-indigo-600 hover:underline break-all">
+                    <a href={`mailto:${student.email}`} className="font-medium text-[#318A25] hover:underline break-all">
                       {student.email}
                     </a>
                   </div>
@@ -215,7 +215,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-indigo-600" />
+                <Layers className="h-4 w-4 text-[#318A25]" />
                 <h3 className="text-sm font-bold text-gray-900">Enrolled Batches</h3>
               </div>
               <Badge variant="default">{enrolledBatches.length}</Badge>
@@ -227,7 +227,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                   <div className="mt-2">
                     <Link
                       href="/dashboard/batches"
-                      className="text-xs font-semibold text-indigo-600 hover:underline"
+                      className="text-xs font-semibold text-[#318A25] hover:underline"
                     >
                       Browse Batches →
                     </Link>
@@ -244,11 +244,11 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           {b.class_mode === 'online' ? (
-                            <Video className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                            <Video className="h-3.5 w-3.5 text-[#318A25] shrink-0" />
                           ) : (
                             <School className="h-3.5 w-3.5 text-amber-600 shrink-0" />
                           )}
-                          <p className="text-xs font-bold text-gray-900 group-hover:text-indigo-600 truncate">
+                          <p className="text-xs font-bold text-gray-900 group-hover:text-[#318A25] truncate">
                             {b.name}
                           </p>
                         </div>
@@ -257,7 +257,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                           {b.schedule ? ` • ${b.schedule}` : ''}
                         </p>
                       </div>
-                      <span className="text-xs text-gray-400 group-hover:text-indigo-600">→</span>
+                      <span className="text-xs text-gray-400 group-hover:text-[#318A25]">→</span>
                     </Link>
                   ))}
                 </div>
@@ -320,7 +320,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
 
             <Card>
               <CardBody className="p-4 text-center">
-                <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[#55C832]/10 text-[#318A25]">
                   <FileText className="h-4 w-4" />
                 </div>
                 <p className="text-xs text-gray-500">Test Avg</p>

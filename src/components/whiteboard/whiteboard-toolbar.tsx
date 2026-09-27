@@ -71,7 +71,7 @@ export function WhiteboardToolbar({
     return (
       <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gray-900/95 border-b border-gray-800/80 backdrop-blur-md z-20">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/80 border border-indigo-800/80 text-indigo-300 text-xs font-semibold">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0f1d33] border border-[#1f3860] text-slate-300 text-xs font-semibold">
             <Eye className="h-3.5 w-3.5" />
             <span>Viewing Mode</span>
           </div>
@@ -103,7 +103,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('select')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'select'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Select / Hand Tool"
@@ -118,7 +118,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('pen')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'pen'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Pen (Freehand drawing)"
@@ -133,7 +133,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('highlighter')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'highlighter'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Highlighter (Semi-transparent)"
@@ -148,7 +148,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('eraser')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'eraser'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Eraser (Erase strokes & objects)"
@@ -163,7 +163,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('text')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'text'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Text (Add notes or labels)"
@@ -180,7 +180,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('line')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'line'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Straight Line"
@@ -195,7 +195,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('rectangle')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'rectangle'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Rectangle"
@@ -210,7 +210,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('ellipse')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'ellipse'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Circle / Ellipse"
@@ -225,7 +225,7 @@ export function WhiteboardToolbar({
           onClick={() => onSelectTool('arrow')}
           className={`h-9 w-9 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
             currentTool === 'arrow'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
           title="Arrow"
@@ -267,7 +267,7 @@ export function WhiteboardToolbar({
                     setShowColorPopover(false)
                   }}
                   className={`h-6 w-6 rounded-full transition-transform hover:scale-110 cursor-pointer ${c.bgClass} ${
-                    currentColor === c.value ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-gray-900' : ''
+                    currentColor === c.value ? 'ring-2 ring-[#55C832] ring-offset-2 ring-offset-gray-900' : ''
                   }`}
                   title={c.label}
                   aria-label={c.label}
@@ -308,7 +308,7 @@ export function WhiteboardToolbar({
                   }}
                   className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                     currentStrokeWidth === sw.value
-                      ? 'bg-indigo-600 text-white font-bold'
+                      ? 'bg-[#55C832] text-white font-bold'
                       : 'text-gray-300 hover:bg-gray-800'
                   }`}
                 >
@@ -371,7 +371,7 @@ export function WhiteboardToolbar({
           title="Export current page as PNG image"
           aria-label="Export PNG"
         >
-          <Download className="h-4 w-4 text-indigo-400" />
+          <Download className="h-4 w-4 text-[#55C832]" />
           <span className="hidden sm:inline">Export</span>
         </button>
       </div>

@@ -19,8 +19,8 @@ export function WorkspaceNotice({
   const { switchWorkspace, isPending } = useWorkspace()
 
   return (
-    <div className="rounded-3xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-indigo-50/20 p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xs">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-500/20 mb-4">
+    <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-[#FAFBEF] via-white to-white p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xs">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#55C832] text-white shadow-md shadow-indigo-500/20 mb-4">
         {requiredWorkspace === 'online' ? (
           <Video className="h-7 w-7" />
         ) : (
@@ -38,7 +38,7 @@ export function WorkspaceNotice({
           size="lg"
           disabled={isPending}
           onClick={() => switchWorkspace(requiredWorkspace)}
-          className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xs"
+          className="gap-2 bg-[#55C832] hover:bg-[#318A25] text-white font-bold shadow-xs"
         >
           <span>
             {requiredWorkspace === 'online'

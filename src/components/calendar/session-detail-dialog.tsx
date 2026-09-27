@@ -144,22 +144,22 @@ export function SessionDetailDialog({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs text-gray-700">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-indigo-500 shrink-0" />
+                <Calendar className="h-4 w-4 text-[#55C832] shrink-0" />
                 <span className="font-medium">{session.session_date}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-indigo-500 shrink-0" />
+                <Clock className="h-4 w-4 text-[#55C832] shrink-0" />
                 <span>
                   {timeRangeText} {durationText && <span className="text-gray-400">({durationText})</span>}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-indigo-500 shrink-0" />
+                <Users className="h-4 w-4 text-[#55C832] shrink-0" />
                 <span>{session.student_count ?? 0} Students Enrolled</span>
               </div>
               {session.location && (
                 <div className="flex items-center gap-2 truncate">
-                  <MapPin className="h-4 w-4 text-indigo-500 shrink-0" />
+                  <MapPin className="h-4 w-4 text-[#55C832] shrink-0" />
                   <span className="truncate" title={session.location}>
                     {session.location}
                   </span>
@@ -170,12 +170,12 @@ export function SessionDetailDialog({
             {session.class_mode === 'online' && (
               <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-xs">
                 <span className="text-gray-700 flex items-center gap-1.5 font-medium">
-                  <Video className="h-3.5 w-3.5 text-indigo-600" />
+                  <Video className="h-3.5 w-3.5 text-[#318A25]" />
                   Online Classroom:
                 </span>
                 <Link
                   href={`/dashboard/classroom/${session.id}`}
-                  className="font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors"
+                  className="font-semibold text-[#318A25] hover:text-[#172B4D] flex items-center gap-1 bg-[#FAFBEF] hover:bg-[#55C832]/20 px-2.5 py-1 rounded-lg border border-[#55C832]/30 transition-colors"
                 >
                   Enter Classroom →
                 </Link>
@@ -200,14 +200,14 @@ export function SessionDetailDialog({
             {session.meeting_link && !['online', 'hybrid'].includes(session.class_mode) && (
               <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-xs">
                 <span className="text-gray-500 flex items-center gap-1.5">
-                  <Video className="h-3.5 w-3.5 text-indigo-600" />
+                  <Video className="h-3.5 w-3.5 text-[#318A25]" />
                   Custom Meeting Link:
                 </span>
                 <a
                   href={session.meeting_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                  className="font-medium text-[#318A25] hover:text-[#172B4D] flex items-center gap-1"
                 >
                   Join Link <ExternalLink className="h-3 w-3" />
                 </a>
@@ -249,7 +249,7 @@ export function SessionDetailDialog({
             <div className="flex items-center gap-2">
               <Link
                 href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#FAFBEF] text-[#318A25] hover:bg-[#55C832]/20 transition-colors"
                 onClick={onClose}
               >
                 <BookOpen className="h-3.5 w-3.5" />
@@ -342,7 +342,7 @@ export function SessionDetailDialog({
                   variant="outline"
                   onClick={() => handleStatusChange('scheduled')}
                   loading={actionLoading === 'scheduled'}
-                  className="h-8 text-xs text-indigo-600"
+                  className="h-8 text-xs text-[#318A25]"
                 >
                   <RotateCcw className="h-3.5 w-3.5 mr-1" />
                   Restore Class

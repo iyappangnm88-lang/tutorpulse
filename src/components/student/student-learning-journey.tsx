@@ -147,7 +147,7 @@ export function StudentLearningJourney({ journey, studentName }: StudentLearning
                           ? 'border-red-200 bg-red-50/40 shadow-xs'
                           : isCompleted
                           ? 'border-gray-100 bg-white hover:border-emerald-200 hover:shadow-xs'
-                          : 'border-blue-100 bg-blue-50/30'
+                          : 'border-[#55C832]/25 bg-[#FAFBEF]/50'
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -161,7 +161,7 @@ export function StudentLearningJourney({ journey, studentName }: StudentLearning
                                   ? 'bg-amber-100 text-amber-800'
                                   : node.type === 'homework'
                                   ? 'bg-purple-100 text-purple-800'
-                                  : 'bg-blue-100 text-blue-800'
+                                  : 'bg-[#55C832]/20 text-[#318A25]'
                               }`}
                             >
                               {node.type}

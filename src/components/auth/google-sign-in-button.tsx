@@ -94,7 +94,7 @@ export function GoogleSignInButton({
     >
       {loading ? (
         <>
-          <span className="h-4 w-4 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
+          <span className="h-4 w-4 rounded-full border-2 border-[#55C832] border-t-transparent animate-spin" />
           <span>Connecting to Google...</span>
         </>
       ) : (

@@ -49,28 +49,28 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 p-5 sm:p-6 text-white shadow-md">
+      <div className="rounded-2xl bg-gradient-to-r from-[#172B4D] via-[#1c335a] to-[#0f1d33] border border-[#55C832]/30 p-5 sm:p-6 text-white shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white backdrop-blur-xs">
                 Parent Portal
               </span>
-              <span className="text-xs text-indigo-200">
+              <span className="text-xs text-slate-300">
                 {selectedChild.class_name ? `Class ${selectedChild.class_name}` : 'Enrolled Student'}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold mt-2">
               {selectedChild.full_name}&apos;s Progress
             </h1>
-            <p className="text-xs text-indigo-100 mt-1">
+            <p className="text-xs text-white mt-1">
               Welcome back! Here is an overview of {selectedChild.full_name}&apos;s attendance, academic tests, and fees.
             </p>
           </div>
 
           {upcoming_class && (
             <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs border border-white/10 max-w-xs">
-              <div className="flex items-center gap-1.5 text-xs text-indigo-200 font-medium">
+              <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium">
                 <Clock className="h-3.5 w-3.5" />
                 <span>Enrolled Batch</span>
               </div>
@@ -84,7 +84,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
                   </span>
                 </div>
               ) : upcoming_class.schedule ? (
-                <p className="text-xs text-indigo-200 mt-0.5">{upcoming_class.schedule}</p>
+                <p className="text-xs text-slate-300 mt-0.5">{upcoming_class.schedule}</p>
               ) : null}
 
               {upcoming_class.next_session_id && (
@@ -92,9 +92,9 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
                   {upcoming_class.next_session_mode === 'online' ? (
                     <Link
                       href={`/parent/classroom/${upcoming_class.next_session_id}`}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-indigo-900 hover:bg-indigo-50 shadow-xs transition-colors"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-[#172B4D] hover:bg-[#FAFBEF] shadow-xs transition-colors"
                     >
-                      <Video className="h-3.5 w-3.5 text-indigo-600" />
+                      <Video className="h-3.5 w-3.5 text-[#318A25]" />
                       <span>{upcoming_class.next_session_status === 'in_progress' ? 'Join Live Class' : 'Enter Classroom'}</span>
                     </Link>
                   ) : (
@@ -114,7 +114,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
       </div>
 
       {/* Parent Transparency & Privacy Guide */}
-      <div className="rounded-2xl border border-indigo-100/90 bg-indigo-50/40 p-4 text-xs text-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="rounded-2xl border border-gray-200/90 bg-[#FAFBEF]/40 p-4 text-xs text-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-2.5">
           <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
           <div>
@@ -135,7 +135,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {/* Attendance */}
         <Link href={`/parent/attendance${childQuery}`} className="block group">
-          <Card className="h-full hover:border-indigo-300 transition-colors">
+          <Card className="h-full hover:border-[#55C832]/40 transition-colors">
             <CardBody className="p-4 sm:p-5 flex flex-col justify-between h-full">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-gray-500">Attendance</span>
@@ -155,11 +155,11 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
 
         {/* Test Performance */}
         <Link href={`/parent/tests${childQuery}`} className="block group">
-          <Card className="h-full hover:border-indigo-300 transition-colors">
+          <Card className="h-full hover:border-[#55C832]/40 transition-colors">
             <CardBody className="p-4 sm:p-5 flex flex-col justify-between h-full">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-gray-500">Test Average</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#55C832]/10 text-[#318A25]">
                   <Award className="h-4 w-4" />
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
                     {tests.average_percentage !== null ? `${tests.average_percentage}%` : '—'}
                   </p>
                   {tests.grade !== '—' && (
-                    <span className="text-xs font-bold text-blue-600">Grade {tests.grade}</span>
+                    <span className="text-xs font-bold text-[#318A25]">Grade {tests.grade}</span>
                   )}
                 </div>
                 <p className="text-xs text-gray-400 mt-0.5">{tests.tests_taken} tests recorded</p>
@@ -180,7 +180,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
 
         {/* Homework */}
         <Link href={`/parent/homework${childQuery}`} className="block group">
-          <Card className="h-full hover:border-indigo-300 transition-colors">
+          <Card className="h-full hover:border-[#55C832]/40 transition-colors">
             <CardBody className="p-4 sm:p-5 flex flex-col justify-between h-full">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-gray-500">Homework</span>
@@ -200,7 +200,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
 
         {/* Fees */}
         <Link href={`/parent/fees${childQuery}`} className="block group">
-          <Card className="h-full hover:border-indigo-300 transition-colors">
+          <Card className="h-full hover:border-[#55C832]/40 transition-colors">
             <CardBody className="p-4 sm:p-5 flex flex-col justify-between h-full">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-gray-500">Fee Status</span>
@@ -226,7 +226,7 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <h2 className="text-base font-semibold text-gray-900">Recent Activity</h2>
-            <Sparkles className="h-4 w-4 text-indigo-500" />
+            <Sparkles className="h-4 w-4 text-[#55C832]" />
           </CardHeader>
           <CardBody className="p-0">
             {recent_activity.length === 0 ? (
@@ -254,12 +254,12 @@ export default async function ParentDashboard({ searchParams }: ParentDashboardP
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-indigo-600" />
+              <Bell className="h-4 w-4 text-[#318A25]" />
               <h2 className="text-base font-semibold text-gray-900">Tutor Announcements</h2>
             </div>
             <Link
               href={`/parent/announcements${childQuery}`}
-              className="text-xs font-semibold text-indigo-600 hover:underline flex items-center gap-0.5"
+              className="text-xs font-semibold text-[#318A25] hover:underline flex items-center gap-0.5"
             >
               <span>View All</span>
               <ChevronRight className="h-3 w-3" />

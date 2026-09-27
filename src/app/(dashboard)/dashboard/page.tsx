@@ -459,8 +459,8 @@ export default async function DashboardPage() {
             label={isOffline ? 'Offline Students' : 'Online Students'}
             value={studentsCount}
             sub={`${reportData?.kpis.active_students || 0} active in ${isOffline ? 'physical' : 'digital'} roster`}
-            iconColor={isOffline ? 'text-amber-600' : 'text-blue-600'}
-            iconBg={isOffline ? 'bg-amber-50' : 'bg-blue-50'}
+            iconColor={isOffline ? 'text-amber-600' : 'text-[#318A25]'}
+            iconBg={isOffline ? 'bg-amber-50' : 'bg-[#FAFBEF]'}
             href="/dashboard/students"
           />
           <MetricCard
@@ -869,7 +869,7 @@ export default async function DashboardPage() {
                                 ? 'bg-rose-500'
                                 : item.badgeVariant === 'warning'
                                 ? 'bg-amber-500'
-                                : 'bg-blue-500'
+                                : 'bg-[#55C832]'
                             }`}
                           />
                           <div className="min-w-0">
@@ -888,7 +888,7 @@ export default async function DashboardPage() {
                               ? 'bg-rose-50 text-rose-700 border border-rose-200'
                               : item.badgeVariant === 'warning'
                               ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : 'bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/30'
                           }`}
                         >
                           {item.badgeText}
@@ -977,7 +977,7 @@ export default async function DashboardPage() {
                   {recentActivities.slice(0, 4).map((act) => (
                     <div key={act.id} className="p-3.5 flex items-start gap-3 hover:bg-gray-50/50">
                       <div className="h-7 w-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 mt-0.5">
-                        {act.type === 'homework' && <FileCheck2 className="h-3.5 w-3.5 text-blue-600" />}
+                        {act.type === 'homework' && <FileCheck2 className="h-3.5 w-3.5 text-[#318A25]" />}
                         {act.type === 'test' && <GraduationCap className="h-3.5 w-3.5 text-purple-600" />}
                         {act.type === 'fee' && <Receipt className="h-3.5 w-3.5 text-emerald-600" />}
                         {act.type === 'class' && <Video className="h-3.5 w-3.5 text-[#318A25]" />}

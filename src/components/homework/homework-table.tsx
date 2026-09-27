@@ -44,7 +44,7 @@ export function HomeworkTable({ homeworkList }: HomeworkTableProps) {
                 <td className="px-5 py-4">
                   <Link
                     href={`/dashboard/homework/${hw.id}`}
-                    className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline line-clamp-1"
+                    className="font-semibold text-gray-900 hover:text-[#318A25] hover:underline line-clamp-1"
                   >
                     {hw.title}
                   </Link>
@@ -55,7 +55,7 @@ export function HomeworkTable({ homeworkList }: HomeworkTableProps) {
                 <td className="px-4 py-4 whitespace-nowrap">
                   <Link
                     href={`/dashboard/batches/${hw.batch_id}`}
-                    className="font-medium text-indigo-600 hover:underline"
+                    className="font-medium text-[#318A25] hover:underline"
                   >
                     {hw.batch?.name}
                   </Link>
@@ -80,14 +80,14 @@ export function HomeworkTable({ homeworkList }: HomeworkTableProps) {
                   <div className="flex items-center justify-end gap-1.5">
                     <Link
                       href={`/dashboard/homework/${hw.id}`}
-                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="View Student Submissions"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <Link
                       href={`/dashboard/homework/${hw.id}/edit`}
-                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="Edit Assignment"
                     >
                       <Edit2 className="h-4 w-4" />

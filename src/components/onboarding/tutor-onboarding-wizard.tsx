@@ -155,7 +155,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
           <span>Step {step} of 4</span>
-          <span className="text-indigo-600 font-bold">
+          <span className="text-[#318A25] font-bold">
             {step === 1 && 'Welcome'}
             {step === 2 && 'About You'}
             {step === 3 && 'Teaching Focus'}
@@ -164,7 +164,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
         </div>
         <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
           <div
-            className="h-full bg-indigo-600 transition-all duration-300 rounded-full"
+            className="h-full bg-[#55C832] transition-all duration-300 rounded-full"
             style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
@@ -183,7 +183,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
       {step === 1 && (
         <div className="space-y-6">
           <div className="space-y-2 text-center sm:text-left">
-            <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-3 mx-auto sm:mx-0 shadow-xs">
+            <div className="h-12 w-12 rounded-2xl bg-[#FAFBEF] text-[#318A25] flex items-center justify-center text-xl mb-3 mx-auto sm:mx-0 shadow-xs">
               👋
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -220,7 +220,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
       {step === 2 && (
         <div className="space-y-6">
           <div className="space-y-2 text-center sm:text-left">
-            <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-3 mx-auto sm:mx-0 shadow-xs">
+            <div className="h-12 w-12 rounded-2xl bg-[#FAFBEF] text-[#318A25] flex items-center justify-center text-xl mb-3 mx-auto sm:mx-0 shadow-xs">
               📝
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -240,7 +240,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
                 placeholder="e.g. 5+ years experience mentoring Class 10 & 12 students in CBSE Mathematics with a focus on conceptual clarity."
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="w-full mt-1.5 rounded-xl border border-gray-300 p-3 text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full mt-1.5 rounded-xl border border-gray-300 p-3 text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:border-[#55C832] focus:outline-none focus:ring-1 focus:ring-[#55C832]"
               />
             </div>
 
@@ -268,7 +268,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
                       onClick={() => setTeachingMode(mode)}
                       className={`px-3 py-2 rounded-xl text-xs font-semibold border capitalize transition-all cursor-pointer ${
                         teachingMode === mode
-                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-bold shadow-2xs'
+                          ? 'border-[#55C832] bg-[#FAFBEF] text-[#318A25] font-bold shadow-2xs'
                           : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                     >
@@ -286,7 +286,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
       {step === 3 && (
         <div className="space-y-6">
           <div className="space-y-2 text-center sm:text-left">
-            <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-3 mx-auto sm:mx-0 shadow-xs">
+            <div className="h-12 w-12 rounded-2xl bg-[#FAFBEF] text-[#318A25] flex items-center justify-center text-xl mb-3 mx-auto sm:mx-0 shadow-xs">
               📚
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -311,7 +311,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
                       onClick={() => toggleSubject(sub)}
                       className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-indigo-600 text-white shadow-xs'
+                          ? 'bg-[#55C832] text-white shadow-xs'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -360,7 +360,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
                       onClick={() => toggleGrade(grade)}
                       className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-indigo-600 text-white shadow-xs'
+                          ? 'bg-[#55C832] text-white shadow-xs'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -396,7 +396,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
             </div>
             <div className="flex justify-between border-b border-gray-200/60 pb-2">
               <span className="text-gray-500">Teaching Mode</span>
-              <span className="font-semibold text-indigo-600 capitalize">{teachingMode}</span>
+              <span className="font-semibold text-[#318A25] capitalize">{teachingMode}</span>
             </div>
             <div className="flex justify-between border-b border-gray-200/60 pb-2">
               <span className="text-gray-500">Subjects</span>
@@ -412,8 +412,8 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 text-[11px] sm:text-xs text-indigo-700 flex items-start gap-2.5">
-            <CheckCircle2 className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-xl bg-[#FAFBEF] border border-gray-200 text-[11px] sm:text-xs text-[#318A25] flex items-start gap-2.5">
+            <CheckCircle2 className="h-4 w-4 text-[#318A25] shrink-0 mt-0.5" />
             <p className="leading-relaxed">
               Your profile is private by default. When the student marketplace launches, you can choose whether to publish your profile.
             </p>
@@ -442,7 +442,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
           <Button
             type="button"
             onClick={handleNext}
-            className="px-6 h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-1.5"
+            className="px-6 h-11 bg-[#55C832] hover:bg-[#318A25] text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-1.5"
           >
             <span>Next</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -452,7 +452,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
             type="button"
             onClick={handleComplete}
             loading={isSubmitting}
-            className="px-6 h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-500/20 flex items-center gap-1.5"
+            className="px-6 h-11 bg-[#55C832] hover:bg-[#318A25] text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-500/20 flex items-center gap-1.5"
           >
             <span>Enter Tutor Dashboard</span>
             <ArrowRight className="h-3.5 w-3.5" />

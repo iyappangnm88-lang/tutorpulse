@@ -15,19 +15,19 @@ interface StudentCardProps {
 
 export function StudentCard({ student, onArchive, batches = [] }: StudentCardProps) {
   return (
-    <Card className="hover:border-indigo-200 transition-colors">
+    <Card className="hover:border-[#55C832]/30 transition-colors">
       <CardBody className="space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div>
             <Link
               href={`/dashboard/students/${student.id}`}
-              className="text-base font-semibold text-gray-900 hover:text-indigo-600"
+              className="text-base font-semibold text-gray-900 hover:text-[#318A25]"
             >
               {student.full_name}
             </Link>
             {student.class_name && (
               <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
-                <GraduationCap className="h-3.5 w-3.5 text-indigo-500" />
+                <GraduationCap className="h-3.5 w-3.5 text-[#55C832]" />
                 <span>{student.class_name}</span>
                 {student.school_name && <span>• {student.school_name}</span>}
               </div>
@@ -43,9 +43,9 @@ export function StudentCard({ student, onArchive, batches = [] }: StudentCardPro
               <Link
                 key={b.id}
                 href={`/dashboard/batches/${b.id}`}
-                className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200/60 transition-colors"
+                className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#318A25] bg-[#FAFBEF] hover:bg-[#55C832]/20 px-2 py-0.5 rounded-md border border-[#55C832]/30/60 transition-colors"
               >
-                <Layers className="h-2.5 w-2.5 text-indigo-500" />
+                <Layers className="h-2.5 w-2.5 text-[#55C832]" />
                 <span>{b.name}</span>
               </Link>
             ))}
@@ -57,7 +57,7 @@ export function StudentCard({ student, onArchive, batches = [] }: StudentCardPro
             {student.phone && (
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-gray-400" />
-                <a href={`tel:${student.phone}`} className="hover:underline text-indigo-600">
+                <a href={`tel:${student.phone}`} className="hover:underline text-[#318A25]">
                   {student.phone}
                 </a>
               </div>
@@ -83,7 +83,7 @@ export function StudentCard({ student, onArchive, batches = [] }: StudentCardPro
           </Link>
           <Link
             href={`/dashboard/students/${student.id}/edit`}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 min-h-[36px]"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#318A25] bg-[#FAFBEF] hover:bg-[#55C832]/20 min-h-[36px]"
           >
             <Edit2 className="h-3.5 w-3.5" />
             <span>Edit</span>

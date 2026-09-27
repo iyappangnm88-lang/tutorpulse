@@ -22,7 +22,7 @@ export function TestGradeBadge({ grade }: TestGradeBadgeProps) {
       )
     case 'B':
       return (
-        <span className="inline-flex items-center justify-center font-bold px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800 border border-blue-200">
+        <span className="inline-flex items-center justify-center font-bold px-2 py-0.5 rounded text-xs bg-[#55C832]/20 text-[#318A25] border border-[#55C832]/30">
           B
         </span>
       )

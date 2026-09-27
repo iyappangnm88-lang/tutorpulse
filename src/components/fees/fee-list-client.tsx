@@ -48,7 +48,7 @@ export function FeeListClient({ initialFees }: { initialFees: FeeWithDetails[] }
   if (fees.length === 0) {
     return (
       <EmptyState
-        icon={<CreditCard className="h-8 w-8 text-indigo-500" />}
+        icon={<CreditCard className="h-8 w-8 text-[#55C832]" />}
         title="No fee charges recorded yet"
         description="Create recurring or one-off fee schedules for your enrolled students."
         action={
@@ -95,7 +95,7 @@ export function FeeListClient({ initialFees }: { initialFees: FeeWithDetails[] }
               onClick={() => setSelectedStatus(tab.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors min-h-[36px] ${
                 selectedStatus === tab.value
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-[#55C832] text-white shadow-xs'
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >

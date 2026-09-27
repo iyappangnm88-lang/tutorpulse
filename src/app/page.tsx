@@ -95,7 +95,7 @@ export default function LandingPage() {
 
           <h1 className="text-4xl sm:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
             Where learning feels exciting, <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-[#58CC02] via-[#3C9E00] to-indigo-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#58CC02] via-[#3C9E00] to-[#318A25] bg-clip-text text-transparent">
               and tutors teach with ease.
             </span>
           </h1>
@@ -162,7 +162,7 @@ export default function LandingPage() {
               </div>
 
               {/* Fast Answer Challenge preview banner */}
-              <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/80 via-gray-900 to-indigo-950/80 border border-emerald-500/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/80 via-gray-900 to-[#0a1424] border border-emerald-500/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
@@ -245,7 +245,7 @@ export default function LandingPage() {
       <section id="features" className="py-20 border-t border-slate-200/80 bg-[#fafafa] px-4 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="text-xs font-black text-indigo-600 uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-full">
+            <span className="text-xs font-black text-[#318A25] uppercase tracking-wider bg-[#FAFBEF] px-3 py-1 rounded-full">
               Tutor Operating System
             </span>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -258,7 +258,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl border border-slate-200 bg-white hover:border-[#58CC02] transition-all space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <div className="h-10 w-10 rounded-xl bg-[#55C832]/10 text-[#318A25] flex items-center justify-center font-bold">
                 <Users className="h-5 w-5" />
               </div>
               <h3 className="font-bold text-slate-900 text-sm">Learner Rosters</h3>

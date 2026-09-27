@@ -189,7 +189,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           <span
             className={cn(
               'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded',
-              isOffline ? 'bg-amber-50 text-amber-700' : 'bg-indigo-50 text-indigo-700'
+              isOffline ? 'bg-amber-50 text-amber-700' : 'bg-[#FAFBEF] text-[#318A25]'
             )}
           >
             {isOffline ? 'Physical' : 'Virtual'}
@@ -199,7 +199,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
         {/* User Account / Sign Out for Both Desktop & Mobile */}
         <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2 truncate pr-2">
-            <div className="h-7 w-7 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 text-[11px] font-bold shrink-0">
+            <div className="h-7 w-7 rounded-full bg-[#55C832]/20 border border-[#55C832]/30 flex items-center justify-center text-[#318A25] text-[11px] font-bold shrink-0">
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="truncate min-w-0">

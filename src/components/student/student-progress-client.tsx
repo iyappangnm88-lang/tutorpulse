@@ -62,10 +62,10 @@ export function StudentProgressClient({ attendance, homework, tests }: StudentPr
       {/* Overview Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Attendance Rate */}
-        <div className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-2xs">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-500">Attendance Consistency</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FAFBEF] text-[#318A25]">
               <CalendarCheck className="h-4 w-4" />
             </div>
           </div>
@@ -115,7 +115,7 @@ export function StudentProgressClient({ attendance, homework, tests }: StudentPr
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <CalendarCheck className="h-4 w-4 text-indigo-600" />
+              <CalendarCheck className="h-4 w-4 text-[#318A25]" />
               Class Attendance Records
             </h2>
             <p className="text-[11px] text-gray-400 mt-0.5">
@@ -203,7 +203,7 @@ export function StudentProgressClient({ attendance, homework, tests }: StudentPr
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="py-3 font-semibold text-indigo-600 whitespace-nowrap">
+                    <td className="py-3 font-semibold text-[#318A25] whitespace-nowrap">
                       {r.batch_name}
                     </td>
                     <td className="py-3 text-gray-600 whitespace-nowrap">{r.tutor_name}</td>

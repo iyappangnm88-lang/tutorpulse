@@ -92,13 +92,13 @@ export function PostClassResultsDialog({
                 <p className="text-[9px] text-amber-600 mt-0.5">Gold Coins</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-indigo-50/80 border border-indigo-200">
-                <span className="text-[10px] text-indigo-700 font-bold uppercase tracking-wider flex items-center gap-1 mb-1">
-                  <Zap className="h-3 w-3 text-indigo-500" />
+              <div className="p-3 rounded-xl bg-[#FAFBEF] border border-[#55C832]/30">
+                <span className="text-[10px] text-[#318A25] font-bold uppercase tracking-wider flex items-center gap-1 mb-1">
+                  <Zap className="h-3 w-3 text-[#55C832]" />
                   XP
                 </span>
-                <span className="text-lg font-black text-indigo-900">+{xpEarned}</span>
-                <p className="text-[9px] text-indigo-600 mt-0.5">Level XP</p>
+                <span className="text-lg font-black text-[#172B4D]">+{xpEarned}</span>
+                <p className="text-[9px] text-[#318A25] mt-0.5">Level XP</p>
               </div>
 
               <div className="p-3 rounded-xl bg-orange-50/80 border border-orange-200">
@@ -126,7 +126,7 @@ export function PostClassResultsDialog({
               {questionsAnswered > 0 && (
                 <div className="flex items-center justify-between text-gray-700">
                   <span className="flex items-center gap-1.5 font-medium">
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                    <Sparkles className="h-3.5 w-3.5 text-[#55C832] shrink-0" />
                     <span>Fast Answers</span>
                   </span>
                   <span className="font-semibold text-gray-600">
@@ -188,7 +188,7 @@ export function PostClassResultsDialog({
                 <Button
                   type="button"
                   size="sm"
-                  className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold"
+                  className="text-xs bg-[#55C832] hover:bg-[#55C832] text-white font-semibold"
                 >
                   Review Attendance
                 </Button>

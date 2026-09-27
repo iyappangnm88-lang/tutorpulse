@@ -58,7 +58,7 @@ export function StudentClassesClient({
           onClick={() => setCurrentTab('schedule')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             currentTab === 'schedule'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
@@ -76,7 +76,7 @@ export function StudentClassesClient({
           onClick={() => setCurrentTab('batches')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             currentTab === 'batches'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
@@ -84,7 +84,7 @@ export function StudentClassesClient({
           My Batches & Timetable
           <span
             className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              currentTab === 'batches' ? 'bg-indigo-700 text-white' : 'bg-gray-200 text-gray-700'
+              currentTab === 'batches' ? 'bg-[#318A25] text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
             {enrolledBatches.length}
@@ -96,14 +96,14 @@ export function StudentClassesClient({
           onClick={() => setCurrentTab('history')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             currentTab === 'history'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-[#55C832] text-white shadow-xs'
               : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
           Past Sessions
           <span
             className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              currentTab === 'history' ? 'bg-indigo-700 text-white' : 'bg-gray-200 text-gray-700'
+              currentTab === 'history' ? 'bg-[#318A25] text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
             {pastSessions.length}
@@ -196,7 +196,7 @@ export function StudentClassesClient({
                     >
                       <div>
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                          <span className="font-semibold text-indigo-600">{session.batch_name}</span>
+                          <span className="font-semibold text-[#318A25]">{session.batch_name}</span>
                           <span className="flex items-center gap-1 text-[11px]">
                             <Clock className="h-3 w-3" />
                             {session.session_date} {session.start_time ? `• ${session.start_time}` : ''}
@@ -213,7 +213,7 @@ export function StudentClassesClient({
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
                             isOnline
                               ? 'bg-purple-50 text-purple-700 border border-purple-100'
-                              : 'bg-blue-50 text-blue-700 border border-blue-100'
+                              : 'bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/30'
                           }`}
                         >
                           {isOnline ? 'Online Classroom' : 'In-Person Class'}
@@ -268,7 +268,7 @@ export function StudentClassesClient({
                       className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
                         batch.class_mode === 'online'
                           ? 'bg-purple-50 text-purple-700 border border-purple-100'
-                          : 'bg-blue-50 text-blue-700 border border-blue-100'
+                          : 'bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/30'
                       }`}
                     >
                       {batch.class_mode}
@@ -278,19 +278,19 @@ export function StudentClassesClient({
                   <div className="rounded-xl bg-gray-50 p-3 space-y-1.5 text-xs text-gray-600">
                     {batch.schedule && (
                       <div className="flex items-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                        <Clock className="h-3.5 w-3.5 text-[#318A25] shrink-0" />
                         <span>Schedule: <strong>{batch.schedule}</strong></span>
                       </div>
                     )}
                     {batch.working_days && batch.working_days.length > 0 && (
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                        <Calendar className="h-3.5 w-3.5 text-[#318A25] shrink-0" />
                         <span>Days: {batch.working_days.join(', ')}</span>
                       </div>
                     )}
                     {batch.location && batch.class_mode !== 'online' && (
                       <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                        <MapPin className="h-3.5 w-3.5 text-[#318A25] shrink-0" />
                         <span>Location: {batch.location}</span>
                       </div>
                     )}

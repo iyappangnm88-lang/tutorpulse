@@ -66,10 +66,10 @@ export function PageGuide({
         <button
           type="button"
           onClick={handleRestore}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200/60 transition-colors shadow-2xs"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAFBEF] hover:bg-[#55C832]/20 text-[#318A25] text-xs font-semibold border border-[#55C832]/30/60 transition-colors shadow-2xs"
           title="Re-open page guide"
         >
-          <BookOpen className="h-3.5 w-3.5 text-indigo-600" />
+          <BookOpen className="h-3.5 w-3.5 text-[#318A25]" />
           <span>Page Guide & Tips</span>
         </button>
       </div>
@@ -79,20 +79,20 @@ export function PageGuide({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-indigo-100/90 bg-gradient-to-br from-indigo-50/60 via-white to-indigo-50/30 p-4 sm:p-5 shadow-2xs transition-all duration-200',
+        'rounded-2xl border border-gray-200/90 bg-gradient-to-br from-[#FAFBEF] via-white to-white p-4 sm:p-5 shadow-2xs transition-all duration-200',
         className
       )}
     >
       {/* Header Row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-2xs shrink-0 mt-0.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#55C832] text-white shadow-2xs shrink-0 mt-0.5">
             <BookOpen className="h-4 w-4" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-sm font-bold text-gray-900">{topic.title}</h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#318A25] bg-[#55C832]/20/80 px-2 py-0.5 rounded-md">
                 Tutor Guide
               </span>
             </div>
@@ -124,11 +124,11 @@ export function PageGuide({
 
       {/* Expandable Body */}
       {!collapsed && (
-        <div className="mt-4 pt-3.5 border-t border-indigo-100/60 space-y-4 animate-in fade-in-0 duration-150">
+        <div className="mt-4 pt-3.5 border-t border-gray-200/60 space-y-4 animate-in fade-in-0 duration-150">
           {/* Why it exists */}
-          <div className="rounded-xl bg-white/80 border border-indigo-100/60 p-3">
-            <p className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1 mb-1">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+          <div className="rounded-xl bg-white/80 border border-gray-200/60 p-3">
+            <p className="text-[11px] font-bold text-[#172B4D] uppercase tracking-wider flex items-center gap-1 mb-1">
+              <Sparkles className="h-3.5 w-3.5 text-[#318A25]" />
               Why this feature exists
             </p>
             <p className="text-xs text-gray-600 leading-relaxed">{topic.whyItExists}</p>
@@ -144,7 +144,7 @@ export function PageGuide({
                     key={idx}
                     className="flex items-start gap-2 text-xs text-gray-600 bg-white/70 border border-gray-100 rounded-xl p-2.5"
                   >
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold shrink-0">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#55C832]/20 text-[#318A25] text-[10px] font-bold shrink-0">
                       {idx + 1}
                     </span>
                     <span className="leading-tight mt-0.5">{step}</span>
@@ -193,7 +193,7 @@ export function PageGuide({
                   )
                 }
               }}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 hover:text-indigo-900 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#318A25] hover:text-[#172B4D] transition-colors"
             >
               <span>Full Guide & FAQs</span>
               <ArrowRight className="h-3.5 w-3.5" />

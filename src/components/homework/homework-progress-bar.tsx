@@ -31,7 +31,7 @@ export function HomeworkProgressBar({
             rate === 100
               ? 'bg-green-600'
               : rate >= 50
-              ? 'bg-indigo-600'
+              ? 'bg-[#55C832]'
               : rate > 0
               ? 'bg-yellow-500'
               : 'bg-gray-300'

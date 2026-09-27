@@ -64,7 +64,7 @@ export function WorkingDaysSelector({
 
         {/* Selected Summary pill */}
         {value.length > 0 && (
-          <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100/80 self-start sm:self-auto">
+          <span className="text-[11px] font-semibold text-[#318A25] bg-[#FAFBEF] px-2.5 py-1 rounded-full border border-[#55C832]/20 self-start sm:self-auto">
             {formatDaysSummary(value, 'short')} ({value.length} {value.length === 1 ? 'day' : 'days'})
           </span>
         )}
@@ -90,11 +90,11 @@ export function WorkingDaysSelector({
               className={cn(
                 'group relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer select-none',
                 'min-h-[56px] sm:min-h-[64px]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832] focus-visible:ring-offset-2',
                 'disabled:pointer-events-none disabled:opacity-50',
                 isSelected
-                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs shadow-indigo-500/20 font-semibold'
-                  : 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-gray-50/70'
+                  ? 'bg-[#55C832] border-[#55C832] text-white shadow-xs shadow-indigo-500/20 font-semibold'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-[#55C832]/40 hover:bg-gray-50/70'
               )}
             >
               {/* Day Short (Desktop) & Full (Mobile) */}
@@ -104,7 +104,7 @@ export function WorkingDaysSelector({
               <span
                 className={cn(
                   'text-[10px] uppercase tracking-wider font-medium mt-0.5',
-                  isSelected ? 'text-indigo-100' : 'text-gray-400'
+                  isSelected ? 'text-white' : 'text-gray-400'
                 )}
               >
                 {meta.name}
@@ -140,7 +140,7 @@ export function WorkingDaysSelector({
               className={cn(
                 'px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer border',
                 isExactMatch
-                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold'
+                  ? 'bg-[#FAFBEF] text-[#318A25] border-[#55C832]/30 font-semibold'
                   : 'bg-gray-50/80 text-gray-600 border-gray-200/80 hover:bg-gray-100 hover:text-gray-900'
               )}
             >

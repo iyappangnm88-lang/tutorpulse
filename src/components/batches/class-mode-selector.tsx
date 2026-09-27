@@ -108,10 +108,10 @@ export function ClassModeSelector({
                 isLockedOut
                   ? 'opacity-35 cursor-not-allowed bg-gray-50 border-gray-200'
                   : 'cursor-pointer select-none',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832] focus-visible:ring-offset-2',
                 'disabled:pointer-events-none min-h-[64px]',
                 isSelected
-                  ? 'bg-indigo-50/80 border-indigo-600 text-indigo-950 font-semibold ring-1 ring-indigo-600 shadow-2xs'
+                  ? 'bg-[#FAFBEF] border-[#55C832] text-[#172B4D] font-semibold ring-1 ring-[#55C832] shadow-2xs'
                   : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
               )}
             >
@@ -119,7 +119,7 @@ export function ClassModeSelector({
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-xl shrink-0 transition-colors',
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-[#55C832] text-white shadow-xs'
                     : 'bg-gray-100 text-gray-500 group-hover:text-gray-700'
                 )}
               >
@@ -159,7 +159,7 @@ export function ClassModeSelector({
               disabled={disabled}
               className={cn(
                 'w-full pl-9 pr-3 py-2.5 rounded-xl border bg-white text-sm text-gray-900 shadow-2xs transition-all',
-                'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+                'focus:outline-none focus:ring-2 focus:ring-[#55C832] focus:border-[#55C832]',
                 'disabled:opacity-50 disabled:bg-gray-50 min-h-[44px]',
                 locationError ? 'border-red-500 bg-red-50/20' : 'border-gray-200'
               )}
@@ -178,13 +178,13 @@ export function ClassModeSelector({
 
       {/* 2. Online Virtual Classroom Info Banner (Only shown for Online batches) */}
       {isOnline && (
-        <div className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-100 text-xs text-indigo-900 flex items-start gap-2.5 animate-fade-in">
-          <Video className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="p-3.5 rounded-xl bg-[#FAFBEF]/60 border border-gray-200 text-xs text-[#172B4D] flex items-start gap-2.5 animate-fade-in">
+          <Video className="h-5 w-5 text-[#318A25] shrink-0 mt-0.5" aria-hidden="true" />
           <div className="space-y-0.5">
-            <p className="font-semibold text-indigo-950">
+            <p className="font-semibold text-[#172B4D]">
               Online Virtual Classroom Enabled
             </p>
-            <p className="text-[11px] text-indigo-800 leading-relaxed">
+            <p className="text-[11px] text-[#172B4D] leading-relaxed">
               No physical address needed. Classes for this batch will launch in Nuzigo&apos;s integrated WebRTC classroom with video, microphone, screen sharing, and interactive class chat.
             </p>
           </div>

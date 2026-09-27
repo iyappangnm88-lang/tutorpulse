@@ -120,7 +120,7 @@ export function FeeDetailsClient({ fee }: FeeDetailsClientProps) {
                   <p className="text-xs text-gray-500">Student</p>
                   <Link
                     href={`/dashboard/students/${fee.student_id}`}
-                    className="font-medium text-indigo-600 hover:underline"
+                    className="font-medium text-[#318A25] hover:underline"
                   >
                     {fee.student?.full_name}
                   </Link>

@@ -32,7 +32,7 @@ export function BatchTable({ batches, onArchive }: BatchTableProps) {
               <td className="px-5 py-4">
                 <Link
                   href={`/dashboard/batches/${batch.id}`}
-                  className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                  className="font-semibold text-[#318A25] hover:text-[#172B4D] hover:underline"
                 >
                   {batch.name}
                 </Link>
@@ -47,7 +47,7 @@ export function BatchTable({ batches, onArchive }: BatchTableProps) {
                 <BatchScheduleBadge batch={batch} showLocation={false} />
               </td>
               <td className="px-4 py-4 text-center">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FAFBEF] text-[#318A25]">
                   <Users className="h-3 w-3" />
                   {batch.student_count}
                 </span>
@@ -69,14 +69,14 @@ export function BatchTable({ batches, onArchive }: BatchTableProps) {
                   </Link>
                   <Link
                     href={`/dashboard/batches/${batch.id}`}
-                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                     title="View Batch Details"
                   >
                     <Eye className="h-4 w-4" />
                   </Link>
                   <Link
                     href={`/dashboard/batches/${batch.id}/edit`}
-                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                     title="Edit Batch"
                   >
                     <Edit2 className="h-4 w-4" />

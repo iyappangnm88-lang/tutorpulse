@@ -41,7 +41,7 @@ export function TestTable({ tests }: TestTableProps) {
                 <td className="px-5 py-4">
                   <Link
                     href={`/dashboard/tests/${test.id}`}
-                    className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline line-clamp-1"
+                    className="font-semibold text-gray-900 hover:text-[#318A25] hover:underline line-clamp-1"
                   >
                     {test.title}
                   </Link>
@@ -52,7 +52,7 @@ export function TestTable({ tests }: TestTableProps) {
                 <td className="px-4 py-4 whitespace-nowrap">
                   <Link
                     href={`/dashboard/batches/${test.batch_id}`}
-                    className="font-medium text-indigo-600 hover:underline"
+                    className="font-medium text-[#318A25] hover:underline"
                   >
                     {test.batch?.name}
                   </Link>
@@ -83,14 +83,14 @@ export function TestTable({ tests }: TestTableProps) {
                   <div className="flex items-center justify-end gap-1.5">
                     <Link
                       href={`/dashboard/tests/${test.id}`}
-                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="Enter Student Marks"
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
                     <Link
                       href={`/dashboard/tests/${test.id}/edit`}
-                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="Edit Test Details"
                     >
                       <Edit2 className="h-4 w-4" />

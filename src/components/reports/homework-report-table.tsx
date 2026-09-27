@@ -38,7 +38,7 @@ export function HomeworkReportTable({
                     <td className="px-5 py-3.5 font-semibold text-gray-900">
                       <button
                         onClick={() => onSelectStudent(row.student_id)}
-                        className="hover:text-indigo-600 hover:underline text-left cursor-pointer"
+                        className="hover:text-[#318A25] hover:underline text-left cursor-pointer"
                       >
                         {row.student_name}
                       </button>

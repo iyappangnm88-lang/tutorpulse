@@ -83,31 +83,31 @@ export function ExportDropdown({ data }: { data: ReportAggregatedData }) {
           <div className="absolute right-0 top-full mt-1 z-30 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg text-xs font-medium text-gray-700">
             <button
               onClick={exportStudents}
-              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-indigo-600 transition-colors text-left"
+              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-[#318A25] transition-colors text-left"
             >
               Export Students
             </button>
             <button
               onClick={exportAttendance}
-              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-indigo-600 transition-colors text-left"
+              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-[#318A25] transition-colors text-left"
             >
               Export Attendance
             </button>
             <button
               onClick={exportTests}
-              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-indigo-600 transition-colors text-left"
+              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-[#318A25] transition-colors text-left"
             >
               Export Test Results
             </button>
             <button
               onClick={exportHomework}
-              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-indigo-600 transition-colors text-left"
+              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-[#318A25] transition-colors text-left"
             >
               Export Homework
             </button>
             <button
               onClick={exportFees}
-              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-indigo-600 transition-colors text-left border-t border-gray-100"
+              className="flex w-full px-3.5 py-2 hover:bg-gray-50 hover:text-[#318A25] transition-colors text-left border-t border-gray-100"
             >
               Export Fees & Dues
             </button>

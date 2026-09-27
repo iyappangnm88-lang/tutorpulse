@@ -34,7 +34,7 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
       <div>
         <Link
           href={`/dashboard/students/${student.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 mb-2"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#318A25] hover:text-[#172B4D] mb-2"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>Back to Student Details</span>

@@ -347,7 +347,7 @@ export function WhiteboardCanvas({
       {/* Inline Text Input Popover */}
       {textInputPos && (
         <div
-          className="absolute z-30 flex items-center gap-1.5 p-1.5 bg-gray-900 border border-indigo-500/80 rounded-xl shadow-2xl animate-scale-in"
+          className="absolute z-30 flex items-center gap-1.5 p-1.5 bg-gray-900 border border-[#55C832]/80 rounded-xl shadow-2xl animate-scale-in"
           style={{
             left: `${Math.min(textInputPos.x, dimensionsRef.current.width - 240)}px`,
             top: `${Math.min(textInputPos.y, dimensionsRef.current.height - 60)}px`,
@@ -368,12 +368,12 @@ export function WhiteboardCanvas({
               }
             }}
             placeholder="Type notes..."
-            className="w-48 bg-gray-950 text-white text-xs px-2.5 py-1.5 rounded-lg border border-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-48 bg-gray-950 text-white text-xs px-2.5 py-1.5 rounded-lg border border-gray-800 focus:outline-none focus:ring-1 focus:ring-[#55C832]"
           />
           <button
             type="button"
             onClick={finalizeText}
-            className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg bg-[#55C832] hover:bg-[#55C832] text-white text-xs font-bold transition-colors cursor-pointer"
           >
             Add
           </button>

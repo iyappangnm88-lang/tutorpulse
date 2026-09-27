@@ -17,7 +17,7 @@ export function LoadingSpinner({ size = 'md', className, label }: LoadingSpinner
   return (
     <div className={cn('flex flex-col items-center justify-center gap-3', className)}>
       <svg
-        className={cn('animate-spin text-indigo-600', sizeClasses[size])}
+        className={cn('animate-spin text-[#318A25]', sizeClasses[size])}
         fill="none"
         viewBox="0 0 24 24"
         aria-hidden="true"

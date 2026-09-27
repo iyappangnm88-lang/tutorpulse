@@ -30,9 +30,9 @@ const toastConfig: Record<
   },
   info: {
     icon: Info,
-    bg: 'bg-blue-50',
-    text: 'text-blue-800',
-    border: 'border-blue-200',
+    bg: 'bg-[#FAFBEF]',
+    text: 'text-[#172B4D]',
+    border: 'border-[#55C832]/30',
   },
 }
 

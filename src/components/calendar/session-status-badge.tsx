@@ -53,7 +53,7 @@ export function SessionStatusBadge({ status, className }: SessionStatusBadgeProp
       return (
         <span
           className={cn(
-            'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200',
+            'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/30',
             className
           )}
         >

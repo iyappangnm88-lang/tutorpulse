@@ -247,7 +247,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-indigo-600" />
+            <User className="h-4 w-4 text-[#318A25]" />
             <h2 className="text-base font-semibold text-gray-900">Personal & Coaching Identity</h2>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -323,12 +323,12 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
       </Card>
 
       {/* 2. Public Profile & Marketplace Builder */}
-      <Card className="border-indigo-100 shadow-xs">
-        <CardHeader className="bg-indigo-50/40 border-b border-indigo-100/60">
+      <Card className="border-gray-200 shadow-xs">
+        <CardHeader className="bg-[#FAFBEF]/40 border-b border-gray-200/60">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <Globe2 className="h-4 w-4 text-indigo-600" />
+                <Globe2 className="h-4 w-4 text-[#318A25]" />
                 <h2 className="text-base font-semibold text-gray-900">
                   Public Profile & Marketplace Visibility
                 </h2>
@@ -344,7 +344,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 text-xs text-indigo-700 border-indigo-200 bg-white hover:bg-indigo-50"
+                  className="gap-1.5 text-xs text-[#318A25] border-[#55C832]/30 bg-white hover:bg-[#FAFBEF]"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   <span>Preview Public Profile</span>
@@ -407,15 +407,15 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
           <div className="rounded-xl border border-gray-100 bg-white p-4 space-y-3">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-gray-900 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                <Sparkles className="h-3.5 w-3.5 text-[#318A25]" />
                 Profile Completeness
               </span>
-              <span className="font-bold text-indigo-600">{completeness.percentage}%</span>
+              <span className="font-bold text-[#318A25]">{completeness.percentage}%</span>
             </div>
 
             <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-indigo-600 h-2 rounded-full transition-all duration-500 ease-out"
+                className="bg-[#55C832] h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${completeness.percentage}%` }}
               />
             </div>
@@ -458,7 +458,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
                     onChange={(e) => setProfileSlug(e.target.value)}
                     placeholder="e.g. rajesh-sharma-physics"
                     disabled={savingMarketplace}
-                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md text-xs border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
+                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md text-xs border border-gray-300 focus:ring-[#55C832] focus:border-[#55C832] font-mono"
                   />
                 </div>
                 <p className="text-[11px] text-gray-400 mt-1">
@@ -535,7 +535,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
                   value={teachingMode}
                   onChange={(e) => setTeachingMode(e.target.value as any)}
                   disabled={savingMarketplace}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-2xs focus:border-[#55C832] focus:outline-none focus:ring-[#55C832]"
                 >
                   <option value="both">Both Online & Offline</option>
                   <option value="online">Online Live Classes Only</option>
@@ -580,7 +580,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Building className="h-4 w-4 text-indigo-600" />
+            <Building className="h-4 w-4 text-[#318A25]" />
             <h2 className="text-base font-semibold text-gray-900">Coaching Preferences</h2>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -618,7 +618,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-indigo-600" />
+            <Shield className="h-4 w-4 text-[#318A25]" />
             <h2 className="text-base font-semibold text-gray-900">Security & Sign Out</h2>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">Password management and session termination.</p>

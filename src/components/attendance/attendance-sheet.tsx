@@ -157,7 +157,7 @@ export function AttendanceSheet({
   if (batches.length === 0) {
     return (
       <EmptyState
-        icon={<Users className="h-8 w-8 text-indigo-500" />}
+        icon={<Users className="h-8 w-8 text-[#55C832]" />}
         title="No batches available"
         description="Create a batch and enroll students before taking attendance."
         action={
@@ -279,7 +279,7 @@ export function AttendanceSheet({
             loading={saving}
             onClick={handleSave}
             disabled={enrolledStudents.length === 0}
-            className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+            className="gap-2 bg-[#55C832] hover:bg-[#318A25]"
           >
             <Save className="h-4 w-4" />
             <span>{hasSaved ? 'Update Attendance' : 'Save Attendance'}</span>
@@ -317,7 +317,7 @@ export function AttendanceSheet({
                       <div>
                         <Link
                           href={`/dashboard/students/${student.id}`}
-                          className="font-semibold text-gray-900 text-sm hover:text-indigo-600 hover:underline"
+                          className="font-semibold text-gray-900 text-sm hover:text-[#318A25] hover:underline"
                         >
                           {student.full_name}
                         </Link>
@@ -383,7 +383,7 @@ export function AttendanceSheet({
             size="lg"
             loading={saving}
             onClick={handleSave}
-            className="w-full sm:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700"
+            className="w-full sm:w-auto gap-2 bg-[#55C832] hover:bg-[#318A25]"
           >
             <Save className="h-5 w-5" />
             <span>{hasSaved ? 'Update Attendance' : 'Save Attendance'}</span>

@@ -56,7 +56,7 @@ export function StudentReportModal({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div className="p-3 rounded-lg border border-gray-100 bg-white shadow-2xs">
               <span className="text-gray-500 block text-[11px]">Attendance</span>
-              <span className="font-bold text-indigo-600 text-base mt-0.5 block">
+              <span className="font-bold text-[#318A25] text-base mt-0.5 block">
                 {report.attendance.percentage}%
               </span>
               <span className="text-[10px] text-gray-400">

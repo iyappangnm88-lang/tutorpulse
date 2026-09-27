@@ -201,12 +201,12 @@ export function ClassroomRankingPanel({
             </span>
             <span className="text-base font-bold text-amber-400">+{totalCoinsDistributed}</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-center">
-            <span className="text-[10px] text-indigo-300 font-semibold flex items-center justify-center gap-1">
-              <Users className="h-3 w-3 text-indigo-400" />
+          <div className="p-2.5 rounded-xl bg-[#0f1d33] border border-[#55C832]/30 text-center">
+            <span className="text-[10px] text-slate-300 font-semibold flex items-center justify-center gap-1">
+              <Users className="h-3 w-3 text-[#55C832]" />
               <span>Ranked</span>
             </span>
-            <span className="text-base font-bold text-indigo-300">{scores.length}</span>
+            <span className="text-base font-bold text-slate-300">{scores.length}</span>
           </div>
         </div>
 
@@ -273,7 +273,7 @@ export function ClassroomRankingPanel({
                             <Coins className="h-3 w-3" />
                             +{p.totalCoins}
                           </span>
-                          <span className="flex items-center gap-0.5 text-indigo-300 font-bold">
+                          <span className="flex items-center gap-0.5 text-slate-300 font-bold">
                             <Zap className="h-3 w-3" />
                             +{p.totalXp}
                           </span>
@@ -323,7 +323,7 @@ export function ClassroomRankingPanel({
                             <Coins className="h-3 w-3" />
                             +{p.totalCoins}
                           </span>
-                          <span className="text-indigo-400 font-bold flex items-center gap-0.5 text-[11px]">
+                          <span className="text-[#55C832] font-bold flex items-center gap-0.5 text-[11px]">
                             <Zap className="h-3 w-3" />
                             +{p.totalXp}
                           </span>

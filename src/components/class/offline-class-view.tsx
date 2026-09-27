@@ -327,7 +327,7 @@ export function OfflineClassView({
             <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-gray-100">
               <div>
                 <h2 className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4 text-indigo-600" />
+                  <ClipboardList className="h-4 w-4 text-[#318A25]" />
                   Class Attendance Roster
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -348,7 +348,7 @@ export function OfflineClassView({
                   size="sm"
                   onClick={handleSaveAttendance}
                   disabled={isSavingAttendance || enrolledStudents.length === 0}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold h-8"
+                  className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-semibold h-8"
                 >
                   <Save className="h-3.5 w-3.5 mr-1" />
                   {isSavingAttendance ? 'Saving...' : attendanceSaved ? 'Saved' : 'Save'}
@@ -395,7 +395,7 @@ export function OfflineClassView({
                       >
                         {/* Student info */}
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-[#FAFBEF] text-[#318A25] flex items-center justify-center font-bold text-xs shrink-0">
                             {student.full_name.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -454,7 +454,7 @@ export function OfflineClassView({
               <div className="pt-2 flex justify-end">
                 <Link
                   href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}`}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1"
+                  className="text-xs text-[#318A25] hover:text-[#172B4D] font-medium inline-flex items-center gap-1"
                 >
                   Full Attendance Sheet & Notes →
                 </Link>
@@ -508,7 +508,7 @@ export function OfflineClassView({
           <Card className="border-gray-200/80 shadow-sm">
             <CardHeader className="pb-3 border-b border-gray-100">
               <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-indigo-600" />
+                <Sparkles className="h-4 w-4 text-[#318A25]" />
                 Session Shortcuts
               </h3>
             </CardHeader>
@@ -529,7 +529,7 @@ export function OfflineClassView({
                 className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-colors border border-transparent hover:border-gray-200"
               >
                 <div className="flex items-center gap-2.5">
-                  <FileText className="h-4 w-4 text-indigo-600" />
+                  <FileText className="h-4 w-4 text-[#318A25]" />
                   <span>Schedule / Create Test</span>
                 </div>
                 <ChevronRight className="h-3.5 w-3.5 text-gray-400" />

@@ -37,7 +37,7 @@ export function MobileNav() {
                   'flex flex-col items-center justify-center gap-1 w-full py-1 rounded-xl transition-all',
                   'min-h-[44px]',
                   isActive
-                    ? 'text-indigo-600 font-bold'
+                    ? 'text-[#318A25] font-bold'
                     : 'text-gray-400 hover:text-gray-600'
                 )}
                 aria-current={isActive ? 'page' : undefined}

@@ -41,7 +41,7 @@ export function WhiteboardPageBar({
               onClick={() => onSelectPage(p.pageNumber)}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-[#55C832] text-white shadow-xs'
                   : 'bg-gray-800/70 text-gray-400 hover:text-gray-200 hover:bg-gray-800'
               }`}
               title={`Switch to ${p.title || `Page ${p.pageNumber}`}`}
@@ -57,7 +57,7 @@ export function WhiteboardPageBar({
           <button
             type="button"
             onClick={onAddPage}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-800/60 hover:bg-indigo-600/30 hover:text-indigo-300 text-gray-400 border border-dashed border-gray-700 transition-all cursor-pointer whitespace-nowrap"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-800/60 hover:bg-[#55C832]/30 hover:text-slate-300 text-gray-400 border border-dashed border-gray-700 transition-all cursor-pointer whitespace-nowrap"
             title="Create new page"
             aria-label="Add whiteboard page"
           >

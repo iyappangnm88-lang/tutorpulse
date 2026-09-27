@@ -97,11 +97,11 @@ export function RequestJoinDialog({
       {/* Case 1: Visitor NOT logged in */}
       {!currentUser && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-2">
-            <p className="text-xs font-semibold text-indigo-950">
+          <div className="rounded-xl border border-gray-200 bg-[#FAFBEF]/50 p-4 space-y-2">
+            <p className="text-xs font-semibold text-[#172B4D]">
               Student Account Required
             </p>
-            <p className="text-xs text-indigo-800 leading-relaxed">
+            <p className="text-xs text-[#172B4D] leading-relaxed">
               To request enrollment and access the live classroom, homework, and test materials, please sign in to your student account or create a new student account.
             </p>
           </div>
@@ -111,7 +111,7 @@ export function RequestJoinDialog({
               href={`/login?next=${encodeURIComponent(returnPath)}`}
               className="w-full block"
             >
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold gap-1.5">
+              <Button className="w-full bg-[#55C832] hover:bg-[#318A25] text-xs font-semibold gap-1.5">
                 <LogIn className="h-3.5 w-3.5" />
                 <span>Sign In as Student</span>
               </Button>
@@ -162,7 +162,7 @@ export function RequestJoinDialog({
                 Once <strong>{tutor.fullName}</strong> approves your request, this batch will automatically appear on your Student Timetable and Dashboard.
               </p>
               <div className="pt-2">
-                <Button onClick={handleClose} className="text-xs bg-indigo-600 hover:bg-indigo-700">
+                <Button onClick={handleClose} className="text-xs bg-[#55C832] hover:bg-[#318A25]">
                   Done
                 </Button>
               </div>
@@ -173,7 +173,7 @@ export function RequestJoinDialog({
               <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 space-y-2 text-xs">
                 <div className="flex items-center justify-between font-semibold text-gray-900">
                   <span>{offering.batchName}</span>
-                  <span className="capitalize text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded text-[10px]">
+                  <span className="capitalize text-[#318A25] bg-[#FAFBEF] border border-gray-200 px-2 py-0.5 rounded text-[10px]">
                     {offering.classMode}
                   </span>
                 </div>
@@ -232,7 +232,7 @@ export function RequestJoinDialog({
                 <Button
                   type="submit"
                   loading={loading}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold gap-1.5"
+                  className="bg-[#55C832] hover:bg-[#318A25] text-xs font-semibold gap-1.5"
                 >
                   <UserCheck className="h-3.5 w-3.5" />
                   <span>Send Join Request</span>

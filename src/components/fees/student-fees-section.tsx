@@ -29,13 +29,13 @@ export function StudentFeesSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-indigo-600" />
+          <CreditCard className="h-4 w-4 text-[#318A25]" />
           <h3 className="text-base font-semibold text-gray-900">Fees & Payments</h3>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href={`/dashboard/fees/new`}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#318A25] hover:underline"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Create Fee</span>
@@ -75,7 +75,7 @@ export function StudentFeesSection({
                 <div>
                   <Link
                     href={`/dashboard/fees/${f.id}`}
-                    className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline"
+                    className="font-semibold text-gray-900 hover:text-[#318A25] hover:underline"
                   >
                     {f.title}
                   </Link>
@@ -103,7 +103,7 @@ export function StudentFeesSection({
           <div className="pt-1 text-right">
             <Link
               href={`/dashboard/fees?student=${studentId}`}
-              className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[#318A25] hover:underline"
             >
               <span>View all student fees</span>
               <ArrowRight className="h-3 w-3" />

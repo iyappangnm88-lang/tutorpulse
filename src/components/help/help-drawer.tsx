@@ -93,7 +93,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
           <div className="border-b border-gray-200/80 px-5 py-4 bg-gray-50/70">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-2xs">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#55C832] text-white shadow-2xs">
                   <BookOpen className="h-4 w-4" />
                 </div>
                 <div>
@@ -119,7 +119,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                 placeholder="Search guides, fields, or FAQs (e.g. batch, fees, schedule)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-xs text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-xs text-gray-900 placeholder-gray-400 focus:border-[#55C832] focus:outline-none focus:ring-1 focus:ring-[#55C832]"
               />
               {searchQuery && (
                 <button
@@ -141,7 +141,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                   className={cn(
                     'px-3 py-1.5 rounded-lg transition-colors',
                     activeTab === 'page'
-                      ? 'bg-white text-indigo-600 shadow-2xs font-bold'
+                      ? 'bg-white text-[#318A25] shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
                   )}
                 >
@@ -153,7 +153,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                   className={cn(
                     'px-3 py-1.5 rounded-lg transition-colors',
                     activeTab === 'getting_started'
-                      ? 'bg-white text-indigo-600 shadow-2xs font-bold'
+                      ? 'bg-white text-[#318A25] shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
                   )}
                 >
@@ -165,7 +165,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                   className={cn(
                     'px-3 py-1.5 rounded-lg transition-colors',
                     activeTab === 'all_guides'
-                      ? 'bg-white text-indigo-600 shadow-2xs font-bold'
+                      ? 'bg-white text-[#318A25] shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
                   )}
                 >
@@ -177,7 +177,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                   className={cn(
                     'px-3 py-1.5 rounded-lg transition-colors',
                     activeTab === 'faq'
-                      ? 'bg-white text-indigo-600 shadow-2xs font-bold'
+                      ? 'bg-white text-[#318A25] shadow-2xs font-bold'
                       : 'text-gray-600 hover:text-gray-900'
                   )}
                 >
@@ -209,16 +209,16 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                         setSearchQuery('')
                         setActiveTab('page')
                       }}
-                      className="w-full text-left p-3 rounded-2xl border border-gray-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors block group"
+                      className="w-full text-left p-3 rounded-2xl border border-gray-200/80 hover:border-[#55C832]/40 hover:bg-[#FAFBEF]/40 transition-colors block group"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-gray-900 group-hover:text-indigo-600">
+                        <span className="font-bold text-xs text-gray-900 group-hover:text-[#318A25]">
                           {topic.title}
                         </span>
-                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
+                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-[#318A25]" />
                       </div>
                       <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">{topic.shortSummary}</p>
-                      <span className="text-[10px] font-semibold text-indigo-600 mt-1 block">
+                      <span className="text-[10px] font-semibold text-[#318A25] mt-1 block">
                         {matchReason}
                       </span>
                     </button>
@@ -230,7 +230,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded uppercase">
+                    <span className="text-[10px] font-bold text-[#318A25] bg-[#FAFBEF] px-2 py-0.5 rounded uppercase">
                       {currentTopic.category}
                     </span>
                   </div>
@@ -239,9 +239,9 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                 </div>
 
                 {/* Why it exists */}
-                <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-indigo-900 uppercase tracking-wider text-[11px] mb-1">
-                    <Lightbulb className="h-3.5 w-3.5 text-indigo-600" />
+                <div className="p-3.5 rounded-2xl bg-[#FAFBEF]/70 border border-gray-200 text-xs">
+                  <div className="flex items-center gap-1.5 font-bold text-[#172B4D] uppercase tracking-wider text-[11px] mb-1">
+                    <Lightbulb className="h-3.5 w-3.5 text-[#318A25]" />
                     Why this feature exists
                   </div>
                   <p className="text-gray-700 leading-relaxed">{currentTopic.whyItExists}</p>
@@ -330,29 +330,29 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                    <p className="font-bold text-indigo-950 text-xs mb-1">1. Batches are your foundation</p>
+                  <div className="p-3 rounded-2xl bg-[#FAFBEF]/60 border border-gray-200">
+                    <p className="font-bold text-[#172B4D] text-xs mb-1">1. Batches are your foundation</p>
                     <p className="text-gray-600 text-[11px]">
                       Everything in Nuzigo starts with a Batch. A batch connects a subject, a cohort of students, and a weekly recurring schedule.
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                    <p className="font-bold text-indigo-950 text-xs mb-1">2. Recurring Schedule vs Class Sessions</p>
+                  <div className="p-3 rounded-2xl bg-[#FAFBEF]/60 border border-gray-200">
+                    <p className="font-bold text-[#172B4D] text-xs mb-1">2. Recurring Schedule vs Class Sessions</p>
                     <p className="text-gray-600 text-[11px]">
                       Your batch schedule defines recurring class days (e.g. Mon, Wed). Nuzigo automatically generates individual sessions on your Calendar so you can take attendance or reschedule holiday dates.
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                    <p className="font-bold text-indigo-950 text-xs mb-1">3. Keep Parents Reassured</p>
+                  <div className="p-3 rounded-2xl bg-[#FAFBEF]/60 border border-gray-200">
+                    <p className="font-bold text-[#172B4D] text-xs mb-1">3. Keep Parents Reassured</p>
                     <p className="text-gray-600 text-[11px]">
                       Add parent emails to give them read-only access to their child’s attendance, homework, and test scores via the Parent Portal.
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                    <p className="font-bold text-indigo-950 text-xs mb-1">4. Accurate Records, No Surprises</p>
+                  <div className="p-3 rounded-2xl bg-[#FAFBEF]/60 border border-gray-200">
+                    <p className="font-bold text-[#172B4D] text-xs mb-1">4. Accurate Records, No Surprises</p>
                     <p className="text-gray-600 text-[11px]">
                       Log payments as soon as cash or UPI is received so you always know who owes fees at a glance.
                     </p>
@@ -376,8 +376,8 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                     className={cn(
                       'w-full text-left p-3 rounded-2xl border transition-all flex items-center justify-between',
                       selectedTopicId === topic.id
-                        ? 'border-indigo-500 bg-indigo-50/60'
-                        : 'border-gray-200/80 hover:border-indigo-300 hover:bg-gray-50'
+                        ? 'border-[#55C832] bg-[#FAFBEF]/60'
+                        : 'border-gray-200/80 hover:border-[#55C832]/40 hover:bg-gray-50'
                     )}
                   >
                     <div>
@@ -409,7 +409,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
             <Link
               href="/dashboard/help"
               onClick={onClose}
-              className="inline-flex items-center gap-1.5 font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+              className="inline-flex items-center gap-1.5 font-semibold text-[#318A25] hover:text-[#172B4D] transition-colors"
             >
               <span>Open Full Help Center</span>
               <ExternalLink className="h-3.5 w-3.5" />

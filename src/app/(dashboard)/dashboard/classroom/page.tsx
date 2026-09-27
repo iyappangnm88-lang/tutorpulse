@@ -75,7 +75,7 @@ export default async function ClassroomHubPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white shadow-xs">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-[#55C832] to-[#318A25] text-white shadow-xs">
               <Video className="h-5 w-5" />
             </div>
             <div>
@@ -141,14 +141,14 @@ export default async function ClassroomHubPage() {
         <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 px-5 py-4">
           <div>
             <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-indigo-600" />
+              <Calendar className="h-4 w-4 text-[#318A25]" />
               <span>Today&apos;s Online Classes</span>
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
               Live online sessions scheduled for today
             </p>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FAFBEF] text-[#318A25]">
             {onlineTodaySessions.length} {onlineTodaySessions.length === 1 ? 'Class' : 'Classes'}
           </span>
         </CardHeader>
@@ -178,7 +178,7 @@ export default async function ClassroomHubPage() {
                         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-bold text-sm ${
                           isLive
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-indigo-50 text-indigo-700'
+                            : 'bg-[#FAFBEF] text-[#318A25]'
                         }`}
                       >
                         {isLive ? (
@@ -216,7 +216,7 @@ export default async function ClassroomHubPage() {
                           className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                             isLive
                               ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
-                              : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs'
+                              : 'bg-[#55C832] hover:bg-[#55C832] text-white shadow-xs'
                           }`}
                         >
                           <Video className="h-3.5 w-3.5" />
@@ -230,7 +230,7 @@ export default async function ClassroomHubPage() {
 
                       <Link
                         href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
-                        className="text-xs font-semibold text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                        className="text-xs font-semibold text-gray-600 hover:text-[#318A25] px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
                       >
                         Attendance
                       </Link>
@@ -249,7 +249,7 @@ export default async function ClassroomHubPage() {
           <Card className="h-full">
             <CardHeader className="border-b border-gray-100 px-5 py-4">
               <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Layers className="h-4 w-4 text-indigo-600" />
+                <Layers className="h-4 w-4 text-[#318A25]" />
                 <span>Your Online Batches</span>
               </h2>
               <p className="text-xs text-gray-400 mt-0.5">
@@ -267,7 +267,7 @@ export default async function ClassroomHubPage() {
                   </p>
                   <Link
                     href="/dashboard/batches"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#FAFBEF] text-[#318A25] hover:bg-[#55C832]/20 transition-colors"
                   >
                     Manage Batches →
                   </Link>
@@ -277,7 +277,7 @@ export default async function ClassroomHubPage() {
                   {onlineBatches.map((batch) => (
                     <div
                       key={batch.id}
-                      className="p-3.5 rounded-xl border border-gray-100 bg-gray-50/70 hover:bg-white hover:border-indigo-200 hover:shadow-xs transition-all flex flex-col justify-between gap-3"
+                      className="p-3.5 rounded-xl border border-gray-100 bg-gray-50/70 hover:bg-white hover:border-[#55C832]/30 hover:shadow-xs transition-all flex flex-col justify-between gap-3"
                     >
                       <div>
                         <div className="flex items-center justify-between gap-2">
@@ -296,13 +296,13 @@ export default async function ClassroomHubPage() {
                       <div className="pt-2 border-t border-gray-200/50 flex items-center justify-between">
                         <Link
                           href={`/dashboard/batches/${batch.id}`}
-                          className="text-[11px] font-semibold text-gray-600 hover:text-indigo-600"
+                          className="text-[11px] font-semibold text-gray-600 hover:text-[#318A25]"
                         >
                           Batch Details
                         </Link>
                         <Link
                           href="/dashboard/calendar"
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-700"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#318A25] hover:text-[#172B4D]"
                         >
                           <span>Calendar</span>
                           <ArrowRight className="h-3 w-3" />
@@ -321,7 +321,7 @@ export default async function ClassroomHubPage() {
           <Card className="h-full">
             <CardHeader className="border-b border-gray-100 px-5 py-4">
               <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-indigo-600" />
+                <Clock className="h-4 w-4 text-[#318A25]" />
                 <span>Upcoming Online Classes</span>
               </h2>
               <p className="text-xs text-gray-400 mt-0.5">Next 14 days schedule</p>
@@ -356,7 +356,7 @@ export default async function ClassroomHubPage() {
               <div className="pt-2 border-t border-gray-100">
                 <Link
                   href="/dashboard/calendar"
-                  className="w-full flex items-center justify-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 py-1"
+                  className="w-full flex items-center justify-center gap-1 text-xs font-semibold text-[#318A25] hover:text-[#172B4D] py-1"
                 >
                   <span>Open Full Calendar</span>
                   <ArrowRight className="h-3.5 w-3.5" />

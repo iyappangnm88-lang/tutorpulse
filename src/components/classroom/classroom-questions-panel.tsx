@@ -320,7 +320,7 @@ export function ClassroomQuestionsPanel({
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
         {/* ACTIVE QUESTION SECTION (HERO) */}
         {activeQuestion && (
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/70 via-gray-900 to-indigo-950/60 border-2 border-emerald-500/60 shadow-xl shadow-emerald-950/40 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/70 via-gray-900 to-[#0a1424] border-2 border-emerald-500/60 shadow-xl shadow-emerald-950/40 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Countdown Progress Bar */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gray-800 overflow-hidden">
               <div
@@ -359,8 +359,8 @@ export function ClassroomQuestionsPanel({
                 <Coins className="h-3.5 w-3.5 text-amber-400" />
                 <span>First {activeQuestion.first_x_count} get +{activeQuestion.coins_reward} Gold Coins</span>
               </span>
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[11px] font-semibold">
-                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#55C832] border border-[#55C832]/40 text-slate-300 text-[11px] font-semibold">
+                <Sparkles className="h-3.5 w-3.5 text-[#55C832]" />
                 <span>+{activeQuestion.points_xp} XP</span>
               </span>
             </div>
@@ -466,7 +466,7 @@ export function ClassroomQuestionsPanel({
                     type="button"
                     size="sm"
                     onClick={() => handleRevealQuestion(activeQuestion.id)}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs h-8 rounded-lg flex items-center justify-center gap-1.5"
+                    className="flex-1 bg-[#55C832] hover:bg-[#55C832] text-white font-semibold text-xs h-8 rounded-lg flex items-center justify-center gap-1.5"
                   >
                     <Eye className="h-3.5 w-3.5" />
                     <span>Reveal Answer to Class</span>
@@ -517,7 +517,7 @@ export function ClassroomQuestionsPanel({
                     isActive
                       ? 'bg-emerald-950/30 border-emerald-500/50'
                       : isRevealed
-                      ? 'bg-indigo-950/20 border-indigo-500/30'
+                      ? 'bg-[#0f1d33] border-[#55C832]/30'
                       : 'bg-gray-950/50 border-gray-800/80'
                   }`}
                 >
@@ -530,7 +530,7 @@ export function ClassroomQuestionsPanel({
                         isActive
                           ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
                           : isRevealed
-                          ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/50'
+                          ? 'bg-[#55C832] text-slate-300 border-[#55C832]/50'
                           : isClosed
                           ? 'bg-gray-800 text-gray-400 border-gray-700'
                           : 'bg-amber-500/20 text-amber-300 border-amber-500/50'
@@ -547,7 +547,7 @@ export function ClassroomQuestionsPanel({
                       +{q.coins_reward} coins (Top {q.first_x_count})
                     </span>
                     <span>•</span>
-                    <span className="text-indigo-400">+{q.points_xp} XP</span>
+                    <span className="text-[#55C832]">+{q.points_xp} XP</span>
                     <span>•</span>
                     <span>{q.time_limit_seconds}s limit</span>
                   </div>

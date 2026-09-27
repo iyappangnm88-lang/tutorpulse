@@ -16,12 +16,12 @@ export function StudentParentsSection({ linkedParents }: StudentParentsSectionPr
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <HeartHandshake className="h-4 w-4 text-indigo-600" />
+          <HeartHandshake className="h-4 w-4 text-[#318A25]" />
           <h3 className="text-base font-semibold text-gray-900">Parents & Guardians</h3>
         </div>
         <Link
           href="/dashboard/parents"
-          className="text-xs font-semibold text-indigo-600 hover:underline"
+          className="text-xs font-semibold text-[#318A25] hover:underline"
         >
           Manage Parents
         </Link>
@@ -30,7 +30,7 @@ export function StudentParentsSection({ linkedParents }: StudentParentsSectionPr
         {linkedParents.length === 0 ? (
           <div className="p-5 text-center text-xs text-gray-500">
             No parent or guardian linked to this student yet.{' '}
-            <Link href="/dashboard/parents" className="text-indigo-600 font-medium hover:underline">
+            <Link href="/dashboard/parents" className="text-[#318A25] font-medium hover:underline">
               Link from Parents directory
             </Link>
           </div>
@@ -45,7 +45,7 @@ export function StudentParentsSection({ linkedParents }: StudentParentsSectionPr
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/dashboard/parents/${item.parent.id}`}
-                      className="font-semibold text-gray-900 text-sm hover:text-indigo-600 hover:underline"
+                      className="font-semibold text-gray-900 text-sm hover:text-[#318A25] hover:underline"
                     >
                       {item.parent.full_name}
                     </Link>
@@ -63,7 +63,7 @@ export function StudentParentsSection({ linkedParents }: StudentParentsSectionPr
                     {item.parent.phone && (
                       <div className="flex items-center gap-1">
                         <Phone className="h-3 w-3 text-gray-400" />
-                        <a href={`tel:${item.parent.phone}`} className="text-indigo-600 hover:underline font-medium">
+                        <a href={`tel:${item.parent.phone}`} className="text-[#318A25] hover:underline font-medium">
                           {item.parent.phone}
                         </a>
                       </div>
@@ -79,7 +79,7 @@ export function StudentParentsSection({ linkedParents }: StudentParentsSectionPr
 
                 <Link
                   href={`/dashboard/parents/${item.parent.id}`}
-                  className="text-xs font-medium text-indigo-600 hover:underline self-start sm:self-auto"
+                  className="text-xs font-medium text-[#318A25] hover:underline self-start sm:self-auto"
                 >
                   Guardian Profile
                 </Link>

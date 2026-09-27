@@ -222,7 +222,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
             {headerTitle}
           </h2>
           {isLoading && (
-            <span className="inline-block h-2 w-2 rounded-full bg-indigo-500 animate-pulse ml-1" />
+            <span className="inline-block h-2 w-2 rounded-full bg-[#55C832] animate-pulse ml-1" />
           )}
         </div>
 
@@ -306,7 +306,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                       !isCurrentMonth
                         ? 'bg-gray-50/40 text-gray-400'
                         : isSelected
-                        ? 'bg-indigo-50/40'
+                        ? 'bg-[#FAFBEF]/40'
                         : 'hover:bg-gray-50/60 bg-white'
                     }`}
                   >
@@ -315,9 +315,9 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                       <span
                         className={`text-xs font-bold h-6 w-6 rounded-full flex items-center justify-center transition-all ${
                           isToday
-                            ? 'bg-indigo-600 text-white shadow-sm'
+                            ? 'bg-[#55C832] text-white shadow-sm'
                             : isSelected
-                            ? 'bg-indigo-100 text-indigo-700'
+                            ? 'bg-[#55C832]/20 text-[#318A25]'
                             : isCurrentMonth
                             ? 'text-gray-700'
                             : 'text-gray-400'
@@ -328,7 +328,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
 
                       {/* Session count badge for mobile */}
                       {daySessions.length > 0 && (
-                        <span className="sm:hidden inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                        <span className="sm:hidden inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#55C832]/20 text-[#318A25]">
                           {daySessions.length}
                         </span>
                       )}
@@ -350,7 +350,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                               ? 'bg-gray-100 border-gray-200 text-gray-600 line-through decoration-gray-400'
                               : session.status === 'cancelled'
                               ? 'bg-rose-50 border-rose-200 text-rose-700 line-through decoration-rose-300'
-                              : 'bg-indigo-50 border-indigo-100 text-indigo-900 hover:bg-indigo-100'
+                              : 'bg-[#FAFBEF] border-gray-200 text-[#172B4D] hover:bg-[#55C832]/20'
                           }`}
                           title={`${session.batch.name} (${formatTimeRange(session.start_time, session.end_time)})`}
                         >
@@ -381,7 +381,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                               ? 'bg-gray-400'
                               : s.status === 'cancelled'
                               ? 'bg-rose-500'
-                              : 'bg-indigo-500'
+                              : 'bg-[#55C832]'
                           }`}
                         />
                       ))}
@@ -396,7 +396,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-indigo-600" />
+                <CalendarIcon className="h-4 w-4 text-[#318A25]" />
                 <h3 className="text-sm font-bold text-gray-900">
                   Classes for {parseDateKey(selectedDayKey).toLocaleDateString('en-US', {
                     weekday: 'short',
@@ -457,7 +457,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                   {/* Day Column Header */}
                   <div
                     className={`p-3 text-center border-b border-gray-100 ${
-                      isToday ? 'bg-indigo-50/70' : 'bg-gray-50/50'
+                      isToday ? 'bg-[#FAFBEF]/70' : 'bg-gray-50/50'
                     }`}
                   >
                     <div className="text-xs font-semibold text-gray-500">
@@ -466,7 +466,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                     <div
                       className={`inline-flex items-center justify-center mt-1 h-7 w-7 rounded-full text-xs font-bold ${
                         isToday
-                          ? 'bg-indigo-600 text-white shadow-sm'
+                          ? 'bg-[#55C832] text-white shadow-sm'
                           : 'text-gray-900'
                       }`}
                     >
@@ -485,7 +485,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                         <div
                           key={session.id}
                           onClick={() => handleOpenDetail(session)}
-                          className="p-2.5 rounded-xl border border-gray-100 hover:border-indigo-200 bg-gray-50/60 hover:bg-white transition-all cursor-pointer space-y-1.5 shadow-sm"
+                          className="p-2.5 rounded-xl border border-gray-100 hover:border-[#55C832]/30 bg-gray-50/60 hover:bg-white transition-all cursor-pointer space-y-1.5 shadow-sm"
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold text-gray-900 truncate">
@@ -498,7 +498,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                           </div>
 
                           <div className="flex items-center gap-1 text-[11px] text-gray-600 font-medium">
-                            <Clock className="h-3 w-3 text-indigo-500 shrink-0" />
+                            <Clock className="h-3 w-3 text-[#55C832] shrink-0" />
                             <span>{formatTimeRange(session.start_time, session.end_time)}</span>
                           </div>
 
@@ -566,7 +566,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                 <div
                   key={session.id}
                   onClick={() => handleOpenDetail(session)}
-                  className="p-4 rounded-2xl border border-gray-100 hover:border-indigo-200 bg-gray-50/40 hover:bg-white transition-all cursor-pointer flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm"
+                  className="p-4 rounded-2xl border border-gray-100 hover:border-[#55C832]/30 bg-gray-50/40 hover:bg-white transition-all cursor-pointer flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -583,7 +583,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
                       <div className="flex items-center gap-1 font-medium">
-                        <Clock className="h-3.5 w-3.5 text-indigo-500" />
+                        <Clock className="h-3.5 w-3.5 text-[#55C832]" />
                         <span>{formatTimeRange(session.start_time, session.end_time)}</span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -608,7 +608,7 @@ export function CalendarView({ initialSessions, batches }: CalendarViewProps) {
                     <Link
                       href={`/dashboard/attendance?batchId=${session.batch_id}&date=${session.session_date}&sessionId=${session.id}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#FAFBEF] text-[#318A25] hover:bg-[#55C832]/20 transition-colors"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
                       Attendance
@@ -672,7 +672,7 @@ function SessionCard({
   return (
     <div
       onClick={onOpenDetail}
-      className="p-3.5 rounded-xl border border-gray-100 hover:border-indigo-200 bg-gray-50/50 hover:bg-white transition-all cursor-pointer space-y-2.5 shadow-sm"
+      className="p-3.5 rounded-xl border border-gray-100 hover:border-[#55C832]/30 bg-gray-50/50 hover:bg-white transition-all cursor-pointer space-y-2.5 shadow-sm"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -687,7 +687,7 @@ function SessionCard({
       </div>
 
       <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
-        <Clock className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+        <Clock className="h-3.5 w-3.5 text-[#55C832] shrink-0" />
         <span>{formatTimeRange(session.start_time, session.end_time)}</span>
       </div>
 

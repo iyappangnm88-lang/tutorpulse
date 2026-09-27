@@ -106,7 +106,7 @@ export function PublicTutorProfileClient({
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold">
+                  <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-xs font-semibold">
                     Sign Up
                   </Button>
                 </Link>
@@ -118,11 +118,11 @@ export function PublicTutorProfileClient({
 
       {/* Owner Notice Banner */}
       {isOwner && (
-        <div className="bg-indigo-600 text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
+        <div className="bg-[#55C832] text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
           <span>This is how prospective students view your public profile.</span>
           <Link
             href="/dashboard/settings"
-            className="underline underline-offset-2 font-bold inline-flex items-center gap-1 hover:text-indigo-100"
+            className="underline underline-offset-2 font-bold inline-flex items-center gap-1 hover:text-white"
           >
             <Edit className="h-3.5 w-3.5" />
             <span>Edit Profile Settings</span>
@@ -136,7 +136,7 @@ export function PublicTutorProfileClient({
         <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex items-start sm:items-center gap-4 sm:gap-6">
-              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-indigo-600 text-white font-extrabold text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-sm">
+              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-[#55C832] text-white font-extrabold text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-sm">
                 {initials}
               </div>
 
@@ -207,7 +207,7 @@ export function PublicTutorProfileClient({
             {profile.primarySubjects.map((sub) => (
               <span
                 key={sub}
-                className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-xs border border-indigo-100"
+                className="px-2.5 py-1 rounded-lg bg-[#FAFBEF] text-[#318A25] font-semibold text-xs border border-gray-200"
               >
                 {sub}
               </span>
@@ -263,13 +263,13 @@ export function PublicTutorProfileClient({
               </Card>
             )}
 
-            <Card className="bg-indigo-50/40 border-indigo-100">
+            <Card className="bg-[#FAFBEF]/40 border-gray-200">
               <CardBody className="p-4 space-y-2">
-                <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-                  <Sparkles className="h-4 w-4 text-indigo-600" />
+                <div className="flex items-center gap-2 text-[#172B4D] font-bold text-xs">
+                  <Sparkles className="h-4 w-4 text-[#318A25]" />
                   <span>How Enrollment Works</span>
                 </div>
-                <ol className="text-[11px] text-indigo-900/80 space-y-1.5 list-decimal pl-4 leading-relaxed">
+                <ol className="text-[11px] text-[#172B4D]/80 space-y-1.5 list-decimal pl-4 leading-relaxed">
                   <li>Browse open cohorts and review the schedule.</li>
                   <li>Click <strong>Request to Join</strong> with an introductory note.</li>
                   <li>The tutor reviews and accepts your request.</li>
@@ -301,7 +301,7 @@ export function PublicTutorProfileClient({
                   return (
                     <Card
                       key={batch.id}
-                      className="hover:border-indigo-200 transition-colors border-gray-200"
+                      className="hover:border-[#55C832]/30 transition-colors border-gray-200"
                     >
                       <CardBody className="p-5 space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -317,7 +317,7 @@ export function PublicTutorProfileClient({
                                 {batch.classMode}
                               </Badge>
                               {batch.subject && (
-                                <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">
+                                <span className="text-xs font-semibold text-[#318A25] bg-[#FAFBEF] border border-gray-200 px-2 py-0.5 rounded">
                                   {batch.subject}
                                 </span>
                               )}
@@ -370,7 +370,7 @@ export function PublicTutorProfileClient({
                                   setActiveOffering(batch)
                                   setDialogOpen(true)
                                 }}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold gap-1"
+                                className="bg-[#55C832] hover:bg-[#318A25] text-xs font-semibold gap-1"
                               >
                                 <span>Request to Join</span>
                                 <ChevronRight className="h-3.5 w-3.5" />

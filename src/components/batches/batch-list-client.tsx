@@ -66,7 +66,7 @@ export function BatchListClient({ initialBatches }: { initialBatches: BatchWithC
   if (batches.length === 0) {
     return (
       <EmptyState
-        icon={<Layers className="h-8 w-8 text-indigo-500" />}
+        icon={<Layers className="h-8 w-8 text-[#55C832]" />}
         title="No batches created yet"
         description="Organize your students into batches by grade or subject for attendance and class schedules."
         action={

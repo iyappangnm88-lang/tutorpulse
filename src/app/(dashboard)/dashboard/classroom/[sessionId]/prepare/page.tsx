@@ -102,26 +102,26 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
       <div className="flex items-center justify-between">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-indigo-600 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#318A25] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Dashboard</span>
         </Link>
         <Link
           href={`/dashboard/batches/${session.batch_id}`}
-          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+          className="text-xs font-semibold text-[#318A25] hover:text-[#172B4D]"
         >
           View Batch Details →
         </Link>
       </div>
 
       {/* Hero Preparation Banner */}
-      <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-950 text-white shadow-lg relative overflow-hidden">
+      <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-[#0f1d33] via-[#172B4D] to-[#0a1424] text-white shadow-lg relative overflow-hidden">
         <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md font-bold text-[10px] tracking-wider uppercase bg-indigo-400 text-indigo-950 shadow-xs">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md font-bold text-[10px] tracking-wider uppercase bg-[#55C832] text-[#172B4D] shadow-xs">
                 <Video className="h-3 w-3" />
                 Live Online Staging
               </span>
@@ -166,9 +166,9 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
           <div className="flex flex-col sm:items-end gap-3 shrink-0">
             <Link
               href={`/dashboard/classroom/${session.id}`}
-              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl text-sm font-extrabold text-indigo-950 bg-white hover:bg-indigo-50 shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl text-sm font-extrabold text-[#172B4D] bg-white hover:bg-[#FAFBEF] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              <Video className="h-5 w-5 text-indigo-600" />
+              <Video className="h-5 w-5 text-[#318A25]" />
               <span>{isLive ? 'Enter Live Classroom' : 'Launch Classroom Now'}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -187,7 +187,7 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-indigo-600" />
+                <Sparkles className="h-4 w-4 text-[#318A25]" />
                 <h2 className="text-sm font-bold text-gray-900">Tutor Pre-Flight Checklist</h2>
               </div>
               <Badge variant="info">Ready to teach</Badge>
@@ -207,7 +207,7 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
                 </div>
 
                 <div className="p-3.5 rounded-xl border border-gray-100 bg-gray-50/60 flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <div className="h-8 w-8 rounded-lg bg-[#55C832]/10 text-[#318A25] flex items-center justify-center shrink-0">
                     <Video className="h-4 w-4" />
                   </div>
                   <div>
@@ -257,12 +257,12 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-blue-600" />
+                  <BookOpen className="h-4 w-4 text-[#318A25]" />
                   <h3 className="text-xs font-bold text-gray-900">Batch Homework</h3>
                 </div>
                 <Link
                   href={`/dashboard/homework/new?batchId=${session.batch_id}`}
-                  className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800"
+                  className="text-[11px] font-semibold text-[#318A25] hover:text-[#172B4D]"
                 >
                   + Assign
                 </Link>
@@ -281,7 +281,7 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
                         className="p-3 flex items-center justify-between hover:bg-gray-50/70 transition-colors group block"
                       >
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 group-hover:text-indigo-600 truncate">
+                          <p className="text-xs font-semibold text-gray-900 group-hover:text-[#318A25] truncate">
                             {hw.title}
                           </p>
                           <p className="text-[10px] text-gray-400">
@@ -307,7 +307,7 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
                 </div>
                 <Link
                   href={`/dashboard/tests/new?batchId=${session.batch_id}`}
-                  className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800"
+                  className="text-[11px] font-semibold text-[#318A25] hover:text-[#172B4D]"
                 >
                   + Create
                 </Link>
@@ -326,7 +326,7 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
                         className="p-3 flex items-center justify-between hover:bg-gray-50/70 transition-colors group block"
                       >
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 group-hover:text-indigo-600 truncate">
+                          <p className="text-xs font-semibold text-gray-900 group-hover:text-[#318A25] truncate">
                             {test.title}
                           </p>
                           <p className="text-[10px] text-gray-400">
@@ -350,7 +350,7 @@ export default async function PrepareClassPage({ params }: PrepareClassPageProps
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-indigo-600" />
+                <Users className="h-4 w-4 text-[#318A25]" />
                 <h3 className="text-sm font-bold text-gray-900">Expected Students</h3>
               </div>
               <Badge variant="default">{enrolledStudents.length} Enrolled</Badge>

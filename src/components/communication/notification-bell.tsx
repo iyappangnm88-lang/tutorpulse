@@ -29,7 +29,7 @@ export function NotificationBell({ initialNotifications = [] }: { initialNotific
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+        className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832] transition-colors"
         aria-label="Notifications"
         aria-expanded={open}
       >
@@ -64,7 +64,7 @@ export function NotificationBell({ initialNotifications = [] }: { initialNotific
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                  className="text-xs text-[#318A25] hover:text-[#172B4D] font-medium"
                 >
                   Mark all as read
                 </button>
@@ -81,7 +81,7 @@ export function NotificationBell({ initialNotifications = [] }: { initialNotific
                   <div
                     key={n.id}
                     className={`p-3.5 text-xs transition-colors hover:bg-gray-50 ${
-                      !n.read ? 'bg-indigo-50/30' : ''
+                      !n.read ? 'bg-[#FAFBEF]/30' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -106,7 +106,7 @@ export function NotificationBell({ initialNotifications = [] }: { initialNotific
                             <Link
                               href={n.action_url}
                               onClick={() => setOpen(false)}
-                              className="text-indigo-600 font-semibold hover:underline flex items-center gap-0.5"
+                              className="text-[#318A25] font-semibold hover:underline flex items-center gap-0.5"
                             >
                               <span>View</span>
                               <ExternalLink className="h-2.5 w-2.5" />
@@ -118,7 +118,7 @@ export function NotificationBell({ initialNotifications = [] }: { initialNotific
                       {!n.read && (
                         <button
                           onClick={(e) => handleMarkRead(n.id, e)}
-                          className="p-1 text-gray-400 hover:text-indigo-600 rounded"
+                          className="p-1 text-gray-400 hover:text-[#318A25] rounded"
                           title="Mark as read"
                         >
                           <Check className="h-3.5 w-3.5" />
@@ -134,7 +134,7 @@ export function NotificationBell({ initialNotifications = [] }: { initialNotific
               <Link
                 href="/dashboard/communication"
                 onClick={() => setOpen(false)}
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                className="text-xs font-semibold text-[#318A25] hover:text-[#172B4D]"
               >
                 View all in Communication Center →
               </Link>

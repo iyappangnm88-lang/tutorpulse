@@ -27,7 +27,7 @@ export function ParentTable({ parents }: ParentTableProps) {
               <td className="px-5 py-4">
                 <Link
                   href={`/dashboard/parents/${parent.id}`}
-                  className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                  className="font-semibold text-[#318A25] hover:text-[#172B4D] hover:underline"
                 >
                   {parent.full_name}
                 </Link>
@@ -40,7 +40,7 @@ export function ParentTable({ parents }: ParentTableProps) {
                   {parent.phone ? (
                     <div className="flex items-center gap-1.5">
                       <Phone className="h-3 w-3 text-gray-400" />
-                      <a href={`tel:${parent.phone}`} className="text-indigo-600 hover:underline font-medium">
+                      <a href={`tel:${parent.phone}`} className="text-[#318A25] hover:underline font-medium">
                         {parent.phone}
                       </a>
                     </div>
@@ -62,7 +62,7 @@ export function ParentTable({ parents }: ParentTableProps) {
                     {parent.primary_student_names.map((name, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700"
+                        className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[#FAFBEF] text-[#318A25]"
                       >
                         {name}
                       </span>
@@ -74,14 +74,14 @@ export function ParentTable({ parents }: ParentTableProps) {
                 <div className="flex items-center justify-end gap-2">
                   <Link
                     href={`/dashboard/parents/${parent.id}`}
-                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                     title="View Profile"
                   >
                     <Eye className="h-4 w-4" />
                   </Link>
                   <Link
                     href={`/dashboard/parents/${parent.id}/edit`}
-                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    className="p-1.5 text-gray-500 hover:text-[#318A25] hover:bg-[#FAFBEF] rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                     title="Edit Parent"
                   >
                     <Edit2 className="h-4 w-4" />
