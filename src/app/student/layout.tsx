@@ -3,9 +3,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getStudentProfile } from '@/lib/student-portal'
-import { StudentSidebar } from '@/components/student/student-sidebar'
-import { StudentMobileNav } from '@/components/student/student-mobile-nav'
-import { StudentHeader } from '@/components/student/student-header'
+import { StudentLayoutClient } from '@/components/student/student-layout-client'
 
 export const metadata: Metadata = {
   title: 'Student Portal — Nuzigo',
@@ -55,23 +53,11 @@ export default async function StudentLayout({
   const displayName = studentProfile?.full_name || profile.full_name || 'Student'
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Desktop Sidebar */}
-      <StudentSidebar studentName={displayName} />
-
-      {/* Main Content Area */}
-      <div className="flex-1 lg:pl-64 flex flex-col">
-        <StudentHeader
-          studentName={displayName}
-          gradeLevel={studentProfile?.grade_level}
-        />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-5xl w-full mx-auto">
-          {children}
-        </main>
-      </div>
-
-      {/* Mobile Bottom Navigation */}
-      <StudentMobileNav />
-    </div>
+    <StudentLayoutClient
+      displayName={displayName}
+      gradeLevel={studentProfile?.grade_level}
+    >
+      {children}
+    </StudentLayoutClient>
   )
 }

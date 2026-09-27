@@ -46,21 +46,21 @@ function NavLink({
       className={cn(
         'group flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[40px]',
         isActive
-          ? 'bg-indigo-50/90 text-indigo-700 shadow-2xs'
-          : 'text-gray-600 hover:bg-gray-100/70 hover:text-gray-900'
+          ? 'bg-[#55C832]/12 text-[#318A25] font-bold shadow-2xs border border-[#55C832]/25'
+          : 'text-gray-600 hover:bg-gray-100/70 hover:text-[#172B4D]'
       )}
       aria-current={isActive ? 'page' : undefined}
     >
       <item.icon
         className={cn(
           'h-4 w-4 flex-shrink-0 transition-colors',
-          isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'
+          isActive ? 'text-[#55C832]' : 'text-gray-400 group-hover:text-gray-600'
         )}
         aria-hidden="true"
       />
       <span className="flex-1">{item.label}</span>
       {isActive && (
-        <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" aria-hidden="true" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" aria-hidden="true" />
       )}
     </Link>
   )
@@ -110,17 +110,17 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           onClick={mobile ? onClose : undefined}
           className="flex items-center gap-2.5 group"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#58CC02] border-b-2 border-[#3C9E00] text-white shadow-xs font-black text-base">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#55C832] border-b-2 border-[#318A25] text-white shadow-xs font-black text-base">
             N
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#172B4D] tracking-tight flex items-center gap-1.5">
               Nuzigo
-              <span className="text-[10px] font-bold text-[#3C9E00] bg-[#58CC02]/15 px-1.5 py-0.5 rounded border border-[#58CC02]/30">
+              <span className="text-[10px] font-bold text-[#318A25] bg-[#55C832]/15 px-1.5 py-0.5 rounded border border-[#55C832]/30">
                 Pro
               </span>
             </span>
-            <span className="text-[10px] text-gray-400 font-medium">Learning that feels alive</span>
+            <span className="text-[10px] text-gray-500 font-medium">Learning that feels alive</span>
           </div>
         </Link>
 

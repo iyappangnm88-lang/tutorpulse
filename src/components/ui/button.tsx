@@ -13,15 +13,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-indigo-600 text-white shadow-xs hover:bg-indigo-700 hover:shadow-sm hover:shadow-indigo-500/20 active:bg-indigo-800 disabled:bg-indigo-400',
+    'bg-[#55C832] text-white shadow-xs hover:bg-[#4eb52c] hover:shadow-sm active:bg-[#318A25] disabled:bg-[#55C832]/50 font-bold',
   secondary:
-    'bg-gray-100/90 text-gray-900 hover:bg-gray-200/90 active:bg-gray-200 border border-transparent disabled:bg-gray-100',
+    'bg-gray-100/90 text-[#172B4D] hover:bg-gray-200/90 active:bg-gray-200 border border-transparent disabled:bg-gray-100 font-semibold',
   ghost:
-    'bg-transparent text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 active:bg-gray-100',
+    'bg-transparent text-gray-600 hover:bg-gray-100/80 hover:text-[#172B4D] active:bg-gray-100',
   danger:
-    'bg-rose-600 text-white shadow-xs hover:bg-rose-700 hover:shadow-sm hover:shadow-rose-500/20 active:bg-rose-800 disabled:bg-rose-300',
+    'bg-[#F05252] text-white shadow-xs hover:bg-red-600 active:bg-red-700 disabled:bg-[#F05252]/50 font-bold',
   outline:
-    'border border-gray-200/90 bg-white text-gray-700 hover:bg-gray-50/90 hover:border-gray-300 shadow-2xs hover:shadow-xs active:bg-gray-100/80',
+    'border border-gray-200/90 bg-white text-[#172B4D] hover:bg-[#FAFBEF] hover:border-emerald-300 shadow-2xs hover:shadow-xs active:bg-gray-100/80 font-semibold',
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -43,9 +43,9 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center font-medium select-none',
+        'inline-flex items-center justify-center select-none',
         'transition-all duration-150 cursor-pointer active:scale-[0.98]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832] focus-visible:ring-offset-2',
         'disabled:pointer-events-none disabled:opacity-60 disabled:cursor-not-allowed',
         'min-h-[44px]',
         variantClasses[variant],

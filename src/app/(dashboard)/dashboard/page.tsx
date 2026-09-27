@@ -39,7 +39,6 @@ import { createClient } from '@/lib/supabase/server'
 import { getActiveWorkspace } from '@/lib/workspace'
 import { formatCurrency } from '@/lib/fee-utils'
 import { PageGuide } from '@/components/help/page-guide'
-import { OnboardingChecklist } from '@/components/help/onboarding-checklist'
 import { InviteCodeBadge } from '@/components/dashboard/invite-code-badge'
 import { NextClassHero } from '@/components/dashboard/next-class-hero'
 import { TutorWorkflowPath } from '@/components/tutor/tutor-workflow-path'
@@ -71,7 +70,7 @@ function MetricCard({
 }) {
   return (
     <Link href={href} className="block group">
-      <Card className="h-full group-hover:border-indigo-200 group-hover:shadow-sm transition-all duration-200">
+      <Card className="h-full group-hover:border-emerald-200 group-hover:shadow-sm transition-all duration-200">
         <CardBody className="p-4 sm:p-5 flex items-center gap-4">
           <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${iconBg} transition-transform group-hover:scale-105 duration-200`}>
             <Icon className={`h-5 w-5 ${iconColor}`} aria-hidden="true" />
@@ -101,13 +100,13 @@ function QuickActionButton({
   return (
     <Link
       href={href}
-      className="group flex flex-col items-start gap-2 rounded-2xl border border-gray-200/80 bg-white p-4 text-left transition-all duration-200 hover:border-indigo-300 hover:shadow-sm active:scale-[0.98] w-full"
+      className="group flex flex-col items-start gap-2 rounded-2xl border border-gray-200/80 bg-white p-4 text-left transition-all duration-200 hover:border-emerald-300 hover:shadow-sm active:scale-[0.98] w-full"
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-200">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-[#318A25] group-hover:bg-[#55C832] group-hover:text-white transition-colors duration-200">
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
       <div>
-        <p className="text-xs font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+        <p className="text-xs font-bold text-gray-900 group-hover:text-[#318A25] transition-colors">
           {label}
         </p>
         <p className="text-[11px] text-gray-500 mt-0.5">{description}</p>
@@ -359,7 +358,7 @@ export default async function DashboardPage() {
         className={`rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden ${
           isOffline
             ? 'bg-gradient-to-r from-amber-900 via-amber-800 to-amber-950'
-            : 'bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-950'
+            : 'bg-gradient-to-r from-[#172B4D] via-[#1E3A5F] to-[#172B4D]'
         }`}
       >
         <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
@@ -372,7 +371,7 @@ export default async function DashboardPage() {
                 className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md font-bold text-[10px] tracking-wider uppercase ${
                   isOffline
                     ? 'bg-amber-400 text-amber-950 shadow-xs'
-                    : 'bg-indigo-400 text-indigo-950 shadow-xs'
+                    : 'bg-[#55C832] text-white shadow-xs'
                 }`}
               >
                 {isOffline ? <School className="h-3 w-3" /> : <Video className="h-3 w-3" />}
@@ -412,16 +411,16 @@ export default async function DashboardPage() {
               <>
                 <Link
                   href="/dashboard/classroom"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-semibold shadow-xs transition-all"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-[#172B4D] hover:bg-emerald-50 text-xs font-semibold shadow-xs transition-all"
                 >
-                  <Video className="h-3.5 w-3.5 text-indigo-600" />
+                  <Video className="h-3.5 w-3.5 text-[#318A25]" />
                   <span>Classroom</span>
                 </Link>
                 <Link
                   href="/dashboard/calendar"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white border border-white/10 backdrop-blur-xs transition-all"
                 >
-                  <Calendar className="h-3.5 w-3.5 text-indigo-200" />
+                  <Calendar className="h-3.5 w-3.5 text-emerald-200" />
                   <span>Calendar</span>
                 </Link>
               </>
@@ -448,12 +447,6 @@ export default async function DashboardPage() {
       {/* Adaptive Tutor Operational Path */}
       <TutorWorkflowPath state={tutorPathState} />
 
-      {/* Tutor Getting Started Checklist */}
-      <OnboardingChecklist
-        studentsCount={studentsCount}
-        batchesCount={batchesCount}
-      />
-
       {/* Context-Aware Dashboard Guide Banner */}
       <PageGuide topicId="dashboard" defaultCollapsed={batchesCount > 0 && studentsCount > 0} />
 
@@ -475,8 +468,8 @@ export default async function DashboardPage() {
             label="Active Batches"
             value={batchesCount}
             sub={`${todaySessions.length} scheduled today`}
-            iconColor="text-indigo-600"
-            iconBg="bg-indigo-50"
+            iconColor="text-[#318A25]"
+            iconBg="bg-emerald-50"
             href="/dashboard/batches"
           />
           <MetricCard
@@ -565,13 +558,13 @@ export default async function DashboardPage() {
         {/* Left Column: Today's Schedule (Top Priority) + Active Batches */}
         <div className="lg:col-span-2 space-y-6">
           {/* Today's Classes Card */}
-          <Card className="border-indigo-100/80 shadow-xs">
+          <Card className="border-emerald-100/80 shadow-xs">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white">
               <div className="flex items-center gap-2">
                 {isOffline ? (
                   <School className="h-4 w-4 text-amber-600" />
                 ) : (
-                  <Video className="h-4 w-4 text-indigo-600" />
+                  <Video className="h-4 w-4 text-[#318A25]" />
                 )}
                 <h2 className="text-sm font-bold text-gray-900">
                   {isOffline ? "Today's In-Person Classes" : "Today's Virtual Classes"}
@@ -584,7 +577,7 @@ export default async function DashboardPage() {
                 {!isOffline && (
                   <Link
                     href="/dashboard/calendar"
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-1"
+                    className="text-xs font-semibold text-[#318A25] hover:text-[#172B4D] ml-1"
                   >
                     Calendar →
                   </Link>
@@ -605,7 +598,7 @@ export default async function DashboardPage() {
                   <div className="mt-3 flex items-center justify-center gap-2">
                     <Link
                       href="/dashboard/calendar"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#318A25] bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-colors"
                     >
                       <Calendar className="h-3.5 w-3.5" />
                       <span>Schedule a Class</span>
@@ -628,7 +621,7 @@ export default async function DashboardPage() {
                       <div className="flex items-start gap-3 min-w-0">
                         <div
                           className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold text-sm shrink-0 ${
-                            isOffline ? 'bg-amber-50 text-amber-700' : 'bg-indigo-50 text-indigo-600'
+                            isOffline ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-[#318A25]'
                           }`}
                         >
                           {session.batch.name.charAt(0)}
@@ -668,7 +661,7 @@ export default async function DashboardPage() {
                           <>
                             <Link
                               href={`/dashboard/classroom/${session.id}/prepare`}
-                              className="text-xs font-semibold text-gray-600 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 px-2.5 py-1.5 rounded-xl border border-gray-200 transition-colors"
+                              className="text-xs font-semibold text-gray-600 hover:text-[#318A25] bg-gray-50 hover:bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-gray-200 transition-colors"
                             >
                               Prepare
                             </Link>
@@ -683,9 +676,9 @@ export default async function DashboardPage() {
                             ) : (
                               <Link
                                 href={`/dashboard/classroom/${session.id}`}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 transition-colors"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#318A25] bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors"
                               >
-                                <Video className="h-3.5 w-3.5 text-indigo-600" />
+                                <Video className="h-3.5 w-3.5 text-[#318A25]" />
                                 Enter
                               </Link>
                             )}
@@ -754,7 +747,7 @@ export default async function DashboardPage() {
                     <Link
                       href="/dashboard/batches/new"
                       className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-colors ${
-                        isOffline ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'
+                        isOffline ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#55C832] hover:bg-[#4eb52c]'
                       }`}
                     >
                       {isOffline ? 'Create Offline Batch' : 'Create Online Batch'}
@@ -779,17 +772,17 @@ export default async function DashboardPage() {
                               isScheduledToday
                                 ? isOffline
                                   ? 'bg-amber-600 text-white shadow-2xs shadow-amber-500/30'
-                                  : 'bg-indigo-600 text-white shadow-2xs shadow-indigo-500/30'
+                                  : 'bg-[#55C832] text-white shadow-2xs shadow-emerald-500/30'
                                 : isOffline
                                 ? 'bg-amber-50 text-amber-700'
-                                : 'bg-indigo-50 text-indigo-600'
+                                : 'bg-emerald-50 text-[#318A25]'
                             }`}
                           >
                             {batch.name.charAt(0)}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <p className="font-semibold text-gray-900 text-xs group-hover:text-indigo-600 transition-colors truncate">
+                              <p className="font-semibold text-gray-900 text-xs group-hover:text-[#318A25] transition-colors truncate">
                                 {batch.name}
                               </p>
                               {isScheduledToday && (
@@ -823,7 +816,7 @@ export default async function DashboardPage() {
                           )}
                           <Link
                             href={`/dashboard/batches/${batch.id}`}
-                            className="text-xs font-semibold text-gray-400 group-hover:text-indigo-600 transition-colors"
+                            className="text-xs font-semibold text-gray-400 group-hover:text-[#318A25] transition-colors"
                           >
                             View →
                           </Link>
@@ -902,7 +895,7 @@ export default async function DashboardPage() {
                         </span>
                         <Link
                           href={item.actionUrl}
-                          className="text-xs font-bold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1"
+                          className="text-xs font-bold text-[#318A25] hover:text-[#172B4D] inline-flex items-center gap-1"
                         >
                           <span>{item.actionLabel}</span>
                           <ArrowRight className="h-3 w-3" />
@@ -919,13 +912,13 @@ export default async function DashboardPage() {
           <Card>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-indigo-600" />
+                <Calendar className="h-4 w-4 text-[#318A25]" />
                 <h2 className="text-sm font-bold text-gray-900">Upcoming Classes</h2>
               </div>
               {!isOffline && (
                 <Link
                   href="/dashboard/calendar"
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                  className="text-xs font-semibold text-[#318A25] hover:text-[#172B4D]"
                 >
                   Calendar →
                 </Link>
@@ -946,7 +939,7 @@ export default async function DashboardPage() {
                     >
                       <div className="min-w-0 space-y-0.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-bold text-gray-900 group-hover:text-indigo-600 transition-colors truncate">
+                          <span className="text-xs font-bold text-gray-900 group-hover:text-[#318A25] transition-colors truncate">
                             {session.batch.name}
                           </span>
                           <span className="text-[10px] text-gray-400">
@@ -987,7 +980,7 @@ export default async function DashboardPage() {
                         {act.type === 'homework' && <FileCheck2 className="h-3.5 w-3.5 text-blue-600" />}
                         {act.type === 'test' && <GraduationCap className="h-3.5 w-3.5 text-purple-600" />}
                         {act.type === 'fee' && <Receipt className="h-3.5 w-3.5 text-emerald-600" />}
-                        {act.type === 'class' && <Video className="h-3.5 w-3.5 text-indigo-600" />}
+                        {act.type === 'class' && <Video className="h-3.5 w-3.5 text-[#318A25]" />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-semibold text-gray-900 truncate">{act.title}</p>

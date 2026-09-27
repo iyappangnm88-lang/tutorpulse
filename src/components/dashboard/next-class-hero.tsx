@@ -79,7 +79,7 @@ export function NextClassHero({ session, workspaceType }: NextClassHeroProps) {
           ? 'bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-950 border-emerald-500/40 text-white shadow-emerald-950/20'
           : isOffline
           ? 'bg-gradient-to-r from-amber-50/90 via-white to-amber-50/40 border-amber-200/90 text-gray-900'
-          : 'bg-gradient-to-r from-indigo-50/90 via-white to-indigo-50/40 border-indigo-200/90 text-gray-900'
+          : 'bg-gradient-to-r from-emerald-50/90 via-white to-[#FAFBEF] border-emerald-200/90 text-[#172B4D]'
       }`}
     >
       <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -88,7 +88,7 @@ export function NextClassHero({ session, workspaceType }: NextClassHeroProps) {
           <div className="flex items-center gap-2 flex-wrap">
             {isLive ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white text-emerald-950 shadow-xs animate-pulse">
-                <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                <span className="h-2 w-2 rounded-full bg-[#55C832]" />
                 Live Now
               </span>
             ) : (
@@ -96,7 +96,7 @@ export function NextClassHero({ session, workspaceType }: NextClassHeroProps) {
                 className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                   isOffline
                     ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                    : 'bg-indigo-100 text-indigo-900 border border-indigo-200'
+                    : 'bg-emerald-100 text-[#318A25] border border-emerald-200'
                 }`}
               >
                 <Clock className="h-3 w-3" />
@@ -106,7 +106,7 @@ export function NextClassHero({ session, workspaceType }: NextClassHeroProps) {
 
             <span
               className={`text-xs font-semibold ${
-                isLive ? 'text-emerald-200' : isOffline ? 'text-amber-800' : 'text-indigo-800'
+                isLive ? 'text-emerald-200' : isOffline ? 'text-amber-800' : 'text-[#318A25]'
               }`}
             >
               {countdownText}
@@ -178,7 +178,7 @@ export function NextClassHero({ session, workspaceType }: NextClassHeroProps) {
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
                   isLive
                     ? 'bg-white text-emerald-950 hover:bg-emerald-50 shadow-emerald-900/30 font-extrabold'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'
+                    : 'bg-[#55C832] hover:bg-[#4eb52c] text-white shadow-emerald-600/30'
                 }`}
               >
                 <Video className="h-4 w-4" />

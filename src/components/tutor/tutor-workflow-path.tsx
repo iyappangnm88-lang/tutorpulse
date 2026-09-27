@@ -10,12 +10,14 @@ import {
   Sparkles,
   Video,
   FileText,
-  CheckCircle2,
+  BarChart3,
+  RefreshCw,
+  Check,
   ArrowRight,
   ChevronDown,
   ChevronUp,
   Compass,
-  Check,
+  Clock,
 } from 'lucide-react'
 
 export interface TutorPathState {
@@ -31,172 +33,196 @@ export interface TutorPathState {
   nextSessionId?: string | null
 }
 
-interface PathStep {
-  id: string
+interface PathStage {
+  stepNum: string
   title: string
   subtitle: string
   description: string
-  icon: React.ElementType
-  href: string
   actionLabel: string
-  isDone: boolean
+  href: string
+  icon: React.ElementType
+  isCompleted: boolean
   isCurrent: boolean
 }
 
 export function TutorWorkflowPath({ state }: { state: TutorPathState }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const isProfileDone = state.hasProfile
-  const isBatchDone = state.batchesCount > 0
-  const isStudentsDone = state.studentsCount > 0
-  const isScheduleDone = state.hasScheduledSessions
-  const isPrepareDone = Boolean(state.hasPreparedQuestions)
-  const isTeachDone = state.hasCompletedSession
-  const isAssignDone = state.hasAssignedWork
-  const isTrackDone = state.hasTrackedAttendance
+  // Evaluation of the 9 stages
+  const s1_setUp = state.hasProfile
+  const s2_buildBatch = state.batchesCount > 0
+  const s3_addStudents = state.studentsCount > 0
+  const s4_schedule = state.hasScheduledSessions
+  const s5_prepare = Boolean(state.hasPreparedQuestions)
+  const s6_teach = state.hasCompletedSession
+  const s7_assign = state.hasAssignedWork
+  const s8_review = state.hasTrackedAttendance
+  const s9_continue = s6_teach && s7_assign && s8_review
 
-  let currentStepId = 'step-1'
-  if (!isProfileDone) currentStepId = 'step-1'
-  else if (!isBatchDone) currentStepId = 'step-2'
-  else if (!isStudentsDone) currentStepId = 'step-3'
-  else if (!isScheduleDone) currentStepId = 'step-4'
-  else if (!isPrepareDone) currentStepId = 'step-5'
-  else if (!isTeachDone) currentStepId = 'step-6'
-  else if (!isAssignDone) currentStepId = 'step-7'
-  else if (!isTrackDone) currentStepId = 'step-8'
-  else currentStepId = 'step-6'
+  // Determine current active stage
+  let activeStepNum = '01'
+  if (!s1_setUp) activeStepNum = '01'
+  else if (!s2_buildBatch) activeStepNum = '02'
+  else if (!s3_addStudents) activeStepNum = '03'
+  else if (!s4_schedule) activeStepNum = '04'
+  else if (!s5_prepare) activeStepNum = '05'
+  else if (!s6_teach) activeStepNum = '06'
+  else if (!s7_assign) activeStepNum = '07'
+  else if (!s8_review) activeStepNum = '08'
+  else activeStepNum = '09'
 
-  const steps: PathStep[] = [
+  const isNewTutor = state.batchesCount === 0 || state.studentsCount === 0
+
+  const stages: PathStage[] = [
     {
-      id: 'step-1',
-      title: '1. Set Up Profile',
-      subtitle: 'Bio, Subjects & Rate',
-      description: 'Introduce yourself to prospective students and parents with your expertise.',
-      icon: UserCheck,
+      stepNum: '01',
+      title: 'Set Up',
+      subtitle: 'Workspace & Profile',
+      description: 'Prepare your tutor workspace, bio, subjects, rate, and teaching mode.',
+      actionLabel: s1_setUp ? 'Edit Profile' : 'Complete Profile',
       href: '/dashboard/settings',
-      actionLabel: isProfileDone ? 'Update Profile' : 'Set Up Profile',
-      isDone: isProfileDone,
-      isCurrent: currentStepId === 'step-1',
+      icon: UserCheck,
+      isCompleted: s1_setUp,
+      isCurrent: activeStepNum === '01',
     },
     {
-      id: 'step-2',
-      title: '2. Build Cohort Batch',
-      subtitle: 'Subject, Grade & Mode',
-      description: 'Create your cohort with its recurring weekly schedule and mode (online/offline).',
+      stepNum: '02',
+      title: 'Build Batch',
+      subtitle: 'Teaching Cohort',
+      description: 'Create your cohort with its recurring schedule and online/offline mode.',
+      actionLabel: s2_buildBatch ? 'Manage Batches' : 'Create Batch',
+      href: s2_buildBatch ? '/dashboard/batches' : '/dashboard/batches/new',
       icon: Layers,
-      href: '/dashboard/batches/new',
-      actionLabel: isBatchDone ? 'Manage Batches' : 'Create Batch',
-      isDone: isBatchDone,
-      isCurrent: currentStepId === 'step-2',
+      isCompleted: s2_buildBatch,
+      isCurrent: activeStepNum === '02',
     },
     {
-      id: 'step-3',
-      title: '3. Add Students',
-      subtitle: 'Invite Code & Enrollments',
-      description: 'Share your classroom invite code or accept student enrollment requests.',
-      icon: UserPlus,
+      stepNum: '03',
+      title: 'Add Students',
+      subtitle: 'Invite & Connect',
+      description: 'Share your classroom invite code or accept enrollment requests.',
+      actionLabel: s3_addStudents ? 'View Roster' : 'Invite Students',
       href: '/dashboard/students',
-      actionLabel: isStudentsDone ? 'View Roster' : 'Invite Students',
-      isDone: isStudentsDone,
-      isCurrent: currentStepId === 'step-3',
+      icon: UserPlus,
+      isCompleted: s3_addStudents,
+      isCurrent: activeStepNum === '03',
     },
     {
-      id: 'step-4',
-      title: '4. Schedule & Routine',
-      subtitle: 'Calendar & Frequency',
-      description: 'Review auto-generated recurring class sessions and set weekly streak targets.',
-      icon: Calendar,
-      href: '/dashboard/calendar',
+      stepNum: '04',
+      title: 'Schedule',
+      subtitle: 'Class Calendar',
+      description: 'Review auto-generated recurring class sessions and weekly streak targets.',
       actionLabel: 'Open Calendar',
-      isDone: isScheduleDone,
-      isCurrent: currentStepId === 'step-4',
+      href: '/dashboard/calendar',
+      icon: Calendar,
+      isCompleted: s4_schedule,
+      isCurrent: activeStepNum === '04',
     },
     {
-      id: 'step-5',
-      title: '5. Prepare Classroom',
-      subtitle: 'Fast Answers & Rewards',
-      description: 'Preload interactive questions and configure Gold Coin speed rewards.',
-      icon: Sparkles,
+      stepNum: '05',
+      title: 'Prepare',
+      subtitle: 'Questions & Rewards',
+      description: 'Preload fast-answer questions and configure Gold Coin rewards.',
+      actionLabel: 'Prepare Class',
       href: '/dashboard/classroom',
-      actionLabel: 'Question Bank',
-      isDone: isPrepareDone,
-      isCurrent: currentStepId === 'step-5',
+      icon: Sparkles,
+      isCompleted: s5_prepare,
+      isCurrent: activeStepNum === '05',
     },
     {
-      id: 'step-6',
-      title: '6. Teach Live Session',
-      subtitle: 'Video, Whiteboard & Fast Answers',
-      description: 'Run interactive classes with real-time participation, chat, and live leaderboards.',
-      icon: Video,
+      stepNum: '06',
+      title: 'Teach',
+      subtitle: 'Live Interactive Session',
+      description: 'Run interactive classes with real-time video, whiteboard, chat, and rankings.',
+      actionLabel: 'Open Classroom',
       href: state.nextSessionId ? ('/dashboard/classroom/' + state.nextSessionId) : '/dashboard/classroom',
-      actionLabel: 'Launch Classroom',
-      isDone: isTeachDone,
-      isCurrent: currentStepId === 'step-6',
+      icon: Video,
+      isCompleted: s6_teach,
+      isCurrent: activeStepNum === '06',
     },
     {
-      id: 'step-7',
-      title: '7. Assign Work',
-      subtitle: 'Homework & Practice Tests',
-      description: 'Send assignments and evaluate student submissions with personalized feedback.',
-      icon: FileText,
+      stepNum: '07',
+      title: 'Assign',
+      subtitle: 'Homework & Practice',
+      description: 'Distribute assignments and practice assessments to your cohorts.',
+      actionLabel: 'Assign Work',
       href: '/dashboard/homework/new',
-      actionLabel: 'Create Assignment',
-      isDone: isAssignDone,
-      isCurrent: currentStepId === 'step-7',
+      icon: FileText,
+      isCompleted: s7_assign,
+      isCurrent: activeStepNum === '07',
     },
     {
-      id: 'step-8',
-      title: '8. Track & Continue',
-      subtitle: 'Attendance, Marks & Streaks',
-      description: 'Review student attendance records, test performance, and reward milestones.',
-      icon: CheckCircle2,
+      stepNum: '08',
+      title: 'Review',
+      subtitle: 'Attendance & Results',
+      description: 'Check attendance rosters, test scores, and student weekly streak health.',
+      actionLabel: 'View Progress',
       href: '/dashboard/attendance',
-      actionLabel: 'Review Roster',
-      isDone: isTrackDone,
-      isCurrent: currentStepId === 'step-8',
+      icon: BarChart3,
+      isCompleted: s8_review,
+      isCurrent: activeStepNum === '08',
+    },
+    {
+      stepNum: '09',
+      title: 'Continue',
+      subtitle: 'Next Teaching Cycle',
+      description: 'Review upcoming classes and prepare the next week of cohort milestones.',
+      actionLabel: 'Plan Ahead',
+      href: '/dashboard/calendar',
+      icon: RefreshCw,
+      isCompleted: s9_continue,
+      isCurrent: activeStepNum === '09',
     },
   ]
 
-  const completedCount = steps.filter((s) => s.isDone).length
-  const progressPercent = Math.round((completedCount / steps.length) * 100)
-  const activeStep = steps.find((s) => s.isCurrent) || steps[0]
+  const completedCount = stages.filter((s) => s.isCompleted).length
+  const progressPercent = Math.round((completedCount / stages.length) * 100)
+  const currentStage = stages.find((s) => s.isCurrent) || stages[0]
 
   return (
-    <section className="bg-white rounded-2xl border border-emerald-100 shadow-xs overflow-hidden transition-all duration-200">
+    <section className="bg-white rounded-3xl border border-emerald-100/90 shadow-xs overflow-hidden transition-all duration-200">
       {/* Top Banner Header */}
-      <div className="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white px-5 py-4 border-b border-emerald-100/60">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-gradient-to-r from-emerald-50 via-[#FAFBEF] to-white px-5 sm:px-6 py-4 sm:py-5 border-b border-emerald-100/70">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#55C832] text-white flex items-center justify-center shadow-xs shrink-0">
-              <Compass className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-[#55C832] text-white flex items-center justify-center shadow-xs shrink-0">
+              <Compass className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-gray-900 text-sm sm:text-base">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-extrabold text-[#172B4D] text-base sm:text-lg tracking-tight">
                   Tutor Path 🧭
                 </h3>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                  {completedCount} of {steps.length} Steps Complete
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#55C832]/20 text-[#318A25] border border-[#55C832]/30">
+                  {isNewTutor ? 'Workspace Setup' : 'Operational Workflow'}
+                </span>
+                <span className="text-xs font-semibold text-gray-500">
+                  Stage {activeStepNum} of 09 · {completedCount} completed
                 </span>
               </div>
-              <p className="text-xs text-gray-600 mt-0.5">
-                Your operational workflow for launching and scaling high-engagement teaching cohorts.
+              <p className="text-xs text-gray-600 mt-1">
+                {isNewTutor
+                  ? "Welcome to Nuzigo! Follow this operational guide to get your teaching workspace and first cohort ready."
+                  : "Your operational workflow for running, scheduling, and tracking your coaching batches."}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center">
+          <div className="flex items-center gap-2.5 self-start sm:self-center shrink-0">
+            {/* Primary Action Button */}
             <Link
-              href={activeStep.href}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#55C832] hover:bg-[#4eb52c] transition-colors shadow-xs"
+              href={currentStage.href}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#55C832] hover:bg-[#4eb52c] active:bg-[#318A25] transition-colors shadow-xs"
             >
-              <span>{activeStep.actionLabel}</span>
+              <span>{currentStage.actionLabel}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
+            {/* Toggle Full Journey */}
             <button
+              type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-[#172B4D] bg-gray-100 hover:bg-gray-200 transition-colors"
               aria-label={isExpanded ? 'Collapse Tutor Path' : 'Expand Tutor Path'}
             >
               <span>{isExpanded ? 'Hide Steps' : 'View Path'}</span>
@@ -206,97 +232,109 @@ export function TutorWorkflowPath({ state }: { state: TutorPathState }) {
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-3.5 flex items-center gap-3">
-          <div className="flex-1 bg-gray-200/80 rounded-full h-2 overflow-hidden">
+        <div className="mt-4 flex items-center gap-3">
+          <div className="flex-1 bg-gray-200/80 rounded-full h-2.5 overflow-hidden">
             <div
               className="bg-[#55C832] h-full rounded-full transition-all duration-500"
-              style={{ width: Math.max(8, progressPercent) + '%' }}
+              style={{ width: Math.max(10, progressPercent) + '%' }}
             />
           </div>
-          <span className="text-xs font-bold text-gray-700 shrink-0">
+          <span className="text-xs font-extrabold text-[#172B4D] shrink-0">
             {progressPercent}%
           </span>
         </div>
       </div>
 
-      {/* Recommended Next Step Callout */}
+      {/* Compact Next Step Callout (Visible when collapsed) */}
       {!isExpanded && (
-        <div className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/20 text-xs">
+        <div className="px-5 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFBEF] border-b border-emerald-50 text-xs">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="flex h-2 w-2 rounded-full bg-[#55C832] animate-pulse shrink-0" />
-            <span className="font-bold text-gray-900 shrink-0">Next Up:</span>
-            <span className="text-gray-700 truncate">{activeStep.title} — {activeStep.description}</span>
+            <span className="flex h-2.5 w-2.5 rounded-full bg-[#55C832] animate-pulse shrink-0" />
+            <span className="font-extrabold text-[#172B4D] shrink-0">Next Up:</span>
+            <span className="font-bold text-[#318A25] shrink-0">
+              {currentStage.stepNum} · {currentStage.title}
+            </span>
+            <span className="text-gray-600 truncate">— {currentStage.description}</span>
           </div>
+
           <Link
-            href={activeStep.href}
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 shrink-0"
+            href={currentStage.href}
+            className="text-xs font-extrabold text-[#318A25] hover:text-[#55C832] flex items-center gap-1 shrink-0 group"
           >
-            <span>Proceed</span>
-            <ArrowRight className="w-3 h-3" />
+            <span>{currentStage.actionLabel}</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
       )}
 
-      {/* Expanded Workflow Grid */}
+      {/* Horizontal / Grid Visual Journey (Visible when expanded) */}
       {isExpanded && (
-        <div className="p-5 bg-white border-t border-gray-100">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {steps.map((step) => {
-              const StepIcon = step.icon
+        <div className="p-5 sm:p-6 bg-white border-t border-gray-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3.5">
+            {stages.map((stage) => {
+              const StageIcon = stage.icon
+              const isPast = stage.isCompleted
+              const isCurrent = stage.isCurrent
+
               return (
                 <div
-                  key={step.id}
-                  className={`relative p-3.5 rounded-xl border transition-all ${
-                    step.isCurrent
-                      ? 'border-[#55C832] bg-emerald-50/30 ring-1 ring-[#55C832]/40 shadow-xs'
-                      : step.isDone
-                      ? 'border-gray-200 bg-gray-50/50'
+                  key={stage.stepNum}
+                  className={`relative rounded-2xl p-4 border transition-all ${
+                    isCurrent
+                      ? 'border-[#55C832] bg-emerald-50/40 ring-2 ring-[#55C832]/30 shadow-xs'
+                      : isPast
+                      ? 'border-gray-200 bg-gray-50/60'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2.5">
                       <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          step.isDone
-                            ? 'bg-[#55C832] text-white'
-                            : step.isCurrent
-                            ? 'bg-emerald-100 text-emerald-800'
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
+                          isPast
+                            ? 'bg-[#55C832] text-white shadow-2xs'
+                            : isCurrent
+                            ? 'bg-[#172B4D] text-white ring-2 ring-[#55C832]'
                             : 'bg-gray-100 text-gray-500'
                         }`}
                       >
-                        {step.isDone ? <Check className="w-4 h-4 stroke-[3]" /> : <StepIcon className="w-3.5 h-3.5" />}
+                        {isPast ? <Check className="w-4 h-4 stroke-[3]" /> : <StageIcon className="w-4 h-4" />}
                       </div>
-                      <span className="text-xs font-bold text-gray-900 leading-tight">
-                        {step.title}
-                      </span>
+                      <div>
+                        <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                          Stage {stage.stepNum}
+                        </span>
+                        <h4 className="text-sm font-bold text-[#172B4D] leading-tight">
+                          {stage.title}
+                        </h4>
+                      </div>
                     </div>
 
-                    {step.isDone && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                    {isPast && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-[#318A25]">
                         Done
                       </span>
                     )}
-                    {step.isCurrent && !step.isDone && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#55C832] text-white">
-                        Current
+                    {isCurrent && (
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#55C832] text-white">
+                        Active
                       </span>
                     )}
                   </div>
 
-                  <p className="text-[11px] text-gray-600 mt-2 line-clamp-2 leading-relaxed">
-                    {step.description}
+                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                    {stage.description}
                   </p>
 
-                  <div className="mt-3 pt-2.5 border-t border-gray-100/80 flex items-center justify-between">
-                    <span className="text-[10px] font-medium text-gray-400">
-                      {step.subtitle}
+                  <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-gray-400">
+                      {stage.subtitle}
                     </span>
                     <Link
-                      href={step.href}
-                      className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 group"
+                      href={stage.href}
+                      className="text-xs font-bold text-[#318A25] hover:text-[#55C832] flex items-center gap-1 group"
                     >
-                      <span>{step.actionLabel}</span>
+                      <span>{stage.actionLabel}</span>
                       <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
