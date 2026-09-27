@@ -26,7 +26,7 @@ export function ClassModeSelector({
   lockedWorkspace,
   isEdit = false,
 }: ClassModeSelectorProps) {
-  // TutorPulse strictly offers two distinct teaching systems: Offline (Physical) or Online (Virtual)
+  // Nuzigo strictly offers two distinct teaching systems: Offline (Physical) or Online (Virtual)
   const modes: Array<{
     id: 'offline' | 'online'
     title: string
@@ -185,7 +185,7 @@ export function ClassModeSelector({
               Online Virtual Classroom Enabled
             </p>
             <p className="text-[11px] text-indigo-800 leading-relaxed">
-              No physical address needed. Classes for this batch will launch in TutorPulse&apos;s integrated WebRTC classroom with video, microphone, screen sharing, and interactive class chat.
+              No physical address needed. Classes for this batch will launch in Nuzigo&apos;s integrated WebRTC classroom with video, microphone, screen sharing, and interactive class chat.
             </p>
           </div>
         </div>

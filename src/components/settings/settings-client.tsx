@@ -193,7 +193,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
         'success',
         isPublicMarketplace ? 'Public Profile Live' : 'Public Profile Saved',
         isPublicMarketplace
-          ? 'Your profile is now visible on the Nuzilo Marketplace.'
+          ? 'Your profile is now visible on the Nuzigo Marketplace.'
           : 'Your public profile settings have been saved (marketplace visibility is currently OFF).'
       )
       router.refresh()
@@ -334,7 +334,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
                 </h2>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
-                Control your presence on the public TutorPulse directory and enable student join requests.
+                Control your presence on the public Nuzigo directory and enable student join requests.
               </p>
             </div>
 

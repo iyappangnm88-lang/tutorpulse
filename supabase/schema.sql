@@ -239,6 +239,7 @@ CREATE TABLE IF NOT EXISTS public.batches (
     class_mode TEXT DEFAULT 'offline' CHECK (class_mode IN ('offline', 'online')),
     location TEXT,
     description TEXT,
+    classes_per_week INTEGER DEFAULT 3 CHECK (classes_per_week BETWEEN 1 AND 7),
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived')),
     CONSTRAINT check_valid_working_days CHECK (
         working_days <@ ARRAY['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']::TEXT[]

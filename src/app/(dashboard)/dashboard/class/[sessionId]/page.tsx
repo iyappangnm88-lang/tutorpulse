@@ -15,7 +15,7 @@ interface OfflineClassPageProps {
 export async function generateMetadata({ params }: OfflineClassPageProps): Promise<Metadata> {
   const { sessionId } = await params
   return {
-    title: `Physical Class Session — Nuzilo`,
+    title: `Physical Class Session — Nuzigo`,
   }
 }
 

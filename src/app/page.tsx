@@ -23,7 +23,7 @@ import {
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Nuzilo — Learning that feels alive',
+  title: 'Nuzigo — Learning that feels alive',
   description:
     'The gamified, live online classroom and management platform for tutors and students. Interactive speed quizzes, daily streaks, gold coins, and powerful batch workflows.',
 }
@@ -43,7 +43,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-black text-slate-900 tracking-tight leading-none">
-                Nuzilo
+                Nuzigo
               </span>
               <span className="text-[10px] font-bold text-[#3C9E00] tracking-wide">
                 Learning that feels alive
@@ -53,7 +53,7 @@ export default function LandingPage() {
 
           <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-600">
             <a href="#path" className="hover:text-slate-900 transition-colors">
-              Nuzilo Path
+              Nuzigo Path
             </a>
             <a href="#classroom" className="hover:text-slate-900 transition-colors">
               Classroom 2.0
@@ -76,7 +76,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/signup"
-              className="btn-nuzilo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
+              className="btn-nuzigo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
             >
               <span>Get Started</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -101,20 +101,20 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
-            Turn every class into a vibrant adventure. With the curved Nuzilo Path, live speed questions with virtual Gold Coins, and professional tutor batch management.
+            Turn every class into a vibrant adventure. With the curved Nuzigo Path, live speed questions with virtual Gold Coins, and professional tutor batch management.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/signup"
-              className="btn-nuzilo-primary text-sm font-black px-7 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
+              className="btn-nuzigo-primary text-sm font-black px-7 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
             >
               <span>Start Learning Free</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/explore"
-              className="btn-nuzilo-secondary text-sm font-bold px-7 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto"
+              className="btn-nuzigo-secondary text-sm font-bold px-7 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <Compass className="h-4 w-4 text-[#3C9E00]" />
               <span>Explore Verified Tutors</span>
@@ -192,7 +192,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* The Nuzilo Path Experience Section */}
+      {/* The Nuzigo Path Experience Section */}
       <section id="path" className="py-20 border-t border-slate-200/80 bg-white px-4 sm:px-6">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
@@ -200,7 +200,7 @@ export default function LandingPage() {
               Student Journey
             </span>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-              The Curved Nuzilo Path
+              The Curved Nuzigo Path
             </h2>
             <p className="text-sm text-slate-600 leading-relaxed font-medium">
               Say goodbye to boring lists. Students progress through an interactive, curved visual path with unlockable nodes, milestone badges, and joyful celebration sounds.
@@ -310,7 +310,7 @@ export default function LandingPage() {
                   N
                 </div>
                 <span className="text-lg font-black text-slate-900 tracking-tight">
-                  Nuzilo
+                  Nuzigo
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium">Learning that feels alive.</p>
@@ -318,7 +318,7 @@ export default function LandingPage() {
 
             <div className="flex flex-wrap items-center gap-6 text-xs font-bold text-slate-600">
               <a href="#path" className="hover:text-slate-900 transition-colors">
-                Nuzilo Path
+                Nuzigo Path
               </a>
               <a href="#classroom" className="hover:text-slate-900 transition-colors">
                 Classroom 2.0
@@ -336,7 +336,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t border-slate-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-            <p>&copy; {new Date().getFullYear()} Nuzilo. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Nuzigo. All rights reserved.</p>
 
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 font-medium text-slate-600">
               <span>Designed & Developed by Kishore</span>

@@ -42,11 +42,12 @@ import { PageGuide } from '@/components/help/page-guide'
 import { OnboardingChecklist } from '@/components/help/onboarding-checklist'
 import { InviteCodeBadge } from '@/components/dashboard/invite-code-badge'
 import { NextClassHero } from '@/components/dashboard/next-class-hero'
+import { TutorWorkflowPath } from '@/components/tutor/tutor-workflow-path'
 import type { Metadata } from 'next'
 import type { ClassSessionWithBatch } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'Dashboard — Nuzilo',
+  title: 'Dashboard — Nuzigo',
 }
 
 export const dynamic = 'force-dynamic'
@@ -331,6 +332,26 @@ export default async function DashboardPage() {
     day: 'numeric',
   })
 
+  // Fetch tutor profile completeness for the Adaptive Tutor Path
+  const { data: tutorProfile } = await supabase
+    .from('profiles')
+    .select('full_name, bio, subjects')
+    .eq('id', user?.id || '')
+    .maybeSingle()
+
+  const tutorPathState = {
+    hasProfile: Boolean(tutorProfile?.full_name && tutorProfile?.bio),
+    batchesCount,
+    studentsCount,
+    hasScheduledSessions: (todaySessions.length + upcomingSessions.length) > 0,
+    hasPreparedQuestions: false,
+    hasCompletedSession: todaySessions.some((s) => s.status === 'completed') || ((reportData?.kpis.overall_attendance_pct ?? 0) > 0),
+    hasAssignedWork: (homeworkRes.data?.length || 0) > 0 || (testsRes.data?.length || 0) > 0,
+    hasTrackedAttendance: (reportData?.kpis.overall_attendance_pct ?? 0) > 0,
+    inviteCode: activeWorkspace?.invite_code || null,
+    nextSessionId: nextSession?.id || null,
+  }
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* 1. Welcome Hero Banner with Active Workspace Indicator */}
@@ -423,6 +444,9 @@ export default async function DashboardPage() {
           workspaceType={workspaceType}
         />
       )}
+
+      {/* Adaptive Tutor Operational Path */}
+      <TutorWorkflowPath state={tutorPathState} />
 
       {/* Tutor Getting Started Checklist */}
       <OnboardingChecklist

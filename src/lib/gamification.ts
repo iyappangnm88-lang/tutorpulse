@@ -56,7 +56,7 @@ export async function getStudentGamificationOverview(
     .eq('student_user_id', studentUserId)
     .order('order_index', { ascending: true })
 
-  // Auto-provision initial Nuzilo Path nodes if student has none
+  // Auto-provision initial Nuzigo Path nodes if student has none
   if (!nodes || nodes.length === 0) {
     nodes = await seedDefaultLearningPath(studentUserId)
   }
@@ -73,7 +73,7 @@ export async function getStudentGamificationOverview(
 }
 
 /**
- * Seeds a default 5-node Nuzilo Path for a new or existing student
+ * Seeds a default 5-node Nuzigo Path for a new or existing student
  */
 export async function seedDefaultLearningPath(
   studentUserId: string
@@ -83,7 +83,7 @@ export async function seedDefaultLearningPath(
   const defaultNodes = [
     {
       student_user_id: studentUserId,
-      title: 'Welcome to Nuzilo',
+      title: 'Welcome to Nuzigo',
       description: 'Explore your interactive learning hub and join your first live classroom',
       node_type: 'live_class' as const,
       status: 'current' as const,

@@ -9,7 +9,7 @@ import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Parents — Nuzilo',
+  title: 'Parents — Nuzigo',
 }
 
 export const dynamic = 'force-dynamic'

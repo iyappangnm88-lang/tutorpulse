@@ -23,17 +23,27 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { JoinTutorModal } from './join-tutor-modal'
-import { NuziloPath } from './nuzilo-path'
+import { StudentLearningJourney } from './student-learning-journey'
+import { StudentScheduleStreak } from './student-schedule-streak'
 import type { StudentDashboardData } from '@/lib/student-portal'
 import type { StudentGamificationOverview } from '@/lib/gamification'
+import type { StudentWeeklyStreaks } from '@/lib/streaks'
+import type { StudentJourneyData } from '@/lib/student-journey'
 import { Flame, Trophy } from 'lucide-react'
 
 interface StudentDashboardClientProps {
   data: StudentDashboardData
   gamification?: StudentGamificationOverview
+  streaks?: StudentWeeklyStreaks
+  journey?: StudentJourneyData
 }
 
-export function StudentDashboardClient({ data, gamification }: StudentDashboardClientProps) {
+export function StudentDashboardClient({
+  data,
+  gamification,
+  streaks,
+  journey,
+}: StudentDashboardClientProps) {
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const {
     profile,
@@ -73,7 +83,7 @@ export function StudentDashboardClient({ data, gamification }: StudentDashboardC
             N
           </span>
           <div>
-            <div className="text-xs font-bold tracking-wider uppercase text-[#3C9E00]">Nuzilo Learning</div>
+            <div className="text-xs font-bold tracking-wider uppercase text-[#3C9E00]">Nuzigo Learning</div>
             <div className="text-xs text-slate-500 font-medium">Level 1 Scholar</div>
           </div>
         </div>
@@ -83,7 +93,11 @@ export function StudentDashboardClient({ data, gamification }: StudentDashboardC
           {/* Streak */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200/80 text-orange-700 font-bold text-xs shadow-2xs">
             <span className="text-base leading-none">🔥</span>
-            <span>{streak}d Streak</span>
+            <span>
+              {streaks && streaks.overallStreakWeeks > 0
+                ? `${streaks.overallStreakWeeks}w Streak`
+                : `${streak}d Streak`}
+            </span>
           </div>
 
           {/* Gold Coins */}
@@ -106,7 +120,7 @@ export function StudentDashboardClient({ data, gamification }: StudentDashboardC
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#58CC02] px-3 py-1 text-xs font-bold text-white shadow-xs">
               <Sparkles className="h-3.5 w-3.5" />
-              Nuzilo Student
+              Nuzigo Student
             </span>
             {profile.gradeLevel && (
               <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-slate-100 backdrop-blur-xs">
@@ -132,15 +146,15 @@ export function StudentDashboardClient({ data, gamification }: StudentDashboardC
                   connectedTutors.length === 1 ? 'tutor' : 'tutors'
                 } across ${enrolledBatches.length} ${
                   enrolledBatches.length === 1 ? 'batch' : 'batches'
-                }. Complete milestones on your Nuzilo Path below to collect XP, level up, and earn Gold Coins.`
-              : 'Welcome to Nuzilo! Connect with your teachers using an invite code or explore verified tutors to start your live interactive learning journey.'}
+                }. Complete milestones on your Nuzigo Path below to collect XP, level up, and earn Gold Coins.`
+              : 'Welcome to Nuzigo! Connect with your teachers using an invite code or explore verified tutors to start your live interactive learning journey.'}
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => setJoinModalOpen(true)}
-              className="btn-nuzilo-primary px-4 py-2 text-xs flex items-center gap-1.5 shadow-sm"
+              className="btn-nuzigo-primary px-4 py-2 text-xs flex items-center gap-1.5 shadow-sm"
             >
               <UserPlus className="h-4 w-4" />
               {hasTutors ? 'Connect Another Tutor' : 'Join with Invite Code'}
@@ -167,32 +181,35 @@ export function StudentDashboardClient({ data, gamification }: StudentDashboardC
         </div>
 
         {/* Decorative background glow */}
-        <div className="absolute -right-12 -bottom-12 h-64 w-64 rounded-full bg-[#58CC02]/20 blur-3xl pointer-events-none" />
-        <div className="absolute right-20 -top-10 h-44 w-44 rounded-full bg-[#FFC800]/15 blur-2xl pointer-events-none" />
+        <div className="absolute -right-12 -bottom-12 h-64 w-64 rounded-full bg-[#55C832]/20 blur-3xl pointer-events-none" />
+        <div className="absolute right-20 -top-10 h-44 w-44 rounded-full bg-[#FFC928]/15 blur-2xl pointer-events-none" />
       </div>
 
-      {/* 3. NUZILO PATH SECTION */}
-      {nodes.length > 0 && (
-        <div className="card-nuzilo p-6 sm:p-8" id="path">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#58CC02]/15 text-[#3C9E00] text-xs font-extrabold tracking-wide uppercase mb-1">
-                <Sparkles className="h-3.5 w-3.5" /> Learning Journey
-              </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">Your Nuzilo Path</h2>
-            </div>
-            <div className="text-xs font-semibold text-slate-500">
-              Tap a node to preview and begin
-            </div>
-          </div>
-
-          <NuziloPath nodes={nodes} />
+      {/* 3. SCHEDULE-BASED WEEKLY STREAK SECTION */}
+      {streaks && (
+        <div id="streaks">
+          <StudentScheduleStreak streaks={streaks} />
         </div>
       )}
 
+      {/* 4. REAL ACTIVITY-BASED STUDENT LEARNING JOURNEY */}
+      <div id="journey">
+        <StudentLearningJourney
+          journey={
+            journey || {
+              nodes: [],
+              totalActivitiesCompleted: 0,
+              totalXpFromActivities: 0,
+              nextMilestoneCount: 5,
+            }
+          }
+          studentName={profile.fullName}
+        />
+      </div>
+
       {/* 4. BADGES & ACHIEVEMENTS SHELF */}
       {badges.length > 0 && (
-        <div className="card-nuzilo p-5 sm:p-6">
+        <div className="card-nuzigo p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xl">🏆</span>

@@ -357,7 +357,7 @@ export function MarketplaceHomeClient({
                         </p>
                       ) : (
                         <p className="text-xs text-gray-400 italic">
-                          Independent Tutor on TutorPulse
+                          Independent Tutor on Nuzigo
                         </p>
                       )}
 
@@ -440,7 +440,7 @@ export function MarketplaceHomeClient({
               <h3 className="text-base font-bold text-gray-900">
                 {hasActiveFilters
                   ? 'No tutors match your filter criteria'
-                  : 'Welcome to the TutorPulse Directory'}
+                  : 'Welcome to the Nuzigo Directory'}
               </h3>
               <p className="text-xs text-gray-500 leading-relaxed">
                 {hasActiveFilters
@@ -504,7 +504,7 @@ export function MarketplaceHomeClient({
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white py-6 mt-12 text-center text-xs text-gray-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© {new Date().getFullYear()} TutorPulse. Empowering independent education.</p>
+          <p>© {new Date().getFullYear()} Nuzigo. Empowering independent education.</p>
           <div className="flex items-center gap-4 text-[11px]">
             <Link href="/tutors" className="hover:text-indigo-600">
               Browse Directory

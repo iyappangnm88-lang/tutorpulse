@@ -50,6 +50,7 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
     class_mode: (initialData?.class_mode || effectiveWorkspace) as ClassMode,
     location: initialData?.location || '',
     description: initialData?.description || '',
+    classes_per_week: (initialData as any)?.classes_per_week ?? (initialData?.working_days?.length || 3),
     is_public: initialData?.is_public ?? false,
     public_description: initialData?.public_description || '',
     status: (initialData?.status || 'active') as BatchStatus,
@@ -102,6 +103,7 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
           class_mode: formData.class_mode,
           location: formData.class_mode === 'online' ? null : (formData.location || null),
           description: formData.description || null,
+          classes_per_week: Number(formData.classes_per_week) || 3,
           is_public: formData.is_public,
           public_description: formData.public_description || null,
           status: formData.status,
@@ -128,6 +130,7 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
           class_mode: formData.class_mode,
           location: formData.class_mode === 'online' ? null : (formData.location || null),
           description: formData.description || null,
+          classes_per_week: Number(formData.classes_per_week) || 3,
           is_public: formData.is_public,
           public_description: formData.public_description || null,
           status: formData.status,
@@ -233,12 +236,48 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
           <WorkingDaysSelector
             value={formData.working_days}
             onChange={(days) => {
-              setFormData({ ...formData, working_days: days })
+              setFormData({
+                ...formData,
+                working_days: days,
+                classes_per_week: days.length > 0 ? days.length : formData.classes_per_week || 3,
+              })
               if (errors.working_days) setErrors((prev) => ({ ...prev, working_days: '' }))
             }}
             error={errors.working_days}
             disabled={loading}
           />
+
+          {/* Classes Per Week (Schedule-based Streak) */}
+          <div className="border-t border-gray-100 pt-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="classes_per_week">Weekly Classes Target</Label>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Expected classes per week for this batch. Powers schedule-based student streaks.
+                </p>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {formData.classes_per_week} {formData.classes_per_week === 1 ? 'class' : 'classes'} / week
+              </span>
+            </div>
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, classes_per_week: num })}
+                  disabled={loading}
+                  className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                    formData.classes_per_week === num
+                      ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-500 ring-offset-1'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="border-t border-gray-100 pt-5">
             {/* Time Range Picker */}
@@ -319,7 +358,7 @@ export function BatchForm({ initialData, mode }: BatchFormProps) {
                   </span>
                 </div>
                 <p className="text-xs text-gray-600">
-                  Allow prospective students on Nuzilo Marketplace to discover this batch and send join requests.
+                  Allow prospective students on Nuzigo Marketplace to discover this batch and send join requests.
                   Existing student rosters and private attendance remain 100% confidential.
                 </p>
               </div>

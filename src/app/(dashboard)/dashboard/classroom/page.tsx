@@ -26,7 +26,7 @@ import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Online Classroom — Nuzilo',
+  title: 'Online Classroom — Nuzigo',
 }
 
 export const dynamic = 'force-dynamic'

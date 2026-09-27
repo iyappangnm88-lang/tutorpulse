@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: StudentDetailPageProps): Prom
   const { id } = await params
   const { data: student } = await getStudentById(id)
   return {
-    title: student ? `${student.full_name} — Nuzilo` : 'Student Details — Nuzilo',
+    title: student ? `${student.full_name} — Nuzigo` : 'Student Details — Nuzigo',
   }
 }
 

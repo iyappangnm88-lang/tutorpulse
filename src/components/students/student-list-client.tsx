@@ -90,7 +90,7 @@ export function StudentListClient({
       <EmptyStateGuide
         icon={<Users className="h-7 w-7 text-indigo-600" />}
         title="Your Student Roster is Empty"
-        whatIsMissing="You haven't added any students to TutorPulse yet."
+        whatIsMissing="You haven't added any students to Nuzigo yet."
         whyItMatters="Every attendance sheet, homework assignment, test result, and fee record is linked to a student."
         whatToDoNext="Click 'Add Student' below. Enter their name and grade to get started immediately."
         primaryAction={{

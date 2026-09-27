@@ -115,7 +115,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
-              Nuzilo
+              Nuzigo
               <span className="text-[10px] font-bold text-[#3C9E00] bg-[#58CC02]/15 px-1.5 py-0.5 rounded border border-[#58CC02]/30">
                 Pro
               </span>

@@ -23,7 +23,7 @@ export function GlobalHelpButton({ className, variant = 'icon' }: GlobalHelpButt
             'flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-200/80 transition-colors shadow-2xs focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer',
             className
           )}
-          title="TutorPulse Help & Guides"
+          title="Nuzigo Help & Guides"
           aria-label="Open in-app help and guides"
         >
           <HelpCircle className="h-4 w-4" />

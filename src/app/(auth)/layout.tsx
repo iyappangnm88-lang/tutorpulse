@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Activity } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Nuzilo — Sign In',
+  title: 'Nuzigo — Sign In',
 }
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           N
         </div>
         <div className="text-center">
-          <span className="text-2xl font-black text-slate-900 tracking-tight">Nuzilo</span>
+          <span className="text-2xl font-black text-slate-900 tracking-tight">Nuzigo</span>
           <p className="text-xs text-[#3C9E00] font-bold">Learning that feels alive</p>
         </div>
       </Link>
@@ -30,7 +30,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Clean footer */}
       <div className="mt-8 text-center text-xs text-slate-400 space-y-1">
-        <p>&copy; {new Date().getFullYear()} Nuzilo. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Nuzigo. All rights reserved.</p>
         <p className="text-[11px] text-slate-500">Designed & Developed by Kishore • Contact: 6381889943</p>
       </div>
     </div>

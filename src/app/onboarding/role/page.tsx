@@ -16,7 +16,7 @@ export default function RoleSelectionPage() {
 
   const handleContinue = async () => {
     if (!selectedRole) {
-      setError('Please select how you will use TutorPulse to continue.')
+      setError('Please select how you will use Nuzigo to continue.')
       return
     }
 
@@ -52,7 +52,7 @@ export default function RoleSelectionPage() {
           <span>Step 1 of 2</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-          How will you use TutorPulse?
+          How will you use Nuzigo?
         </h1>
         <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
           Choose your account type to get started. Your teaching or learning tools will be tailored to your choice.

@@ -259,6 +259,7 @@ export interface Database {
           class_mode: 'offline' | 'online' | 'hybrid'
           location: string | null
           description: string | null
+          classes_per_week: number | null
           status: 'active' | 'archived'
           is_public: boolean
           public_description: string | null
@@ -279,6 +280,7 @@ export interface Database {
           class_mode?: 'offline' | 'online' | 'hybrid'
           location?: string | null
           description?: string | null
+          classes_per_week?: number | null
           status?: 'active' | 'archived'
           is_public?: boolean
           public_description?: string | null
@@ -299,6 +301,7 @@ export interface Database {
           class_mode?: 'offline' | 'online' | 'hybrid'
           location?: string | null
           description?: string | null
+          classes_per_week?: number | null
           status?: 'active' | 'archived'
           is_public?: boolean
           public_description?: string | null

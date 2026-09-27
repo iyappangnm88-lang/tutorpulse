@@ -647,7 +647,7 @@ export function BatchDetailsClient({
             {isOnline ? (
               <div className="space-y-4">
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  This online batch uses the TutorPulse native WebRTC classroom with real-time video, digital whiteboard, screen sharing, chat, polls, and raise-hand.
+                  This online batch uses the Nuzigo native WebRTC classroom with real-time video, digital whiteboard, screen sharing, chat, polls, and raise-hand.
                 </p>
 
                 {nextSession ? (

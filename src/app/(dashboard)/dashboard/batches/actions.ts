@@ -61,6 +61,9 @@ export async function createBatchAction(
       class_mode: enforcedMode,
       location: scheduleValidation.normalizedData.location,
       schedule: scheduleValidation.normalizedData.schedule,
+      classes_per_week: input.classes_per_week !== undefined && input.classes_per_week !== null
+        ? Number(input.classes_per_week)
+        : (scheduleValidation.normalizedData.working_days?.length || 3),
       description: input.description?.trim() || null,
       is_public: input.is_public ?? false,
       public_description: input.public_description?.trim() || null,
@@ -130,6 +133,7 @@ export async function updateBatchAction(
       description: input.description?.trim() || null,
       is_public: input.is_public !== undefined ? input.is_public : undefined,
       public_description: input.public_description !== undefined ? (input.public_description?.trim() || null) : undefined,
+      classes_per_week: input.classes_per_week !== undefined ? (input.classes_per_week !== null ? Number(input.classes_per_week) : null) : undefined,
       status: input.status,
     }
 

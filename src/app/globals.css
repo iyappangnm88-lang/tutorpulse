@@ -2,45 +2,67 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
-  --color-nuzilo-green: #58CC02;
-  --color-nuzilo-deep-green: #3C9E00;
+  --color-nuzigo-green: #55C832;
+  --color-nuzigo-deep-green: #318A25;
+  --color-nuzigo-navy: #172B4D;
+  --color-nuzigo-cream: #FAFBEF;
+  --color-nuzigo-yellow: #FFC928;
+  --color-nuzigo-orange: #FF9F43;
+  --color-nuzigo-red: #F05252;
+  --color-nuzigo-white: #FFFFFF;
+
+  /* Backward compatibility aliases */
+  --color-nuzilo-green: #55C832;
+  --color-nuzilo-deep-green: #318A25;
   --color-nuzilo-navy: #172B4D;
-  --color-nuzilo-cream: #FFFDF5;
-  --color-nuzilo-yellow: #FFC800;
-  --color-nuzilo-orange: #FF9600;
-  --color-nuzilo-red: #FF4B4B;
-  --color-nuzilo-purple: #8B5CF6;
+  --color-nuzilo-cream: #FAFBEF;
+  --color-nuzilo-yellow: #FFC928;
+  --color-nuzilo-orange: #FF9F43;
+  --color-nuzilo-red: #F05252;
 }
 
 :root {
-  --nuzilo-green: #58CC02;
-  --nuzilo-deep-green: #3C9E00;
+  --nuzigo-green: #55C832;
+  --nuzigo-deep-green: #318A25;
+  --nuzigo-navy: #172B4D;
+  --nuzigo-cream: #FAFBEF;
+  --nuzigo-yellow: #FFC928;
+  --nuzigo-orange: #FF9F43;
+  --nuzigo-red: #F05252;
+  --nuzigo-white: #FFFFFF;
+
+  /* Backward compatibility aliases */
+  --nuzilo-green: #55C832;
+  --nuzilo-deep-green: #318A25;
   --nuzilo-navy: #172B4D;
-  --nuzilo-cream: #FFFDF5;
-  --nuzilo-yellow: #FFC800;
-  --nuzilo-orange: #FF9600;
-  --nuzilo-red: #FF4B4B;
-  --nuzilo-purple: #8B5CF6;
+  --nuzilo-cream: #FAFBEF;
+  --nuzilo-yellow: #FFC928;
+  --nuzilo-orange: #FF9F43;
+  --nuzilo-red: #F05252;
 }
 
-/* Nuzilo Playful Buttons & Cards */
+/* Nuzigo Tactical & Playful Buttons & Cards */
+.btn-nuzigo-primary,
 .btn-nuzilo-primary {
-  background-color: #58CC02;
+  background-color: #55C832;
   color: #ffffff;
-  border-bottom: 4px solid #3C9E00;
+  border-bottom: 4px solid #318A25;
   border-radius: 14px;
   font-weight: 700;
   min-height: 48px;
   transition: transform 0.1s ease, border-bottom 0.1s ease;
 }
+.btn-nuzigo-primary:hover,
 .btn-nuzilo-primary:hover {
-  background-color: #52bf02;
+  background-color: #4eb52c;
 }
+.btn-nuzigo-primary:active,
 .btn-nuzilo-primary:active {
   transform: translateY(2px);
   border-bottom-width: 2px;
 }
 
+.btn-nuzigo-secondary,
 .btn-nuzilo-secondary {
   background-color: #ffffff;
   color: #172B4D;
@@ -51,11 +73,30 @@
   min-height: 48px;
   transition: transform 0.1s ease, border-bottom 0.1s ease;
 }
+.btn-nuzigo-secondary:active,
 .btn-nuzilo-secondary:active {
   transform: translateY(2px);
   border-bottom-width: 2px;
 }
 
+.btn-nuzigo-reward {
+  background-color: #FFC928;
+  color: #172B4D;
+  border-bottom: 4px solid #d9a30f;
+  border-radius: 14px;
+  font-weight: 700;
+  min-height: 48px;
+  transition: transform 0.1s ease, border-bottom 0.1s ease;
+}
+.btn-nuzigo-reward:hover {
+  background-color: #f7be1b;
+}
+.btn-nuzigo-reward:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+.card-nuzigo,
 .card-nuzilo {
   background: #ffffff;
   border-radius: 20px;

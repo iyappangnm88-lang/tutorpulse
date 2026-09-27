@@ -47,7 +47,7 @@ export function usePwaInstall() {
       deferredPrompt = null
       setCanInstall(false)
       setIsInstalled(true)
-      console.log('[TutorPulse PWA] App was successfully installed.')
+      console.log('[Nuzigo PWA] App was successfully installed.')
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -71,7 +71,7 @@ export function usePwaInstall() {
       }
       return false
     } catch (err) {
-      console.error('[TutorPulse PWA] Install prompt error:', err)
+      console.error('[Nuzigo PWA] Install prompt error:', err)
       return false
     }
   }
@@ -91,10 +91,10 @@ export function SidebarInstallButton() {
     <button
       onClick={promptInstall}
       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100/90 active:bg-indigo-200/90 transition-all border border-indigo-200/60 cursor-pointer shadow-2xs"
-      title="Install TutorPulse on your device"
+      title="Install Nuzigo on your device"
     >
       <Download className="h-4 w-4 text-indigo-600 shrink-0" />
-      <span className="truncate">Install TutorPulse App</span>
+      <span className="truncate">Install Nuzigo App</span>
     </button>
   )
 }
@@ -143,7 +143,7 @@ export function InstallBanner() {
         </div>
         <div className="min-w-0">
           <p className="text-xs font-bold text-gray-900 truncate">
-            Install TutorPulse
+            Install Nuzigo
           </p>
           <p className="text-[11px] text-gray-500 line-clamp-1">
             Fast, offline-ready & standalone app

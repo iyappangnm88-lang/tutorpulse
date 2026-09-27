@@ -21,7 +21,7 @@ import { getParentDashboard } from '@/lib/parent-portal'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Parent Portal — Nuzilo',
+  title: 'Parent Portal — Nuzigo',
 }
 
 export const dynamic = 'force-dynamic'

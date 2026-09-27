@@ -57,7 +57,7 @@ export function StudentSidebar({
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#58CC02] border-b-2 border-[#3C9E00] text-white shadow-xs font-black text-base">
             N
           </div>
-          <span className="text-base font-black text-slate-900 tracking-tight">Nuzilo</span>
+          <span className="text-base font-black text-slate-900 tracking-tight">Nuzigo</span>
         </Link>
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase tracking-wider">

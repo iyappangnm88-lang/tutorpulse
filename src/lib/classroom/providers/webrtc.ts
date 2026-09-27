@@ -9,7 +9,7 @@ import type {
 import type { ClassSessionWithBatch } from '@/types'
 
 /**
- * Browser-Native WebRTC Video Provider for TutorPulse.
+ * Browser-Native WebRTC Video Provider for Nuzigo.
  * Provides a free, self-hosted, vendor-independent virtual classroom.
  * Requires zero external API keys or third-party accounts.
  * Signaling and presence are handled via Supabase Realtime; peer audio/video is streamed direct via WebRTC.

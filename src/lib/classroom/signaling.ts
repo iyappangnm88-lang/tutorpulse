@@ -38,7 +38,7 @@ export interface LocalParticipantMeta {
 }
 
 /**
- * Supabase Realtime Signaling Client for Nuzilo Online Classroom.
+ * Supabase Realtime Signaling Client for Nuzigo Online Classroom.
  * Connects to a private session-scoped channel `classroom:{sessionId}`.
  * Provides presence tracking, WebRTC signaling dispatch, and in-session chat.
  */

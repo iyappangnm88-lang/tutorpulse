@@ -178,7 +178,7 @@ export function OnboardingChecklist({
               <Sparkles className="h-3.5 w-3.5" />
             </span>
             <h2 className="text-sm sm:text-base font-bold text-gray-900">
-              TutorPulse Getting Started Checklist
+              Nuzigo Getting Started Checklist
             </h2>
           </div>
           <p className="text-xs text-gray-500">

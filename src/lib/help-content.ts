@@ -1,5 +1,5 @@
 /**
- * Central In-App Guidance & Knowledge Engine for TutorPulse
+ * Central In-App Guidance & Knowledge Engine for Nuzigo
  *
  * Provides structured, plain-English explanations, step-by-step workflows,
  * key concept definitions, common mistake warnings, form field explanations,
@@ -208,7 +208,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     title: 'Batches & Scheduling Engine',
     category: 'Core Management',
     shortSummary: 'Organize students by subject and schedule. Each batch defines its own working days, start time, end time, and class mode.',
-    whyItExists: 'Tutors teach different subjects to different groups at different times. Batches are the core building block of TutorPulse: they automatically generate your calendar sessions and attendance rosters.',
+    whyItExists: 'Tutors teach different subjects to different groups at different times. Batches are the core building block of Nuzigo: they automatically generate your calendar sessions and attendance rosters.',
     whatToDoFirst: [
       'Name your batch (e.g., "Class 10 Physics").',
       'Enter the subject name.',
@@ -224,7 +224,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
       },
       {
         term: 'Working Days',
-        explanation: 'The recurring days of the week when this batch meets. TutorPulse automatically generates class sessions for these days.',
+        explanation: 'The recurring days of the week when this batch meets. Nuzigo automatically generates class sessions for these days.',
       },
       {
         term: 'Offline Mode',
@@ -232,7 +232,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
       },
       {
         term: 'Online Mode',
-        explanation: 'Classes occur virtually via TutorPulse’s integrated browser-native WebRTC classroom with video, microphone, screen sharing, and live chat.',
+        explanation: 'Classes occur virtually via Nuzigo’s integrated browser-native WebRTC classroom with video, microphone, screen sharing, and live chat.',
       },
       {
         term: 'Hybrid Mode',
@@ -252,7 +252,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
       },
       {
         mistake: 'Leaving working days unselected.',
-        solution: 'Always select at least one working day so TutorPulse can automatically build your calendar sessions.',
+        solution: 'Always select at least one working day so Nuzigo can automatically build your calendar sessions.',
       },
     ],
     fieldGuides: {
@@ -285,7 +285,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
         description: 'Select each day of the week this batch normally meets.',
         example: 'Monday, Wednesday, Friday',
         required: true,
-        tip: 'TutorPulse uses these days to automatically place class sessions onto your calendar.',
+        tip: 'Nuzigo uses these days to automatically place class sessions onto your calendar.',
       },
       start_time: {
         label: 'Start Time',
@@ -438,7 +438,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     title: 'Tests & Examination Results',
     category: 'Academic Tracking',
     shortSummary: 'Create tests, record scores, calculate percentages, and track academic growth across batches.',
-    whyItExists: 'Assessments show whether students are mastering the subject. Recording test scores in TutorPulse helps you spot struggling students early and demonstrates measurable progress to parents.',
+    whyItExists: 'Assessments show whether students are mastering the subject. Recording test scores in Nuzigo helps you spot struggling students early and demonstrates measurable progress to parents.',
     whatToDoFirst: [
       'Click "Create Test".',
       'Choose the batch and subject.',
@@ -457,7 +457,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
       },
       {
         term: 'Score Percentage',
-        explanation: 'Automatically calculated by TutorPulse as (Score / Max Marks) * 100.',
+        explanation: 'Automatically calculated by Nuzigo as (Score / Max Marks) * 100.',
       },
     ],
     recommendedWorkflow: [
@@ -520,7 +520,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     title: 'Fee Management & Payment Records',
     category: 'Tuition Finances',
     shortSummary: 'Log tuition fees, due dates, paid amounts, and unpaid balances for each student.',
-    whyItExists: 'Managing tuition fees in notebooks or spreadsheets leads to missed payments and awkward conversations. TutorPulse keeps clear, indisputable records of every due date, payment date, and outstanding balance.',
+    whyItExists: 'Managing tuition fees in notebooks or spreadsheets leads to missed payments and awkward conversations. Nuzigo keeps clear, indisputable records of every due date, payment date, and outstanding balance.',
     whatToDoFirst: [
       'Click "Add Fee Record".',
       'Select the student and batch.',
@@ -530,7 +530,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     keyConcepts: [
       {
         term: 'Important Financial Note',
-        explanation: 'TutorPulse is a financial record-keeper. It tracks your dues and receipts but does NOT directly debit bank accounts or transfer money.',
+        explanation: 'Nuzigo is a financial record-keeper. It tracks your dues and receipts but does NOT directly debit bank accounts or transfer money.',
       },
       {
         term: 'Paid vs Pending vs Overdue',
@@ -548,8 +548,8 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     ],
     commonMistakes: [
       {
-        mistake: 'Assuming TutorPulse will automatically collect money from parents’ credit cards.',
-        solution: 'TutorPulse tracks payment records. Parents pay you via your usual method (UPI, cash, bank transfer), and you log the payment here.',
+        mistake: 'Assuming Nuzigo will automatically collect money from parents’ credit cards.',
+        solution: 'Nuzigo tracks payment records. Parents pay you via your usual method (UPI, cash, bank transfer), and you log the payment here.',
       },
     ],
     fieldGuides: {
@@ -593,7 +593,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     title: 'Homework & Assignments',
     category: 'Academic Tracking',
     shortSummary: 'Assign homework tasks, set submission deadlines, and monitor student completion.',
-    whyItExists: 'Assigning homework verbally often leads to students claiming they forgot. Posting homework in TutorPulse gives students and parents a clear record with instructions and due dates.',
+    whyItExists: 'Assigning homework verbally often leads to students claiming they forgot. Posting homework in Nuzigo gives students and parents a clear record with instructions and due dates.',
     whatToDoFirst: [
       'Click "Create Homework".',
       'Select the batch and subject.',
@@ -662,7 +662,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     title: 'Parents & Parent Portal Access',
     category: 'Communication',
     shortSummary: 'Manage parent contacts, connect parents to their children, and enable the secure Parent Portal.',
-    whyItExists: 'Parents are your primary partners in student success. TutorPulse allows you to store parent contact information and optionally invite them to a dedicated, read-only Parent Portal.',
+    whyItExists: 'Parents are your primary partners in student success. Nuzigo allows you to store parent contact information and optionally invite them to a dedicated, read-only Parent Portal.',
     whatToDoFirst: [
       'Add a parent record with their name, phone number, and email address.',
       'Link the parent to their child (or multiple children).',
@@ -679,7 +679,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
       },
       {
         term: 'Email Linking',
-        explanation: 'Parent Portal authentication uses the parent’s email address. When they sign up or sign in, TutorPulse matches their email to connect their child’s data.',
+        explanation: 'Parent Portal authentication uses the parent’s email address. When they sign up or sign in, Nuzigo matches their email to connect their child’s data.',
       },
     ],
     recommendedWorkflow: [
@@ -758,7 +758,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
       },
       {
         term: 'External Messaging Notice',
-        explanation: 'TutorPulse currently manages in-app announcements and alerts. Direct automated WhatsApp messaging is planned for a future release.',
+        explanation: 'Nuzigo currently manages in-app announcements and alerts. Direct automated WhatsApp messaging is planned for a future release.',
       },
     ],
     recommendedWorkflow: [
@@ -773,7 +773,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     ],
     faq: [
       {
-        question: 'Can parents reply to announcements inside TutorPulse?',
+        question: 'Can parents reply to announcements inside Nuzigo?',
         answer: 'Announcements are broadcast messages. If parents need to discuss something, they can call or message you directly using your contact details.',
       },
     ],
@@ -845,7 +845,7 @@ export const HELP_TOPICS: Record<string, HelpTopic> = {
     keyConcepts: [
       {
         term: 'Tutor Profile',
-        explanation: 'Your identity in TutorPulse. The name you enter here is shown on announcements and in the parent portal.',
+        explanation: 'Your identity in Nuzigo. The name you enter here is shown on announcements and in the parent portal.',
       },
       {
         term: 'Google Sign-In Account',

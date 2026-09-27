@@ -8,7 +8,7 @@ import type { Metadata } from 'next'
 import type { EnrolledStudent, Attendance } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'Attendance — Nuzilo',
+  title: 'Attendance — Nuzigo',
 }
 
 export const dynamic = 'force-dynamic'

@@ -22,15 +22,15 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Nuzilo — Learning that feels alive',
+  title: 'Nuzigo — Learning that feels alive',
   description:
     'The gamified, live online classroom and management platform for tutors and students. Interactive speed quizzes, daily streaks, gold coins, and powerful batch workflows.',
   manifest: '/manifest.json',
-  applicationName: 'Nuzilo',
+  applicationName: 'Nuzigo',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Nuzilo',
+    title: 'Nuzigo',
   },
   formatDetection: {
     telephone: false,
