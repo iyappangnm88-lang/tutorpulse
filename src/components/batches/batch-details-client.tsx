@@ -24,8 +24,16 @@ import {
   ArrowRight,
   School,
   CheckCircle2,
+  Search,
+  ExternalLink,
+  Presentation,
+  HelpCircle,
+  CreditCard,
+  Layers,
+  Play
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -42,7 +50,7 @@ import {
   formatTimeRange,
   getDurationMinutes,
   formatDuration,
-  CLASS_MODE_METADATA,
+    CLASS_MODE_METADATA,
 } from '@/lib/scheduling'
 import type {
   BatchWithCount,
@@ -51,9 +59,17 @@ import type {
   ClassSessionWithBatch,
   HomeworkWithDetails,
   TestWithDetails,
+  FeeWithDetails,
 } from '@/types'
 
-type BatchTab = 'overview' | 'students' | 'schedule' | 'homework' | 'tests' | 'classroom'
+export type BatchWorkspaceTab =
+  | 'overview'
+  | 'students'
+  | 'prepare'
+  | 'class'
+  | 'homework'
+  | 'tests'
+  | 'payments'
 
 interface BatchDetailsClientProps {
   batch: BatchWithCount
@@ -62,6 +78,7 @@ interface BatchDetailsClientProps {
   upcomingSessions?: ClassSessionWithBatch[]
   homeworkList?: HomeworkWithDetails[]
   tests?: TestWithDetails[]
+  fees?: FeeWithDetails[]
 }
 
 export function BatchDetailsClient({
@@ -71,11 +88,13 @@ export function BatchDetailsClient({
   upcomingSessions = [],
   homeworkList = [],
   tests = [],
+  fees = [],
 }: BatchDetailsClientProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const [activeTab, setActiveTab] = useState<BatchTab>('overview')
+  const [activeTab, setActiveTab] = useState<BatchWorkspaceTab>('overview')
   const [enrolled, setEnrolled] = useState<EnrolledStudent[]>(initialEnrolled)
+  const [studentSearch, setStudentSearch] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [studentToRemove, setStudentToRemove] = useState<EnrolledStudent | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
@@ -104,36 +123,42 @@ export function BatchDetailsClient({
     }
   }
 
+  // Filter enrolled students by search
+  const filteredEnrolled = enrolled.filter((e) => {
+    if (!studentSearch.trim()) return true
+    const q = studentSearch.toLowerCase().trim()
+    return (
+      e.student.full_name.toLowerCase().includes(q) ||
+      e.student.class_name?.toLowerCase().includes(q) ||
+      e.student.phone?.toLowerCase().includes(q) ||
+      e.student.email?.toLowerCase().includes(q)
+    )
+  })
+
+  // Fees calculation
+  const totalBilled = fees.reduce((sum, f) => sum + (f.amount || 0), 0)
+  const totalCollected = fees.reduce((sum, f) => sum + (f.total_paid || 0), 0)
+  const totalBalance = fees.reduce((sum, f) => sum + (f.balance || 0), 0)
+
   return (
     <div className="space-y-6">
-      {/* Batch Header Summary Banner */}
-      <Card
-        className={`border ${
-          isOnline
-            ? 'bg-gradient-to-r from-indigo-50/90 via-white to-indigo-50/30 border-indigo-200/80'
-            : 'bg-gradient-to-r from-amber-50/90 via-white to-amber-50/30 border-amber-200/80'
-        }`}
-      >
+      {/* Batch Header Summary Card */}
+      <Card className="border border-gray-200 bg-white shadow-xs overflow-hidden">
+        <div className="h-2 bg-gradient-to-r from-[#55C832] via-[#318A25] to-[#172B4D]" />
         <CardBody className="p-5 sm:p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-            <div className="space-y-2 max-w-xl">
+            <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md font-bold text-[10px] tracking-wider uppercase ${
-                    isOnline
-                      ? 'bg-indigo-600 text-white shadow-2xs'
-                      : 'bg-amber-600 text-white shadow-2xs'
-                  }`}
-                >
-                  {isOnline ? <Video className="h-3 w-3" /> : <School className="h-3 w-3" />}
-                  {isOnline ? 'Online Workspace' : 'Offline Workspace'}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md font-bold text-[10px] tracking-wider uppercase bg-[#172B4D] text-white">
+                  {isOnline ? <Video className="h-3 w-3 text-[#55C832]" /> : <Building2 className="h-3 w-3 text-[#FFC928]" />}
+                  {isOnline ? 'Online Classroom' : 'Offline Center'}
                 </span>
                 <Badge variant={batch.status === 'active' ? 'success' : 'default'}>
                   {batch.status === 'active' ? 'Active' : 'Archived'}
                 </Badge>
                 {batch.is_public ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
-                    <Globe2 className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#318A25] bg-[#FAFBEF] border border-[#55C832]/40 px-2 py-0.5 rounded-md">
+                    <Globe2 className="h-3 w-3 text-[#55C832]" />
                     Marketplace Listed
                   </span>
                 ) : (
@@ -142,35 +167,39 @@ export function BatchDetailsClient({
                   </span>
                 )}
                 {batch.subject && (
-                  <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-semibold text-[#172B4D] bg-[#55C832]/10 px-2 py-0.5 rounded">
                     {batch.subject}
                   </span>
                 )}
                 {batch.class_name && (
                   <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
-                    Class {batch.class_name}
+                    {batch.class_name}
                   </span>
                 )}
               </div>
 
               <div>
-                <h1 className="text-2xl font-extrabold text-gray-950 tracking-tight">
+                <h1 className="text-2xl font-extrabold text-[#172B4D] tracking-tight">
                   {batch.name}
                 </h1>
                 <p className="text-xs text-gray-600 mt-1 flex items-center gap-2 flex-wrap">
-                  <span className="flex items-center gap-1 font-medium">
-                    <Users className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="flex items-center gap-1 font-bold text-[#172B4D]">
+                    <Users className="h-3.5 w-3.5 text-[#55C832]" />
                     {enrolled.length} {enrolled.length === 1 ? 'Student' : 'Students'}
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1 font-medium">
                     <Clock className="h-3.5 w-3.5 text-gray-400" />
-                    {formatTimeRange(batch.start_time, batch.end_time) || batch.schedule || 'No fixed schedule'}
+                    {formatTimeRange(batch.start_time, batch.end_time) || batch.schedule || 'Flexible schedule'}
+                  </span>
+                  <span>•</span>
+                  <span className="font-semibold text-[#318A25]">
+                    {batch.classes_per_week || 3} Classes / Week
                   </span>
                   {batch.location && !isOnline && (
                     <>
                       <span>•</span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-gray-600">
                         <MapPin className="h-3.5 w-3.5 text-gray-400" />
                         {batch.location}
                       </span>
@@ -180,37 +209,37 @@ export function BatchDetailsClient({
               </div>
             </div>
 
-            {/* Header Actions */}
+            {/* Quick Header CTAs */}
             <div className="flex items-center gap-2.5 flex-wrap">
               <Button
                 variant="outline"
                 size="md"
                 onClick={() => setIsAddOpen(true)}
-                className="gap-1.5"
+                className="gap-1.5 border-[#55C832]/40 text-[#318A25] hover:bg-[#FAFBEF]"
               >
-                <Plus className="h-4 w-4" />
-                <span>Add Students</span>
+                <Plus className="h-4 w-4 text-[#55C832]" />
+                <span>+ Add Students</span>
               </Button>
 
               {isOnline ? (
                 nextSession ? (
                   <Link href={`/dashboard/classroom/${nextSession.id}`}>
-                    <Button size="md" className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white">
+                    <Button size="md" className="gap-1.5 bg-[#55C832] hover:bg-[#318A25] text-white font-bold shadow-sm">
                       <Video className="h-4 w-4" />
                       <span>Enter Classroom</span>
                     </Button>
                   </Link>
                 ) : (
-                  <Link href={`/dashboard/calendar`}>
-                    <Button size="md" className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white">
-                      <Calendar className="h-4 w-4" />
-                      <span>Schedule Class</span>
+                  <Link href={`/dashboard/classroom`}>
+                    <Button size="md" className="gap-1.5 bg-[#172B4D] hover:bg-[#0f1d33] text-white font-bold shadow-sm">
+                      <Presentation className="h-4 w-4 text-[#55C832]" />
+                      <span>Launch Classroom</span>
                     </Button>
                   </Link>
                 )
               ) : (
                 <Link href={`/dashboard/attendance?batch=${batch.id}`}>
-                  <Button size="md" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Button size="md" className="gap-1.5 bg-[#55C832] hover:bg-[#318A25] text-white font-bold shadow-sm">
                     <ClipboardCheck className="h-4 w-4" />
                     <span>Take Attendance</span>
                   </Button>
@@ -221,24 +250,25 @@ export function BatchDetailsClient({
         </CardBody>
       </Card>
 
-      {/* Navigation Tabs */}
+      {/* Workspace Navigation Tabs */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Batch Tabs">
+        <nav className="-mb-px flex space-x-2 sm:space-x-4 overflow-x-auto" aria-label="Batch Workspace Tabs">
           {[
             { id: 'overview', label: 'Overview', count: null },
             { id: 'students', label: 'Students', count: enrolled.length },
-            { id: 'schedule', label: 'Schedule', count: upcomingSessions.length },
+            { id: 'prepare', label: 'Prepare Class', count: null },
+            { id: 'class', label: isOnline ? 'Class (Live)' : 'Class (Center)', count: upcomingSessions.length },
             { id: 'homework', label: 'Homework', count: homeworkList.length },
             { id: 'tests', label: 'Tests', count: tests.length },
-            { id: 'classroom', label: isOnline ? 'Classroom (Live)' : 'Classroom (Offline)', count: null },
+            { id: 'payments', label: 'Payments', count: fees.length },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as BatchTab)}
-              className={`whitespace-nowrap pb-3.5 px-1 border-b-2 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-colors ${
+              onClick={() => setActiveTab(tab.id as BatchWorkspaceTab)}
+              className={`whitespace-nowrap pb-3 px-2 sm:px-3 border-b-2 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all ${
                 activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#55C832] text-[#318A25]'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
               }`}
             >
               <span>{tab.label}</span>
@@ -246,7 +276,7 @@ export function BatchDetailsClient({
                 <span
                   className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold ${
                     activeTab === tab.id
-                      ? 'bg-indigo-100 text-indigo-800'
+                      ? 'bg-[#55C832]/20 text-[#318A25]'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
@@ -258,354 +288,447 @@ export function BatchDetailsClient({
         </nav>
       </div>
 
-      {/* TAB CONTENT: Overview */}
+      {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Next Class Hero if available */}
-          {nextSession && (
-            <div className="p-4 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-indigo-50/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Upcoming Class
-                </span>
-                <p className="text-sm font-bold text-gray-900">
-                  {new Date(nextSession.session_date).toLocaleDateString('en-IN', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                  {' • '}
-                  {formatTimeRange(nextSession.start_time, nextSession.end_time)}
-                </p>
-                <div className="text-xs text-gray-500 flex items-center gap-2">
-                  <SessionStatusBadge status={nextSession.status} className="text-[10px] px-1.5 py-0" />
-                  <span>•</span>
-                  <span>{enrolled.length} Students Expected</span>
+          {/* Next Class Hero Banner */}
+          {nextSession ? (
+            <Card className="border border-[#55C832]/30 bg-gradient-to-r from-[#FAFBEF] via-white to-[#FAFBEF] shadow-xs">
+              <CardBody className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-2 w-2 rounded-full bg-[#55C832] animate-pulse" />
+                    <span className="text-xs font-bold text-[#318A25] uppercase tracking-wider">Next Scheduled Session</span>
+                  </div>
+                  <h3 className="text-base font-bold text-[#172B4D]">
+                    {(nextSession.notes || `Class Session: ${batch.name}`)}
+                  </h3>
+                  <p className="text-xs text-gray-600 flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5 text-[#55C832]" />
+                    <span>{nextSession.session_date}</span>
+                    <span>•</span>
+                    <Clock className="h-3.5 w-3.5 text-gray-400" />
+                    <span>{formatTimeRange(nextSession.start_time, nextSession.end_time)}</span>
+                  </p>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                {isOnline ? (
-                  <>
-                    <Link
-                      href={`/dashboard/classroom/${nextSession.id}/prepare`}
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Prepare
-                    </Link>
-                    <Link
-                      href={`/dashboard/classroom/${nextSession.id}`}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-                    >
-                      Enter Live
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href={`/dashboard/class/${nextSession.id}`}
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Open Class
-                    </Link>
-                    <Link
-                      href={`/dashboard/attendance?batchId=${batch.id}&date=${nextSession.session_date}&sessionId=${nextSession.id}`}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
-                    >
-                      Take Roll
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link href={`/dashboard/classroom/${nextSession.id}`}>
+                    <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-white font-bold gap-1.5 shadow-sm">
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                      <span>Start Class Now</span>
+                    </Button>
+                  </Link>
+                  <Link href={`/dashboard/attendance?session=${nextSession.id}`}>
+                    <Button size="sm" variant="outline" className="text-xs">
+                      Take Attendance
+                    </Button>
+                  </Link>
+                </div>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card className="border border-dashed border-gray-200 bg-[#FAFBEF]/50">
+              <CardBody className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <Calendar className="h-5 w-5 text-[#55C832] shrink-0" />
+                  <div>
+                    <p className="font-bold text-[#172B4D]">Schedule next live class</p>
+                    <p className="text-gray-500">Plan your upcoming session to let students join with 1-click video and live questions.</p>
+                  </div>
+                </div>
+                <Link href={`/dashboard/calendar?batch=${batch.id}`}>
+                  <Button size="sm" variant="outline" className="text-xs shrink-0 border-[#55C832]/40 text-[#318A25]">
+                    + Schedule Session
+                  </Button>
+                </Link>
+              </CardBody>
+            </Card>
           )}
 
-          {/* Quick Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs">
-              <p className="text-xs font-semibold text-gray-400 uppercase">Enrolled Students</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{enrolled.length}</p>
-            </div>
-            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs">
-              <p className="text-xs font-semibold text-gray-400 uppercase">Upcoming Sessions</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{upcomingSessions.length}</p>
-            </div>
-            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs">
-              <p className="text-xs font-semibold text-gray-400 uppercase">Active Homework</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{homeworkList.length}</p>
-            </div>
-            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs">
-              <p className="text-xs font-semibold text-gray-400 uppercase">Tests Logged</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{tests.length}</p>
-            </div>
+          {/* 4 Quick Stat Metric Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <Card className="border border-gray-200">
+              <CardBody className="p-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5 text-[#55C832]" />
+                  <span>Enrolled Students</span>
+                </p>
+                <p className="text-2xl font-extrabold text-[#172B4D]">{enrolled.length}</p>
+                <p className="text-[11px] text-gray-400">Total in this cohort</p>
+              </CardBody>
+            </Card>
+
+            <Card className="border border-gray-200">
+              <CardBody className="p-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-[#318A25]" />
+                  <span>Weekly Pace</span>
+                </p>
+                <p className="text-2xl font-extrabold text-[#172B4D]">{batch.classes_per_week || 3}</p>
+                <p className="text-[11px] text-gray-400">Classes per week target</p>
+              </CardBody>
+            </Card>
+
+            <Card className="border border-gray-200">
+              <CardBody className="p-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 text-[#FF9F43]" />
+                  <span>Homework Sets</span>
+                </p>
+                <p className="text-2xl font-extrabold text-[#172B4D]">{homeworkList.length}</p>
+                <p className="text-[11px] text-gray-400">Assigned assignments</p>
+              </CardBody>
+            </Card>
+
+            <Card className="border border-gray-200">
+              <CardBody className="p-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                  <GraduationCap className="h-3.5 w-3.5 text-[#FFC928]" />
+                  <span>Tests & Quizzes</span>
+                </p>
+                <p className="text-2xl font-extrabold text-[#172B4D]">{tests.length}</p>
+                <p className="text-[11px] text-gray-400">Assessments tracked</p>
+              </CardBody>
+            </Card>
           </div>
 
-          {/* Routine & Schedule Card */}
-          <Card className="border-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-indigo-600" />
-                <h3 className="text-sm font-semibold text-gray-900">Batch Routine & Schedule</h3>
-              </div>
-              <Link
-                href={`/dashboard/batches/${batch.id}/edit`}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
-              >
-                <Edit2 className="h-3 w-3" />
-                <span>Edit Routine</span>
-              </Link>
-            </CardHeader>
-            <CardBody className="space-y-4 pt-1">
+          {/* Schedule & Operational Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="border border-gray-200">
+              <CardHeader className="border-b border-gray-100">
+                <h3 className="text-sm font-bold text-[#172B4D] flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-[#55C832]" />
+                  <span>Routine Schedule Details</span>
+                </h3>
+              </CardHeader>
+              <CardBody className="p-4 space-y-3 text-xs">
+                <div className="flex items-center justify-between py-1 border-b border-gray-100">
+                  <span className="text-gray-500">Working Days</span>
+                  <span className="font-bold text-[#172B4D]">
+                    {batch.working_days && batch.working_days.length > 0
+                      ? batch.working_days.map((d: any) => DAY_METADATA[d as keyof typeof DAY_METADATA]?.short || d).join(' • ')
+                      : 'Not specified'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-gray-100">
+                  <span className="text-gray-500">Class Timing</span>
+                  <span className="font-bold text-[#172B4D]">
+                    {formatTimeRange(batch.start_time, batch.end_time) || 'Flexible'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-gray-100">
+                  <span className="text-gray-500">Duration</span>
+                  <span className="font-bold text-[#172B4D]">
+                    {formatDuration(getDurationMinutes(batch.start_time || '', batch.end_time || ''))}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-gray-500">Delivery Mode</span>
+                  <span className="font-bold text-[#172B4D] capitalize">{batch.class_mode || 'online'}</span>
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card className="border border-gray-200">
+              <CardHeader className="border-b border-gray-100">
+                <h3 className="text-sm font-bold text-[#172B4D] flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#FFC928]" />
+                  <span>Quick Actions for this Batch</span>
+                </h3>
+              </CardHeader>
+              <CardBody className="p-4 grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setIsAddOpen(true)}
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 hover:border-[#55C832] hover:bg-[#FAFBEF] text-left font-semibold text-[#172B4D] transition-all"
+                >
+                  <Users className="h-4 w-4 text-[#55C832]" />
+                  <span>Add Students</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('prepare')}
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 hover:border-[#55C832] hover:bg-[#FAFBEF] text-left font-semibold text-[#172B4D] transition-all"
+                >
+                  <Presentation className="h-4 w-4 text-blue-500" />
+                  <span>Prepare Class</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('homework')}
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 hover:border-[#55C832] hover:bg-[#FAFBEF] text-left font-semibold text-[#172B4D] transition-all"
+                >
+                  <BookOpen className="h-4 w-4 text-[#FF9F43]" />
+                  <span>Assign Homework</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('tests')}
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 hover:border-[#55C832] hover:bg-[#FAFBEF] text-left font-semibold text-[#172B4D] transition-all"
+                >
+                  <GraduationCap className="h-4 w-4 text-[#FFC928]" />
+                  <span>Create Test</span>
+                </button>
+              </CardBody>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: STUDENTS */}
+      {activeTab === 'students' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search students in this batch..."
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                className="pl-9 text-sm"
+              />
+            </div>
+
+            <Button
+              onClick={() => setIsAddOpen(true)}
+              className="bg-[#55C832] hover:bg-[#318A25] text-white font-bold gap-1.5 shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              <span>+ Add Student</span>
+            </Button>
+          </div>
+
+          {filteredEnrolled.length === 0 ? (
+            <Card className="border border-dashed border-gray-200">
+              <CardBody className="py-12 text-center space-y-3">
+                <Users className="h-10 w-10 text-gray-300 mx-auto" />
+                <h3 className="text-base font-bold text-[#172B4D]">
+                  {studentSearch ? 'No matching students' : 'No students enrolled yet'}
+                </h3>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                  {studentSearch
+                    ? 'Try searching with another keyword.'
+                    : 'Click "+ Add Student" to enroll your existing students or create a new student directly into this batch.'}
+                </p>
+                <Button
+                  onClick={() => setIsAddOpen(true)}
+                  className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs gap-1.5 font-bold"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Add First Student</span>
+                </Button>
+              </CardBody>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredEnrolled.map((item) => {
+                const s = item.student
+                return (
+                  <Card key={s.id} className="border border-gray-200 hover:border-[#55C832]/50 transition-colors">
+                    <CardBody className="p-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-[#172B4D] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                          {s.full_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <Link
+                            href={`/dashboard/students/${s.id}`}
+                            className="text-sm font-bold text-[#172B4D] hover:text-[#318A25] truncate block"
+                          >
+                            {s.full_name}
+                          </Link>
+                          <div className="flex items-center gap-2 text-[11px] text-gray-500 truncate mt-0.5">
+                            {s.class_name && (
+                              <span className="font-semibold text-gray-700">{s.class_name}</span>
+                            )}
+                            {s.phone && <span>• {s.phone}</span>}
+                            {!s.phone && s.email && <span>• {s.email}</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Link
+                          href={`/dashboard/students/${s.id}`}
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-[#172B4D] hover:bg-gray-100 transition-colors"
+                          title="View Profile"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setStudentToRemove(item)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Remove from Batch"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </CardBody>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: PREPARE CLASS */}
+      {activeTab === 'prepare' && (
+        <div className="space-y-5">
+          <Card className="border border-gray-200">
+            <CardHeader className="border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-2">
-                  Class Days
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {WORKING_DAYS_ORDER.map((day) => {
-                    const isActive = (batch.working_days || []).includes(day)
-                    const meta = DAY_METADATA[day]
-                    return (
-                      <span
-                        key={day}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          isActive
-                            ? 'bg-indigo-600 text-white shadow-2xs shadow-indigo-500/20'
-                            : 'bg-gray-100/70 text-gray-400 opacity-60'
-                        }`}
-                      >
-                        <span>{meta.short}</span>
-                      </span>
-                    )
-                  })}
+                <h3 className="text-base font-bold text-[#172B4D] flex items-center gap-2">
+                  <Presentation className="h-4 w-4 text-[#55C832]" />
+                  <span>Prepare Class Materials & Fast Answers</span>
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Set up slide decks, whiteboard templates, and interactive speed quiz questions before class begins.
+                </p>
+              </div>
+
+              {nextSession && (
+                <Link href={`/dashboard/classroom/${nextSession.id}/prepare`}>
+                  <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-white font-bold text-xs gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Launch Question Studio</span>
+                  </Button>
+                </Link>
+              )}
+            </CardHeader>
+            <CardBody className="p-5 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="p-4 rounded-xl bg-[#FAFBEF] border border-[#55C832]/25 space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#55C832]/20 flex items-center justify-center text-[#318A25]">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <h4 className="text-xs font-bold text-[#172B4D]">Fast-Answer Questions</h4>
+                  <p className="text-[11px] text-gray-600">
+                    Create multiple-choice or true/false questions with coin speed bonuses for rapid student engagement.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                    <Presentation className="h-4 w-4" />
+                  </div>
+                  <h4 className="text-xs font-bold text-[#172B4D]">Interactive Whiteboard</h4>
+                  <p className="text-[11px] text-gray-600">
+                    Pre-draw geometric figures, formulas, or slide diagrams to instantly present during live sessions.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                  <h4 className="text-xs font-bold text-[#172B4D]">Session Resources</h4>
+                  <p className="text-[11px] text-gray-600">
+                    Attach worksheets or syllabus checkpoints directly to this cohort for automated student access.
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-100">
-                <div className="space-y-1">
-                  <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                    Session Time
-                  </span>
-                  <p className="text-xs font-bold text-gray-900">
-                    {formatTimeRange(batch.start_time, batch.end_time) || batch.schedule || 'Timing not set'}
-                  </p>
-                  {batch.start_time && batch.end_time && (
-                    <span className="text-[10px] text-gray-500 font-medium">
-                      {formatDuration(getDurationMinutes(batch.start_time, batch.end_time))} per class
-                    </span>
-                  )}
+              <div className="p-4 rounded-xl bg-white border border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-bold text-[#172B4D]">Open Interactive Classroom</h4>
+                  <p className="text-xs text-gray-500">Access full screen sharing, whiteboard canvas, and classroom tools.</p>
                 </div>
-
-                <div className="space-y-1">
-                  <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                    Class Mode
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    {batch.class_mode === 'online' ? (
-                      <Video className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
-                    ) : (
-                      <Building2 className="h-3.5 w-3.5 text-gray-700" aria-hidden="true" />
-                    )}
-                    <span className="text-xs font-bold text-gray-900 capitalize">
-                      {batch.class_mode || 'Offline'}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-500">
-                    {CLASS_MODE_METADATA[batch.class_mode || 'offline']?.description}
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                    Location
-                  </span>
-                  {batch.class_mode === 'online' ? (
-                    <p className="text-xs text-gray-500 italic">Virtual Classroom</p>
-                  ) : batch.location ? (
-                    <div className="flex items-start gap-1 text-xs text-gray-900 font-medium">
-                      <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
-                      <span>{batch.location}</span>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400 italic">No physical location specified</p>
-                  )}
-                </div>
+                <Link href="/dashboard/classroom">
+                  <Button size="sm" variant="outline" className="text-xs border-[#55C832]/40 text-[#318A25]">
+                    Open Classroom Studio
+                  </Button>
+                </Link>
               </div>
             </CardBody>
           </Card>
         </div>
       )}
 
-      {/* TAB CONTENT: Students */}
-      {activeTab === 'students' && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <h3 className="text-base font-semibold text-gray-900">Enrolled Students</h3>
-              <p className="text-xs text-gray-500">Students attending this batch.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
-                {enrolled.length} Active
-              </span>
-              <Button size="sm" onClick={() => setIsAddOpen(true)} className="gap-1 text-xs">
-                <Plus className="h-3.5 w-3.5" />
-                <span>Add</span>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardBody className="p-0">
-            {enrolled.length === 0 ? (
-              <EmptyState
-                icon={<UserCheck className="h-8 w-8 text-indigo-400" />}
-                title="No students in this batch yet"
-                description="Enroll active students to take attendance and assign homework."
-                action={
-                  <Button size="md" onClick={() => setIsAddOpen(true)} className="gap-1.5">
-                    <Plus className="h-4 w-4" />
-                    <span>Add Students to Batch</span>
-                  </Button>
-                }
-              />
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {enrolled.map(({ student, joined_at }) => (
-                  <div
-                    key={student.id}
-                    className="flex items-center justify-between p-4 hover:bg-gray-50/75 transition-colors"
-                  >
-                    <div className="space-y-0.5">
-                      <Link
-                        href={`/dashboard/students/${student.id}`}
-                        className="text-sm font-semibold text-gray-900 hover:text-indigo-600 hover:underline"
-                      >
-                        {student.full_name}
-                      </Link>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        {student.phone && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="h-3 w-3 text-gray-400" />
-                            <span>{student.phone}</span>
-                          </div>
-                        )}
-                        {student.email && (
-                          <div className="flex items-center gap-1">
-                            <Mail className="h-3 w-3 text-gray-400" />
-                            <span className="truncate max-w-[140px]">{student.email}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3 text-gray-400" />
-                          <span>Enrolled {new Date(joined_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/dashboard/students/${student.id}`}
-                        className="text-xs font-medium text-indigo-600 hover:underline px-2.5 py-1.5"
-                      >
-                        Profile
-                      </Link>
-                      <button
-                        onClick={() => setStudentToRemove({ membership_id: '', joined_at, student })}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg min-h-[36px] min-w-[36px] flex items-center justify-center transition-colors"
-                        title="Remove from batch"
-                        aria-label="Remove student from batch"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+      {/* TAB 4: CLASS (LIVE / SESSIONS) */}
+      {activeTab === 'class' && (
+        <div className="space-y-5">
+          <Card className="border border-gray-200">
+            <CardHeader className="border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-[#172B4D] flex items-center gap-2">
+                  <Video className="h-4 w-4 text-[#55C832]" />
+                  <span>Class Sessions & Live Classroom</span>
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Launch live WebRTC video classes, whiteboard sharing, and attendance tracking.
+                </p>
               </div>
-            )}
-          </CardBody>
-        </Card>
-      )}
 
-      {/* TAB CONTENT: Schedule */}
-      {activeTab === 'schedule' && (
-        <div className="space-y-6">
-          <Card className="border-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-indigo-600" />
-                <h3 className="text-sm font-semibold text-gray-900">Upcoming Class Sessions</h3>
+                <Link href={`/dashboard/attendance?batch=${batch.id}`}>
+                  <Button size="sm" variant="outline" className="text-xs gap-1">
+                    <ClipboardCheck className="h-3.5 w-3.5" />
+                    <span>Attendance Register</span>
+                  </Button>
+                </Link>
+                <Link href={`/dashboard/calendar?batch=${batch.id}`}>
+                  <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-white font-bold text-xs gap-1">
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>+ Schedule Class</span>
+                  </Button>
+                </Link>
               </div>
-              <Link
-                href="/dashboard/calendar"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
-              >
-                <span>Full Calendar →</span>
-              </Link>
             </CardHeader>
-            <CardBody className="p-0">
+            <CardBody className="p-5 space-y-4">
               {upcomingSessions.length === 0 ? (
-                <div className="p-6 text-center text-xs text-gray-400">
-                  No upcoming sessions scheduled for this batch in the next 30 days.
+                <div className="text-center py-8 px-4 rounded-xl border border-dashed border-gray-200">
+                  <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-[#172B4D]">No upcoming sessions scheduled</p>
+                  <p className="text-xs text-gray-500 mt-0.5 max-w-sm mx-auto">
+                    Schedule a session according to your {batch.classes_per_week || 3} weekly target to let students join.
+                  </p>
+                  <Link href={`/dashboard/calendar?batch=${batch.id}`}>
+                    <Button size="sm" className="mt-3 bg-[#55C832] hover:bg-[#318A25] text-white text-xs">
+                      Schedule a Class
+                    </Button>
+                  </Link>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="space-y-2">
                   {upcomingSessions.map((session) => (
                     <div
                       key={session.id}
-                      className="p-3.5 sm:px-5 flex items-center justify-between hover:bg-gray-50/60 transition-colors"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-gray-200 bg-white hover:border-[#55C832]/40 transition-colors gap-3"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="flex flex-col items-center justify-center h-10 w-10 rounded-xl bg-indigo-50 text-indigo-700 font-bold shrink-0">
-                          <span className="text-[10px] uppercase font-semibold leading-none text-indigo-400">
-                            {new Date(session.session_date).toLocaleDateString('en-US', { month: 'short' })}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-[#172B4D]">
+                            {(session.notes || batch.name) || `Class: ${batch.name}`}
                           </span>
-                          <span className="text-sm leading-tight">
-                            {new Date(session.session_date).getDate()}
-                          </span>
+                          <SessionStatusBadge status={session.status} />
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-gray-900">
-                              {new Date(session.session_date).toLocaleDateString('en-US', {
-                                weekday: 'short',
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </span>
-                            <SessionStatusBadge status={session.status} className="text-[10px] px-1.5 py-0" />
-                            {session.is_overridden && (
-                              <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                                Rescheduled
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11px] text-gray-500 flex items-center gap-2 mt-0.5">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3 text-gray-400" />
-                              {formatTimeRange(session.start_time, session.end_time)}
-                            </span>
-                            <span>•</span>
-                            <span className="capitalize">{session.class_mode}</span>
-                            {session.location && <span>• {session.location}</span>}
-                          </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Calendar className="h-3.5 w-3.5 text-[#55C832]" />
+                          <span>{session.session_date}</span>
+                          <span>•</span>
+                          <Clock className="h-3.5 w-3.5 text-gray-400" />
+                          <span>{formatTimeRange(session.start_time, session.end_time)}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {isOnline ? (
-                          <Link
-                            href={`/dashboard/classroom/${session.id}/prepare`}
-                            className="text-xs font-semibold px-2.5 py-1 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
-                          >
-                            Prepare
-                          </Link>
-                        ) : (
-                          <Link
-                            href={`/dashboard/attendance?batchId=${batch.id}&date=${session.session_date}&sessionId=${session.id}`}
-                            className="text-xs font-semibold px-2.5 py-1 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
-                          >
+                        <Link href={`/dashboard/classroom/${session.id}`}>
+                          <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold gap-1">
+                            <Play className="h-3 w-3 fill-current" />
+                            <span>Enter Class</span>
+                          </Button>
+                        </Link>
+                        <Link href={`/dashboard/attendance?session=${session.id}`}>
+                          <Button size="sm" variant="outline" className="text-xs">
                             Attendance
-                          </Link>
-                        )}
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   ))}
@@ -616,7 +739,7 @@ export function BatchDetailsClient({
         </div>
       )}
 
-      {/* TAB CONTENT: Homework */}
+      {/* TAB 5: HOMEWORK */}
       {activeTab === 'homework' && (
         <BatchHomeworkSection
           batchId={batch.id}
@@ -624,7 +747,7 @@ export function BatchDetailsClient({
         />
       )}
 
-      {/* TAB CONTENT: Tests */}
+      {/* TAB 6: TESTS / QUIZZES */}
       {activeTab === 'tests' && (
         <BatchTestsSection
           batchId={batch.id}
@@ -632,116 +755,132 @@ export function BatchDetailsClient({
         />
       )}
 
-      {/* TAB CONTENT: Classroom */}
-      {activeTab === 'classroom' && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div className="flex items-center gap-2">
-              <Video className="h-4 w-4 text-indigo-600" />
-              <h3 className="text-base font-semibold text-gray-900">
-                {isOnline ? 'Online WebRTC Classroom' : 'Offline Classroom Controls'}
-              </h3>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-4">
-            {isOnline ? (
-              <div className="space-y-4">
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  This online batch uses the Nuzigo native WebRTC classroom with real-time video, digital whiteboard, screen sharing, chat, polls, and raise-hand.
-                </p>
+      {/* TAB 7: PAYMENTS */}
+      {activeTab === 'payments' && (
+        <div className="space-y-5">
+          {/* Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <Card className="border border-gray-200">
+              <CardBody className="p-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500">Total Billed</p>
+                <p className="text-xl font-extrabold text-[#172B4D]">₹{totalBilled.toLocaleString()}</p>
+                <p className="text-[11px] text-gray-400">{fees.length} total fee records</p>
+              </CardBody>
+            </Card>
 
-                {nextSession ? (
-                  <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-bold text-gray-900">Next Scheduled Class</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        {new Date(nextSession.session_date).toLocaleDateString('en-IN', {
-                          weekday: 'long',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                        {' at '}
-                        {formatTimeRange(nextSession.start_time, nextSession.end_time)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Link
-                        href={`/dashboard/classroom/${nextSession.id}/prepare`}
-                        className="px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
-                      >
-                        Prepare Class
-                      </Link>
-                      <Link
-                        href={`/dashboard/classroom/${nextSession.id}`}
-                        className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-xs"
-                      >
-                        Enter Live
-                      </Link>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-xl border border-dashed border-gray-200 text-center">
-                    <p className="text-xs text-gray-500">No scheduled session found for this batch.</p>
-                    <Link
-                      href="/dashboard/calendar"
-                      className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 mt-2 hover:underline"
-                    >
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>Schedule a session on the calendar</span>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  This is an offline tuition batch. Classes are conducted physically in-person.
+            <Card className="border border-gray-200">
+              <CardBody className="p-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500">Total Collected</p>
+                <p className="text-xl font-extrabold text-[#318A25]">₹{totalCollected.toLocaleString()}</p>
+                <p className="text-[11px] text-gray-400">Received payments</p>
+              </CardBody>
+            </Card>
+
+            <Card className="border border-gray-200">
+              <CardBody className="p-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500">Outstanding Balance</p>
+                <p className="text-xl font-extrabold text-[#F05252]">₹{totalBalance.toLocaleString()}</p>
+                <p className="text-[11px] text-gray-400">Pending or overdue</p>
+              </CardBody>
+            </Card>
+          </div>
+
+          <Card className="border border-gray-200">
+            <CardHeader className="border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-[#172B4D] flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-[#55C832]" />
+                  <span>Student Fee Invoices</span>
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Track fee collection and payment statuses for enrolled students.
                 </p>
-                <div className="p-4 rounded-xl border border-amber-100 bg-amber-50/50 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                    <MapPin className="h-4 w-4 text-amber-700" />
-                    <span>Location: {batch.location || 'Physical classroom location not specified'}</span>
-                  </div>
-                  <p className="text-[11px] text-amber-700">
-                    Physical attendance can be recorded using the attendance register.
-                  </p>
-                  <div className="pt-2">
-                    <Link
-                      href={`/dashboard/attendance?batch=${batch.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors"
-                    >
-                      <ClipboardCheck className="h-3.5 w-3.5" />
-                      <span>Open Attendance Register</span>
-                    </Link>
-                  </div>
-                </div>
               </div>
-            )}
-          </CardBody>
-        </Card>
+
+              <Link href={`/dashboard/fees/new?batch=${batch.id}`}>
+                <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold gap-1">
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>+ Create Fee Invoice</span>
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardBody className="p-4">
+              {fees.length === 0 ? (
+                <div className="text-center py-8 px-4 rounded-xl border border-dashed border-gray-200">
+                  <CreditCard className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-[#172B4D]">No fee invoices for this batch</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Create your first fee invoice to record payments for enrolled students.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {fees.map((fee) => (
+                    <div
+                      key={fee.id}
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-gray-100 bg-white hover:border-[#55C832]/40 transition-colors gap-3"
+                    >
+                      <div>
+                        <p className="text-sm font-bold text-[#172B4D]">
+                          {fee.student?.full_name || 'Enrolled Student'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Due: {fee.due_date || 'No due date'} • Amount: ₹{fee.amount.toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                            fee.balance === 0
+                              ? 'bg-[#55C832]/20 text-[#318A25]'
+                              : fee.balance < fee.amount
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {fee.balance === 0
+                            ? 'Paid'
+                            : fee.balance < fee.amount
+                            ? `Partial (₹${fee.balance} due)`
+                            : `Pending (₹${fee.amount})`}
+                        </span>
+
+                        <Link href={`/dashboard/fees/${fee.id}`}>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            View Fee
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+        </div>
       )}
 
-      {/* Add Students Dialog */}
+      {/* Upgraded Dual-Mode Add Students Dialog */}
       <AddStudentsDialog
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         batchId={batch.id}
+        batchName={batch.name}
         availableStudents={availableStudents}
         onSuccess={() => {
           router.refresh()
         }}
       />
 
-      {/* Remove Confirmation Dialog */}
+      {/* Remove Student Confirmation Dialog */}
       <Dialog
-        isOpen={!!studentToRemove}
+        isOpen={Boolean(studentToRemove)}
         onClose={() => setStudentToRemove(null)}
-        title="Remove Student from Batch?"
-        description={`Are you sure you want to remove ${studentToRemove?.student.full_name} from ${batch.name}? The student record and past attendance history will not be deleted.`}
-        confirmLabel="Remove from Batch"
+        title="Remove Student from Batch"
+        description={`Are you sure you want to remove ${studentToRemove?.student.full_name} from ${batch.name}? This will remove them from batch classes and attendance, but will NOT delete their student profile.`}
+        confirmLabel="Remove Student"
         confirmVariant="danger"
-        isLoading={isRemoving}
         onConfirm={handleConfirmRemove}
+        isLoading={isRemoving}
       />
     </div>
   )

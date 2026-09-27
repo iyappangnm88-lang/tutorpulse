@@ -10,6 +10,7 @@ import { getBatchById, getBatchEnrolledStudents, getAvailableStudentsForBatch } 
 import { getBatchHomework } from '@/lib/homework'
 import { getBatchTests } from '@/lib/tests'
 import { getBatchUpcomingSessions } from '@/lib/class-sessions'
+import { getFees } from '@/lib/fees'
 import type { Metadata } from 'next'
 
 interface BatchDetailPageProps {
@@ -22,19 +23,20 @@ export async function generateMetadata({ params }: BatchDetailPageProps): Promis
   const { id } = await params
   const { data: batch } = await getBatchById(id)
   return {
-    title: batch ? `${batch.name} — Nuzigo` : 'Batch Details — Nuzigo',
+    title: batch ? `${batch.name} Workspace — Nuzigo` : 'Batch Workspace — Nuzigo',
   }
 }
 
 export default async function BatchDetailPage({ params }: BatchDetailPageProps) {
   const { id } = await params
-  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes] = await Promise.all([
+  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes, feesRes] = await Promise.all([
     getBatchById(id),
     getBatchEnrolledStudents(id),
     getAvailableStudentsForBatch(id),
     getBatchHomework(id),
     getBatchTests(id),
     getBatchUpcomingSessions(id, 5),
+    getFees(),
   ])
 
   const batch = batchRes.data
@@ -43,12 +45,16 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
     notFound()
   }
 
+  // Filter fees for enrolled students of this batch
+  const enrolledStudentIds = (enrolledRes.data || []).map((e) => e.student.id)
+  const batchFees = (feesRes.data || []).filter((f) => enrolledStudentIds.includes(f.student_id))
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
         <Link
           href="/dashboard/batches"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 mb-2"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#318A25] hover:text-[#172B4D] mb-2 transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>Back to Batches</span>
@@ -75,6 +81,7 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
         upcomingSessions={upcomingSessionsRes.data || []}
         homeworkList={homeworkRes.data}
         tests={testsRes.data}
+        fees={batchFees}
       />
     </div>
   )

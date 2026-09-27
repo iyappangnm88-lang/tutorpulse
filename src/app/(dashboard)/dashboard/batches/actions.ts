@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveWorkspace } from '@/lib/workspace'
 import { validateBatchSchedule } from '@/lib/scheduling'
-import type { Batch, BatchInsert, BatchUpdate } from '@/types'
+import type { Batch, BatchInsert, BatchUpdate, Student } from '@/types'
 
 export interface ActionResult<T = unknown> {
   success: boolean
@@ -13,7 +13,7 @@ export interface ActionResult<T = unknown> {
 }
 
 export async function createBatchAction(
-  input: Omit<BatchInsert, 'tutor_id'>
+  input: Omit<BatchInsert, 'tutor_id'> & { student_ids?: string[] }
 ): Promise<ActionResult<Batch>> {
   try {
     const supabase = await createClient()
@@ -79,6 +79,21 @@ export async function createBatchAction(
     if (error) {
       console.error('createBatchAction error:', error)
       return { success: false, error: error.message }
+    }
+
+    // Attach students if provided during creation
+    if (input.student_ids && input.student_ids.length > 0) {
+      const studentRows = input.student_ids.map((student_id) => ({
+        batch_id: data.id,
+        student_id,
+        status: 'active' as const,
+      }))
+      const { error: memberError } = await supabase
+        .from('batch_students')
+        .upsert(studentRows, { onConflict: 'batch_id,student_id' })
+      if (memberError) {
+        console.error('Error adding students during batch creation:', memberError)
+      }
     }
 
     revalidatePath('/dashboard')
@@ -350,5 +365,91 @@ export async function removeStudentFromBatchAction(
   } catch (err: unknown) {
     console.error('removeStudentFromBatchAction exception:', err)
     return { success: false, error: 'Failed to remove student from batch.' }
+  }
+}
+
+
+export async function createAndEnrollStudentAction(
+  batchId: string,
+  studentInput: {
+    full_name: string
+    phone?: string | null
+    email?: string | null
+    class_name?: string | null
+    school_name?: string | null
+    notes?: string | null
+  }
+): Promise<ActionResult<Student>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { success: false, error: 'Unauthorized. Please sign in.' }
+    }
+
+    if (!studentInput.full_name || studentInput.full_name.trim().length === 0) {
+      return { success: false, error: 'Student full name is required.' }
+    }
+
+    // Verify batch ownership
+    const { data: batch, error: batchErr } = await supabase
+      .from('batches')
+      .select('id, workspace_id')
+      .eq('id', batchId)
+      .eq('tutor_id', user.id)
+      .single()
+
+    if (batchErr || !batch) {
+      return { success: false, error: 'Batch not found or unauthorized.' }
+    }
+
+    // 1. Create student record
+    const newStudent = {
+      tutor_id: user.id,
+      workspace_id: batch.workspace_id,
+      full_name: studentInput.full_name.trim(),
+      phone: studentInput.phone?.trim() || null,
+      email: studentInput.email?.trim() || null,
+      class_name: studentInput.class_name?.trim() || null,
+      school_name: studentInput.school_name?.trim() || null,
+      notes: studentInput.notes?.trim() || null,
+      status: 'active' as const,
+    }
+
+    const { data: student, error: studentError } = await supabase
+      .from('students')
+      .insert(newStudent)
+      .select()
+      .single()
+
+    if (studentError || !student) {
+      console.error('Error creating student:', studentError)
+      return { success: false, error: studentError?.message || 'Failed to create student.' }
+    }
+
+    // 2. Associate student with batch
+    const { error: enrollError } = await supabase
+      .from('batch_students')
+      .insert({
+        batch_id: batchId,
+        student_id: student.id,
+        status: 'active',
+      })
+
+    if (enrollError) {
+      console.error('Error enrolling student to batch:', enrollError)
+      return { success: false, error: enrollError.message }
+    }
+
+    revalidatePath('/dashboard/batches')
+    revalidatePath(`/dashboard/batches/${batchId}`)
+    revalidatePath('/dashboard/students')
+    revalidatePath('/dashboard/attendance')
+
+    return { success: true, data: student as Student }
+  } catch (err: unknown) {
+    console.error('createAndEnrollStudentAction exception:', err)
+    return { success: false, error: 'Failed to create and enroll student.' }
   }
 }
