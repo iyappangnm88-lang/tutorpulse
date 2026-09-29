@@ -8,7 +8,7 @@
  * Only static assets and the offline fallback page are cached.
  */
 
-const CACHE_NAME = 'tutorpulse-v1'
+const CACHE_NAME = 'nuzilo-v2'
 const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',
@@ -92,7 +92,6 @@ self.addEventListener('fetch', (event) => {
   // D. Static Assets: Next.js static files & icons
   // Stale-While-Revalidate / Cache-First for static immutable files
   if (
-    url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/icons/') ||
     url.pathname === '/favicon.ico' ||
     url.pathname === '/manifest.json'

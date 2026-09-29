@@ -25,7 +25,7 @@ import {
   Check
 } from 'lucide-react'
 import type { Metadata } from 'next'
-import { getPublicTutors } from '@/lib/marketplace'
+import { getPublicTutors, type PublicTutorSummary } from '@/lib/marketplace'
 
 export const metadata: Metadata = {
   title: 'Nuzilo — Find Top Tutors & Learn Better',
@@ -83,7 +83,7 @@ const FEATURED_TUTOR_FALLBACKS = [
 ]
 
 export default async function LandingPage() {
-  let publicTutors: any[] = []
+  let publicTutors: PublicTutorSummary[] = []
   try {
     const res = await getPublicTutors({}, 1, 3)
     if (res.tutors && res.tutors.length > 0) {
@@ -96,14 +96,14 @@ export default async function LandingPage() {
   const tutorsToDisplay = publicTutors.length > 0
     ? publicTutors.map((t) => ({
         id: t.id,
-        name: t.full_name,
+        name: t.fullName || 'Tutor',
         headline: t.headline || 'Dedicated Educator on Nuzilo',
-        subjects: (t.primary_subjects || []).slice(0, 3),
-        experience: t.experience_years ? `${t.experience_years} yrs` : 'Experienced',
-        mode: t.teaching_mode,
+        subjects: (t.primarySubjects || []).slice(0, 3),
+        experience: t.experienceYears ? `${t.experienceYears} yrs` : 'Experienced',
+        mode: t.teachingMode || 'online',
         rating: '5.0',
-        slug: t.profile_slug || t.id,
-        location: t.location_region || 'Online',
+        slug: t.profileSlug || t.id,
+        location: t.locationRegion || 'Online',
       }))
     : FEATURED_TUTOR_FALLBACKS
 
@@ -256,16 +256,16 @@ export default async function LandingPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 rounded-2xl bg-[#55C832]/10 text-[#318A25] font-black text-lg flex items-center justify-center border border-[#55C832]/20">
-                        {tutor.name.charAt(0)}
+                        {(tutor.name || 'T').charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <h3 className="font-extrabold text-[#172B4D] text-base leading-tight">
-                          {tutor.name}
+                          {tutor.name || 'Tutor'}
                         </h3>
                         <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                          <span>{tutor.location}</span>
+                          <span>{tutor.location || 'Online'}</span>
                           <span>•</span>
-                          <span className="text-emerald-700 font-bold">{tutor.experience}</span>
+                          <span className="text-emerald-700 font-bold">{tutor.experience || 'Experienced'}</span>
                         </p>
                       </div>
                     </div>
@@ -280,7 +280,7 @@ export default async function LandingPage() {
                   </p>
 
                   <div className="flex flex-wrap gap-1.5">
-                    {tutor.subjects.map((sub: string) => (
+                    {(tutor.subjects || []).map((sub: string) => (
                       <span
                         key={sub}
                         className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-bold"
@@ -289,7 +289,7 @@ export default async function LandingPage() {
                       </span>
                     ))}
                     <span className="px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-bold capitalize">
-                      {tutor.mode === 'both' ? 'Online & Offline' : tutor.mode}
+                      {tutor.mode === 'both' ? 'Online & Offline' : (tutor.mode || 'Online')}
                     </span>
                   </div>
                 </div>
