@@ -25,13 +25,13 @@ export function PwaRegister() {
                 navigator.serviceWorker.controller
               ) {
                 // New update available; inform the user or auto-update safely
-                console.log('[Nuzigo PWA] New update available.')
+                console.log('[Nuzilo PWA] New update available.')
               }
             })
           }
         })
       } catch (err) {
-        console.warn('[Nuzigo PWA] Service worker registration failed:', err)
+        console.warn('[Nuzilo PWA] Service worker registration failed:', err)
       }
     }
 

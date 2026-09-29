@@ -13,7 +13,7 @@ interface ClassroomPageProps {
 export async function generateMetadata({ params }: ClassroomPageProps): Promise<Metadata> {
   const { sessionId } = await params
   return {
-    title: `Online Classroom — Nuzigo`,
+    title: `Online Classroom — Nuzilo`,
   }
 }
 

@@ -12,25 +12,30 @@ export function StudentMobileNav() {
   const { openMobileMenu } = useStudentNav()
 
   const tabs = [
-    { label: 'Home', href: '/student', icon: Home },
+    {
+      label: 'Home',
+      href: '/student',
+      icon: Home,
+      isActive: pathname === '/student',
+    },
+    {
+      label: 'Find Tutors',
+      href: '/student/marketplace',
+      icon: Compass,
+      isActive: pathname.startsWith('/student/marketplace'),
+    },
+    {
+      label: 'Learn',
+      href: '/student/progress',
+      icon: Sparkles,
+      isPrimary: true,
+      isActive: pathname.startsWith('/student/progress'),
+    },
     {
       label: 'Classes',
       href: '/student/classes',
       icon: Video,
       isActive: pathname.startsWith('/student/classes') || pathname.startsWith('/student/classroom'),
-    },
-    {
-      label: 'Journey',
-      href: '/student#journey',
-      icon: Sparkles,
-      isPrimary: true,
-      isActive: pathname === '/student',
-    },
-    {
-      label: 'Homework',
-      href: '/student/homework',
-      icon: BookOpen,
-      isActive: pathname.startsWith('/student/homework'),
     },
   ]
 

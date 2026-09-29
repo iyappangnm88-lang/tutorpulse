@@ -21,6 +21,9 @@ import {
   Clock,
   ArrowRight,
   BellRing,
+  Globe,
+  Eye,
+  ExternalLink,
 } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -46,7 +49,7 @@ import type { Metadata } from 'next'
 import type { ClassSessionWithBatch } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'Dashboard — Nuzigo',
+  title: 'Dashboard — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'
@@ -331,10 +334,10 @@ export default async function DashboardPage() {
     day: 'numeric',
   })
 
-  // Fetch tutor profile completeness for the Adaptive Tutor Path
+  // Fetch tutor profile completeness for the Adaptive Tutor Path & Public Profile Card
   const { data: tutorProfile } = await supabase
     .from('profiles')
-    .select('full_name, bio, subjects')
+    .select('full_name, bio, subjects, profile_slug, is_public_marketplace, headline, primary_subjects')
     .eq('id', user?.id || '')
     .maybeSingle()
 
@@ -446,6 +449,69 @@ export default async function DashboardPage() {
 
       {/* Adaptive Tutor Operational Path */}
       <TutorWorkflowPath state={tutorPathState} />
+
+      {/* Public Tutor Profile Marketplace Card */}
+      <div className="rounded-3xl border-2 border-[#55C832]/25 bg-gradient-to-r from-emerald-50/50 via-white to-[#FAFBEF] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-[#55C832]/10 text-[#318A25] flex items-center justify-center shrink-0 border border-[#55C832]/25 shadow-xs">
+            <Globe className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="text-sm font-black text-[#172B4D]">
+                Marketplace Profile Discovery
+              </span>
+              {tutorProfile?.is_public_marketplace ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                  <span className="h-2 w-2 rounded-full bg-[#55C832]" />
+                  Live on Nuzilo Marketplace
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[11px] font-bold border border-amber-200">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  Draft / Not Visible to Students
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 font-medium max-w-xl leading-relaxed">
+              {tutorProfile?.is_public_marketplace
+                ? 'Your teaching profile is discoverable by students searching for tutors on Nuzilo.'
+                : 'Publish your profile in settings so prospective students and parents can discover your batches and subjects.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+          {tutorProfile?.profile_slug ? (
+            <Link
+              href={`/tutors/${tutorProfile.profile_slug}`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-[#55C832] text-xs font-bold text-slate-700 hover:text-[#318A25] transition-all bg-white shadow-2xs"
+            >
+              <Eye className="h-4 w-4" />
+              <span>View Public Profile</span>
+              <ExternalLink className="h-3 w-3 text-slate-400" />
+            </Link>
+          ) : (
+            <Link
+              href="/tutors"
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-[#55C832] text-xs font-bold text-slate-700 hover:text-[#318A25] transition-all bg-white shadow-2xs"
+            >
+              <Globe className="h-4 w-4" />
+              <span>Explore Marketplace</span>
+              <ExternalLink className="h-3 w-3 text-slate-400" />
+            </Link>
+          )}
+
+          <Link
+            href="/dashboard/settings"
+            className="btn-nuzilo-secondary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1"
+          >
+            <span>Edit Profile</span>
+          </Link>
+        </div>
+      </div>
 
       {/* Context-Aware Dashboard Guide Banner */}
       <PageGuide topicId="dashboard" defaultCollapsed={batchesCount > 0 && studentsCount > 0} />

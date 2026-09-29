@@ -14,7 +14,7 @@ const geistSans = Geist({
 })
 
 export const viewport: Viewport = {
-  themeColor: '#4f46e5',
+  themeColor: '#55C832',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -22,15 +22,18 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Nuzigo — Learning that feels alive',
+  title: {
+    default: 'Nuzilo — Find Top Tutors & Learn Better',
+    template: '%s | Nuzilo',
+  },
   description:
-    'The gamified, live online classroom and management platform for tutors and students. Interactive speed quizzes, daily streaks, gold coins, and powerful batch workflows.',
+    'Discover top tutors, explore subjects, book interactive online classes, and track your learning progress with Nuzilo.',
   manifest: '/manifest.json',
-  applicationName: 'Nuzigo',
+  applicationName: 'Nuzilo',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Nuzigo',
+    title: 'Nuzilo',
   },
   formatDetection: {
     telephone: false,
@@ -55,7 +58,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="theme-color" content="#4f46e5" />
+        <meta name="theme-color" content="#55C832" />
       </head>
       <body className="h-full antialiased">
         <AuthProvider>

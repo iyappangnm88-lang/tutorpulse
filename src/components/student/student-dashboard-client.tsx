@@ -79,11 +79,11 @@ export function StudentDashboardClient({
       {/* 1. NUZILO TOP STATS BAR */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-2">
-          <span className="h-9 w-9 rounded-xl bg-[#58CC02] flex items-center justify-center text-white font-black text-lg shadow-sm">
+          <span className="h-9 w-9 rounded-xl bg-[#55C832] flex items-center justify-center text-white font-black text-lg shadow-sm">
             N
           </span>
           <div>
-            <div className="text-xs font-bold tracking-wider uppercase text-[#3C9E00]">Nuzigo Learning</div>
+            <div className="text-xs font-bold tracking-wider uppercase text-[#318A25]">Nuzilo Learning</div>
             <div className="text-xs text-slate-500 font-medium">Level 1 Scholar</div>
           </div>
         </div>
@@ -115,12 +115,12 @@ export function StudentDashboardClient({
       </div>
 
       {/* 2. WELCOMING GREETING & HERO */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#172B4D] via-[#1E3A8A] to-[#172B4D] p-6 sm:p-8 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#172B4D] via-[#10203a] to-[#172B4D] p-6 sm:p-8 text-white shadow-lg">
         <div className="relative z-10 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#58CC02] px-3 py-1 text-xs font-bold text-white shadow-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832] px-3 py-1 text-xs font-bold text-white shadow-xs">
               <Sparkles className="h-3.5 w-3.5" />
-              Nuzigo Student
+              Nuzilo Student
             </span>
             {profile.gradeLevel && (
               <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-slate-100 backdrop-blur-xs">
@@ -146,37 +146,55 @@ export function StudentDashboardClient({
                   connectedTutors.length === 1 ? 'tutor' : 'tutors'
                 } across ${enrolledBatches.length} ${
                   enrolledBatches.length === 1 ? 'batch' : 'batches'
-                }. Complete milestones on your Nuzigo Path below to collect XP, level up, and earn Gold Coins.`
-              : 'Welcome to Nuzigo! Connect with your teachers using an invite code or explore verified tutors to start your live interactive learning journey.'}
+                }. Complete milestones on your learning journey below to earn XP and level up.`
+              : 'Welcome to Nuzilo! Discover verified tutors across subjects or enter an invite code from your teacher to begin your interactive classes.'}
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setJoinModalOpen(true)}
-              className="btn-nuzigo-primary px-4 py-2 text-xs flex items-center gap-1.5 shadow-sm"
-            >
-              <UserPlus className="h-4 w-4" />
-              {hasTutors ? 'Connect Another Tutor' : 'Join with Invite Code'}
-            </button>
+          {/* Quick Actions Bar */}
+          <div className="mt-6 flex flex-wrap items-center gap-2.5">
             <Link href="/student/marketplace">
               <Button
-                variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-11"
+                className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
               >
-                <Compass className="mr-1.5 h-3.5 w-3.5" />
-                Explore Tutors
+                <Compass className="mr-1.5 h-4 w-4" />
+                Find a Tutor
               </Button>
             </Link>
             <Link href="/student/classes">
               <Button
                 variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-11"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
               >
-                Timetable
-                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                <Video className="mr-1.5 h-3.5 w-3.5" />
+                Join Class
               </Button>
             </Link>
+            <Link href="/student/tests">
+              <Button
+                variant="outline"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+              >
+                <Award className="mr-1.5 h-3.5 w-3.5" />
+                Practice
+              </Button>
+            </Link>
+            <Link href="/student/homework">
+              <Button
+                variant="outline"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+              >
+                <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+                Homework
+              </Button>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setJoinModalOpen(true)}
+              className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 flex items-center gap-1.5 transition-colors"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              <span>Invite Code</span>
+            </button>
           </div>
         </div>
 
@@ -209,7 +227,7 @@ export function StudentDashboardClient({
 
       {/* 4. BADGES & ACHIEVEMENTS SHELF */}
       {badges.length > 0 && (
-        <div className="card-nuzigo p-5 sm:p-6">
+        <div className="card-nuzilo p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xl">🏆</span>
@@ -662,6 +680,40 @@ export function StudentDashboardClient({
 
         {/* Right Col: Connected Tutors & Announcements */}
         <div className="space-y-6">
+          {/* Find a Tutor Discovery Card */}
+          <div className="rounded-2xl border-2 border-[#55C832]/30 bg-gradient-to-b from-[#FAFBEF] to-white p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-extrabold text-[#318A25] uppercase tracking-wider bg-[#55C832]/15 px-2.5 py-0.5 rounded-full">
+                Marketplace
+              </span>
+              <Compass className="h-4 w-4 text-[#55C832]" />
+            </div>
+            <h3 className="text-sm font-black text-[#172B4D]">
+              Looking for a New Tutor?
+            </h3>
+            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+              Find verified educators by subject for concept clarity or exam preparation.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mt-3 mb-3.5">
+              {['Mathematics', 'Physics', 'Chemistry', 'English', 'Biology'].map((sub) => (
+                <Link
+                  key={sub}
+                  href={`/student/marketplace?subject=${encodeURIComponent(sub)}`}
+                  className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 hover:border-[#55C832] text-slate-700 hover:text-[#318A25] text-[11px] font-bold transition-colors"
+                >
+                  {sub}
+                </Link>
+              ))}
+            </div>
+            <Link
+              href="/student/marketplace"
+              className="btn-nuzilo-primary text-xs font-bold py-2 px-3 w-full flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <span>Explore All Tutors</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
           {/* Connected Tutors Card */}
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
             <div className="flex items-center justify-between mb-3">

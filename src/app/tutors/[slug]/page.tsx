@@ -20,16 +20,16 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 
   if (!tutorData) {
     return {
-      title: 'Tutor Not Found — Nuzigo',
+      title: 'Tutor Not Found — Nuzilo',
     }
   }
 
   const { profile } = tutorData
   return {
-    title: `${profile.fullName} | Tutor Profile — Nuzigo`,
+    title: `${profile.fullName} | Tutor Profile — Nuzilo`,
     description:
       profile.headline ||
-      `Learn with ${profile.fullName}. Explore active coaching batches, schedule, and request to enroll on Nuzigo.`,
+      `Learn with ${profile.fullName}. Explore active coaching batches, schedule, and request to enroll on Nuzilo.`,
   }
 }
 

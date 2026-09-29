@@ -5,9 +5,9 @@ import { getPublicTutors } from '@/lib/marketplace'
 import { MarketplaceHomeClient } from '@/components/marketplace/marketplace-home-client'
 
 export const metadata: Metadata = {
-  title: 'Find Top Tutors — Nuzigo Marketplace',
+  title: 'Find Top Tutors — Nuzilo Marketplace',
   description:
-    'Discover verified independent tutors, explore structured batch offerings, and send enrollment requests on Nuzigo.',
+    'Discover verified independent tutors, explore structured batch offerings, and send enrollment requests on Nuzilo.',
 }
 
 export const dynamic = 'force-dynamic'

@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: TestDetailPageProps): Promise
   const { id } = await params
   const { data: test } = await getTestById(id)
   return {
-    title: test ? `${test.title} — Nuzigo` : 'Test Details — Nuzigo',
+    title: test ? `${test.title} — Nuzilo` : 'Test Details — Nuzilo',
   }
 }
 

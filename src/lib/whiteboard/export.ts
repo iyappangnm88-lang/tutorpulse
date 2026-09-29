@@ -56,14 +56,14 @@ export async function exportWhiteboardToPNG(
   // 3. Render all vector elements
   renderWhiteboardElements(ctx, elements)
 
-  // 4. Nuzigo Watermark in bottom corner
+  // 4. Nuzilo Watermark in bottom corner
   ctx.save()
   ctx.font = '600 14px system-ui, sans-serif'
   ctx.fillStyle = '#94a3b8'
   ctx.textAlign = 'right'
   ctx.textBaseline = 'bottom'
   ctx.fillText(
-    `Nuzigo Classroom · ${options.title || `Page ${options.pageNumber}`} · ${new Date().toLocaleDateString()}`,
+    `Nuzilo Classroom · ${options.title || `Page ${options.pageNumber}`} · ${new Date().toLocaleDateString()}`,
     exportWidth - 24,
     exportHeight - 20
   )

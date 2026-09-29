@@ -1,15 +1,19 @@
 {
-  "name": "TutorPulse — Teach, Track, Update, Collect",
-  "short_name": "TutorPulse",
-  "description": "Manage students, attendance, homework, tests, fees, and parent communication in one simple workspace.",
+  "name": "Nuzilo — Discover Tutors, Learn & Grow",
+  "short_name": "Nuzilo",
+  "description": "Discover tutors, explore subjects, book classes, and learn through an interactive online learning experience with Nuzilo.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fafafa",
-  "theme_color": "#4f46e5",
+  "theme_color": "#55C832",
   "lang": "en",
-  "categories": ["education", "productivity", "business"],
+  "categories": [
+    "education",
+    "productivity",
+    "business"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -45,23 +49,38 @@
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "description": "Open TutorPulse Dashboard",
+      "description": "Open Nuzilo Dashboard",
       "url": "/dashboard",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Attendance",
       "short_name": "Attendance",
       "description": "Take or review student attendance",
       "url": "/dashboard/attendance",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Students",
       "short_name": "Students",
       "description": "View and manage student records",
       "url": "/dashboard/students",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

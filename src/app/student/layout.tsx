@@ -6,7 +6,7 @@ import { getStudentProfile } from '@/lib/student-portal'
 import { StudentLayoutClient } from '@/components/student/student-layout-client'
 
 export const metadata: Metadata = {
-  title: 'Student Portal — Nuzigo',
+  title: 'Student Portal — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

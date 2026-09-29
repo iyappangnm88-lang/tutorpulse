@@ -55,7 +55,7 @@ export function ParentSidebar({
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#55C832] to-[#318A25] text-white shadow-xs">
             <Activity className="h-4 w-4" />
           </div>
-          <span className="text-sm font-bold text-gray-900 tracking-tight">Nuzigo</span>
+          <span className="text-sm font-bold text-gray-900 tracking-tight">Nuzilo</span>
         </Link>
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider">

@@ -1,5 +1,5 @@
 // ==================================================
-// Nuzigo Shared Types
+// Nuzilo Shared Types
 // ==================================================
 
 import type { Batch, Student, Parent, Fee, Payment, Homework, HomeworkStudent, Test, TestMark, Announcement, ClassSession } from './database'

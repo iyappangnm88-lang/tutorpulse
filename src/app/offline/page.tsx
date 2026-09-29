@@ -19,7 +19,7 @@ export default function OfflinePage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6 select-none">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8 text-center">
-        {/* Nuzigo Brand Logo */}
+        {/* Nuzilo Brand Logo */}
         <div className="flex justify-center mb-6">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#58CC02] text-white font-black text-2xl shadow-md shadow-[#58CC02]/30">
             N
@@ -36,7 +36,7 @@ export default function OfflinePage() {
         </h1>
 
         <p className="text-sm text-gray-600 leading-relaxed mb-6">
-          Nuzigo requires an active internet connection to synchronize learning paths, live classroom questions, attendance, and virtual gold coins.
+          Nuzilo requires an active internet connection to synchronize learning paths, live classroom questions, attendance, and virtual gold coins.
         </p>
 
         {/* Action Buttons */}
@@ -61,7 +61,7 @@ export default function OfflinePage() {
 
         <div className="mt-6 pt-5 border-t border-gray-100">
           <p className="text-xs text-gray-400">
-            Nuzigo &bull; Learning that feels alive
+            Nuzilo &bull; Learning that feels alive
           </p>
         </div>
       </div>

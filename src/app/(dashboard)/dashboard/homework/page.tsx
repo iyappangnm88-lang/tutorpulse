@@ -10,7 +10,7 @@ import { getHomeworkList, getHomeworkSummary } from '@/lib/homework'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Homework & Assignments — Nuzigo',
+  title: 'Homework & Assignments — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

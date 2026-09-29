@@ -7,7 +7,7 @@ import { getStudents } from '@/lib/students'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Create Batch — Nuzigo',
+  title: 'Create Batch — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

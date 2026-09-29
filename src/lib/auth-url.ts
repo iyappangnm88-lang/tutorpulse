@@ -1,5 +1,5 @@
 /**
- * Environment-aware URL resolution utility for Nuzigo authentication and redirects.
+ * Environment-aware URL resolution utility for Nuzilo authentication and redirects.
  *
  * Ensures that OAuth callbacks and server action redirects always target:
  * - Localhost (http://localhost:3000) during local development

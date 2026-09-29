@@ -7,7 +7,7 @@ import { getBatches } from '@/lib/batches'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Create Test — Nuzigo',
+  title: 'Create Test — Nuzilo',
 }
 
 export const dynamic = 'force-dynamic'

@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Welcome to Nuzigo — Onboarding',
+  title: 'Welcome to Nuzilo — Onboarding',
 }
 
 export default function OnboardingLayout({
@@ -22,7 +22,7 @@ export default function OnboardingLayout({
               N
             </div>
             <span className="text-base font-extrabold text-slate-900 tracking-tight">
-              Nuzigo
+              Nuzilo
             </span>
           </Link>
           <span className="text-xs font-semibold text-slate-600">
@@ -38,7 +38,7 @@ export default function OnboardingLayout({
 
       {/* Footer */}
       <footer className="py-6 border-t border-slate-200/70 bg-white/60 text-center text-xs text-slate-600">
-        Nuzigo &copy; {new Date().getFullYear()} • Learning that feels alive
+        Nuzilo &copy; {new Date().getFullYear()} • Learning that feels alive
       </footer>
     </div>
   )
