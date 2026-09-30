@@ -16,7 +16,8 @@ import {
   Calendar,
   Clock,
   Layers,
-  GraduationCap
+  GraduationCap,
+  DollarSign
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -76,6 +77,11 @@ export function BatchForm({ initialData, mode, availableStudents = [] }: BatchFo
     is_public: initialData?.is_public ?? false,
     public_description: initialData?.public_description || '',
     status: (initialData?.status || 'active') as BatchStatus,
+    pricing_rate: (initialData as any)?.pricing_rate ? String((initialData as any).pricing_rate) : '',
+    pricing_unit: (initialData as any)?.pricing_unit || 'per_month',
+    pricing_currency: (initialData as any)?.pricing_currency || 'INR',
+    pricing_description: (initialData as any)?.pricing_description || '',
+    max_students: (initialData as any)?.max_students ? String((initialData as any).max_students) : '',
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -210,6 +216,11 @@ export function BatchForm({ initialData, mode, availableStudents = [] }: BatchFo
           public_description: formData.public_description || null,
           status: formData.status,
           student_ids: selectedStudentIds,
+          pricing_rate: formData.pricing_rate ? Number(formData.pricing_rate) : null,
+          pricing_unit: formData.pricing_unit,
+          pricing_currency: formData.pricing_currency,
+          pricing_description: formData.pricing_description || null,
+          max_students: formData.max_students ? Number(formData.max_students) : null,
         })
 
         if (!res.success) {
@@ -240,6 +251,11 @@ export function BatchForm({ initialData, mode, availableStudents = [] }: BatchFo
           is_public: formData.is_public,
           public_description: formData.public_description || null,
           status: formData.status,
+          pricing_rate: formData.pricing_rate ? Number(formData.pricing_rate) : null,
+          pricing_unit: formData.pricing_unit,
+          pricing_currency: formData.pricing_currency,
+          pricing_description: formData.pricing_description || null,
+          max_students: formData.max_students ? Number(formData.max_students) : null,
         })
 
         if (!res.success) {
@@ -414,6 +430,72 @@ export function BatchForm({ initialData, mode, availableStudents = [] }: BatchFo
                   />
                 </div>
               )}
+            </div>
+
+            {/* Batch Tuition Fee & Capacity */}
+            <div className="pt-4 border-t border-gray-100 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-[#172B4D] flex items-center gap-1.5">
+                  <DollarSign className="h-4 w-4 text-[#318A25]" />
+                  <span>Batch Fee & Capacity</span>
+                </h4>
+                <p className="text-xs text-gray-500">Define tuition fee rate and maximum capacity for this batch.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="pricing_rate">Fee Amount</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">
+                      ₹
+                    </span>
+                    <Input
+                      id="pricing_rate"
+                      type="number"
+                      placeholder="e.g. 800"
+                      className="pl-8"
+                      value={formData.pricing_rate}
+                      onChange={(e) => setFormData({ ...formData, pricing_rate: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="pricing_unit">Billing Cadence</Label>
+                  <Select
+                    id="pricing_unit"
+                    value={formData.pricing_unit}
+                    onChange={(e) => setFormData({ ...formData, pricing_unit: e.target.value })}
+                  >
+                    <option value="per_month">Per Month</option>
+                    <option value="per_class">Per Class</option>
+                    <option value="per_hour">Per Hour</option>
+                    <option value="per_course">Per Course</option>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="max_students">Max Capacity (Students)</Label>
+                  <Input
+                    id="max_students"
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 15"
+                    value={formData.max_students}
+                    onChange={(e) => setFormData({ ...formData, max_students: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-3">
+                  <Label htmlFor="pricing_description">Fee Details / Notes (Optional)</Label>
+                  <Input
+                    id="pricing_description"
+                    placeholder="e.g., Includes 8 classes/month, notes, and weekly assignments"
+                    value={formData.pricing_description}
+                    onChange={(e) => setFormData({ ...formData, pricing_description: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Status */}
@@ -638,6 +720,72 @@ export function BatchForm({ initialData, mode, availableStudents = [] }: BatchFo
                     />
                   </div>
                 )}
+              </div>
+
+              {/* Batch Tuition Fee & Capacity */}
+              <div className="pt-4 border-t border-gray-100 space-y-4">
+                <div>
+                  <h4 className="text-sm font-bold text-[#172B4D] flex items-center gap-1.5">
+                    <DollarSign className="h-4 w-4 text-[#318A25]" />
+                    <span>Batch Fee & Capacity</span>
+                  </h4>
+                  <p className="text-xs text-gray-500">Define tuition fee rate and maximum capacity for this batch.</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="pricing_rate">Fee Amount</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">
+                        ₹
+                      </span>
+                      <Input
+                        id="pricing_rate"
+                        type="number"
+                        placeholder="e.g. 800"
+                        className="pl-8"
+                        value={formData.pricing_rate}
+                        onChange={(e) => setFormData({ ...formData, pricing_rate: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="pricing_unit">Billing Cadence</Label>
+                    <Select
+                      id="pricing_unit"
+                      value={formData.pricing_unit}
+                      onChange={(e) => setFormData({ ...formData, pricing_unit: e.target.value })}
+                    >
+                      <option value="per_month">Per Month</option>
+                      <option value="per_class">Per Class</option>
+                      <option value="per_hour">Per Hour</option>
+                      <option value="per_course">Per Course</option>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="max_students">Max Capacity (Students)</Label>
+                    <Input
+                      id="max_students"
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 15"
+                      value={formData.max_students}
+                      onChange={(e) => setFormData({ ...formData, max_students: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-1 sm:col-span-3">
+                    <Label htmlFor="pricing_description">Fee Details / Notes (Optional)</Label>
+                    <Input
+                      id="pricing_description"
+                      placeholder="e.g., Includes 8 classes/month, notes, and weekly assignments"
+                      value={formData.pricing_description}
+                      onChange={(e) => setFormData({ ...formData, pricing_description: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
             </CardBody>
           </Card>

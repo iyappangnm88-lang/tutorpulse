@@ -67,14 +67,36 @@ export async function createBatchAction(
       description: input.description?.trim() || null,
       is_public: input.is_public ?? false,
       public_description: input.public_description?.trim() || null,
+      pricing_rate: input.pricing_rate != null ? Number(input.pricing_rate) : null,
+      pricing_unit: input.pricing_unit || 'per_month',
+      pricing_currency: input.pricing_currency || 'INR',
+      pricing_description: input.pricing_description?.trim() || null,
+      max_students: input.max_students != null ? Number(input.max_students) : null,
       status: input.status || 'active',
     }
 
-    const { data, error } = await supabase
+    let insertRes = await supabase
       .from('batches')
       .insert(newBatch)
       .select()
       .single()
+
+    // Schema fallback resilience: if migration 027 not yet applied on remote, retry without new columns
+    if (insertRes.error && (insertRes.error.message.includes('pricing_rate') || insertRes.error.message.includes('column'))) {
+      const fallbackBatch = { ...newBatch }
+      delete fallbackBatch.pricing_rate
+      delete fallbackBatch.pricing_unit
+      delete fallbackBatch.pricing_currency
+      delete fallbackBatch.pricing_description
+      delete fallbackBatch.max_students
+      insertRes = await supabase
+        .from('batches')
+        .insert(fallbackBatch)
+        .select()
+        .single()
+    }
+
+    const { data, error } = insertRes
 
     if (error) {
       console.error('createBatchAction error:', error)
@@ -149,6 +171,11 @@ export async function updateBatchAction(
       is_public: input.is_public !== undefined ? input.is_public : undefined,
       public_description: input.public_description !== undefined ? (input.public_description?.trim() || null) : undefined,
       classes_per_week: input.classes_per_week !== undefined ? (input.classes_per_week !== null ? Number(input.classes_per_week) : null) : undefined,
+      pricing_rate: input.pricing_rate !== undefined ? (input.pricing_rate !== null ? Number(input.pricing_rate) : null) : undefined,
+      pricing_unit: input.pricing_unit !== undefined ? (input.pricing_unit || 'per_month') : undefined,
+      pricing_currency: input.pricing_currency !== undefined ? (input.pricing_currency || 'INR') : undefined,
+      pricing_description: input.pricing_description !== undefined ? (input.pricing_description?.trim() || null) : undefined,
+      max_students: input.max_students !== undefined ? (input.max_students !== null ? Number(input.max_students) : null) : undefined,
       status: input.status,
     }
 
@@ -184,13 +211,32 @@ export async function updateBatchAction(
       updateData.schedule = scheduleValidation.normalizedData.schedule
     }
 
-    const { data, error } = await supabase
+    let updateRes = await supabase
       .from('batches')
       .update(updateData)
       .eq('id', id)
       .eq('tutor_id', user.id)
       .select()
       .single()
+
+    // Fallback resilience if migration 027 not yet applied on remote
+    if (updateRes.error && (updateRes.error.message.includes('pricing_rate') || updateRes.error.message.includes('column'))) {
+      const fallbackData = { ...updateData }
+      delete fallbackData.pricing_rate
+      delete fallbackData.pricing_unit
+      delete fallbackData.pricing_currency
+      delete fallbackData.pricing_description
+      delete fallbackData.max_students
+      updateRes = await supabase
+        .from('batches')
+        .update(fallbackData)
+        .eq('id', id)
+        .eq('tutor_id', user.id)
+        .select()
+        .single()
+    }
+
+    const { data, error } = updateRes
 
     if (error) {
       console.error('updateBatchAction error:', error)
@@ -451,5 +497,62 @@ export async function createAndEnrollStudentAction(
   } catch (err: unknown) {
     console.error('createAndEnrollStudentAction exception:', err)
     return { success: false, error: 'Failed to create and enroll student.' }
+  }
+}
+
+export async function toggleBatchMarketplaceAction(
+  batchId: string,
+  isPublic: boolean
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Unauthorized. Please sign in.' }
+
+    const { error } = await supabase
+      .from('batches')
+      .update({ is_public: isPublic, updated_at: new Date().toISOString() })
+      .eq('id', batchId)
+      .eq('tutor_id', user.id)
+
+    if (error) {
+      console.error('toggleBatchMarketplaceAction error:', error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard/marketplace')
+    revalidatePath('/dashboard/batches')
+    return { success: true }
+  } catch (err: unknown) {
+    console.error('toggleBatchMarketplaceAction exception:', err)
+    return { success: false, error: 'Failed to update batch visibility.' }
+  }
+}
+
+export async function toggleTutorMarketplaceVisibilityAction(
+  isPublic: boolean
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Unauthorized. Please sign in.' }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_public_marketplace: isPublic, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+
+    if (error) {
+      console.error('toggleTutorMarketplaceVisibilityAction error:', error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard/marketplace')
+    revalidatePath('/dashboard')
+    revalidatePath('/tutors')
+    return { success: true }
+  } catch (err: unknown) {
+    console.error('toggleTutorMarketplaceVisibilityAction exception:', err)
+    return { success: false, error: 'Failed to update marketplace profile visibility.' }
   }
 }

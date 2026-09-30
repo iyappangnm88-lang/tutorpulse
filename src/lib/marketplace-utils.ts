@@ -34,6 +34,11 @@ export interface PublicTeachingOffering {
   location: string | null
   description: string | null
   publicDescription: string | null
+  pricingRate?: number | null
+  pricingUnit?: string | null
+  pricingCurrency?: string | null
+  pricingDescription?: string | null
+  maxStudents?: number | null
 }
 
 export interface PublicTutorDetail {

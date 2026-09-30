@@ -263,6 +263,11 @@ export interface Database {
           status: 'active' | 'archived'
           is_public: boolean
           public_description: string | null
+          pricing_rate: number | null
+          pricing_unit: string | null
+          pricing_currency: string | null
+          pricing_description: string | null
+          max_students: number | null
           created_at: string
           updated_at: string
         }
@@ -284,6 +289,11 @@ export interface Database {
           status?: 'active' | 'archived'
           is_public?: boolean
           public_description?: string | null
+          pricing_rate?: number | null
+          pricing_unit?: string | null
+          pricing_currency?: string | null
+          pricing_description?: string | null
+          max_students?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -305,6 +315,11 @@ export interface Database {
           status?: 'active' | 'archived'
           is_public?: boolean
           public_description?: string | null
+          pricing_rate?: number | null
+          pricing_unit?: string | null
+          pricing_currency?: string | null
+          pricing_description?: string | null
+          max_students?: number | null
           created_at?: string
           updated_at?: string
         }

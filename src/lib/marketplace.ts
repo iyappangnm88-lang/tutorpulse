@@ -200,6 +200,11 @@ export async function getPublicTutorBySlug(
     location: b.location,
     description: b.description,
     publicDescription: b.public_description,
+    pricingRate: (b as any).pricing_rate != null ? Number((b as any).pricing_rate) : null,
+    pricingUnit: (b as any).pricing_unit || 'per_month',
+    pricingCurrency: (b as any).pricing_currency || 'INR',
+    pricingDescription: (b as any).pricing_description || null,
+    maxStudents: (b as any).max_students != null ? Number((b as any).max_students) : null,
   }))
 
   return {

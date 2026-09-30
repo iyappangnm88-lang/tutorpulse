@@ -235,6 +235,7 @@ export async function respondJoinRequestAction(
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/dashboard/marketplace')
     revalidatePath('/dashboard/requests')
     revalidatePath('/dashboard/students')
     revalidatePath('/dashboard/batches')

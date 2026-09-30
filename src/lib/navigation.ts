@@ -36,14 +36,13 @@ export interface NavItem {
  */
 export const TUTOR_MAIN_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Marketplace', href: '/dashboard/marketplace', icon: Compass },
   { label: 'Batches', href: '/dashboard/batches', icon: Layers },
   { label: 'Students', href: '/dashboard/students', icon: Users },
   { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
   { label: 'Classroom', href: '/dashboard/classroom', icon: Video },
   { label: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
-  { label: 'Homework', href: '/dashboard/homework', icon: BookOpen },
-  { label: 'Tests', href: '/dashboard/tests', icon: FileText },
-  { label: 'Fees', href: '/dashboard/fees', icon: CreditCard },
+  { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
   { label: 'Messages', href: '/dashboard/communication', icon: MessageSquare },
 ]
 
@@ -51,9 +50,7 @@ export const TUTOR_MAIN_NAV_ITEMS: NavItem[] = [
  * Secondary: Administration, analytics, and settings.
  */
 export const TUTOR_SECONDARY_NAV_ITEMS: NavItem[] = [
-  { label: 'Requests', href: '/dashboard/requests', icon: UserCheck },
   { label: 'Parent Portal', href: '/dashboard/parents', icon: HeartHandshake },
-  { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   { label: 'Help & Guides', href: '/dashboard/help', icon: HelpCircle },
 ]

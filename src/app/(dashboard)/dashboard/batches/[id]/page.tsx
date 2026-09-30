@@ -11,6 +11,7 @@ import { getBatchHomework } from '@/lib/homework'
 import { getBatchTests } from '@/lib/tests'
 import { getBatchUpcomingSessions } from '@/lib/class-sessions'
 import { getFees } from '@/lib/fees'
+import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 
 interface BatchDetailPageProps {
@@ -29,7 +30,12 @@ export async function generateMetadata({ params }: BatchDetailPageProps): Promis
 
 export default async function BatchDetailPage({ params }: BatchDetailPageProps) {
   const { id } = await params
-  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes, feesRes] = await Promise.all([
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes, feesRes, profileRes] = await Promise.all([
     getBatchById(id),
     getBatchEnrolledStudents(id),
     getAvailableStudentsForBatch(id),
@@ -37,9 +43,11 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
     getBatchTests(id),
     getBatchUpcomingSessions(id, 5),
     getFees(),
+    user ? supabase.from('profiles').select('*').eq('id', user.id).single() : Promise.resolve({ data: null }),
   ])
 
   const batch = batchRes.data
+  const tutorProfile = profileRes?.data
 
   if (batchRes.error || !batch) {
     notFound()
@@ -82,6 +90,7 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
         homeworkList={homeworkRes.data}
         tests={testsRes.data}
         fees={batchFees}
+        tutorProfile={tutorProfile}
       />
     </div>
   )
