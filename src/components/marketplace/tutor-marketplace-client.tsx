@@ -33,6 +33,7 @@ import { useToast } from '@/contexts/toast-context'
 import {
   toggleBatchMarketplaceAction,
   toggleTutorMarketplaceVisibilityAction,
+  updateTutorMarketplacePricingAction,
 } from '@/app/(dashboard)/dashboard/batches/actions'
 import { respondJoinRequestAction } from '@/app/tutors/actions'
 import { DAY_METADATA, formatTimeRange } from '@/lib/scheduling'
@@ -57,6 +58,7 @@ export function TutorMarketplaceClient({
   const router = useRouter()
   const { toast } = useToast()
 
+  const [profileData, setProfileData] = useState(profile)
   const [batches, setBatches] = useState<BatchWithCount[]>(initialBatches)
   const [requests, setRequests] = useState(initialRequests)
   const [isPublicProfile, setIsPublicProfile] = useState<boolean>(
@@ -67,20 +69,111 @@ export function TutorMarketplaceClient({
   const [batchTab, setBatchTab] = useState<'all' | 'published' | 'drafts'>('all')
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null)
 
-  const publicSlug = profile?.profile_slug || profile?.id || ''
+  // Pricing Modal State
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false)
+  const [pricingRateInput, setPricingRateInput] = useState<string>(
+    profile?.pricing_rate != null ? String(profile.pricing_rate) : ''
+  )
+  const [pricingUnitInput, setPricingUnitInput] = useState<string>(
+    profile?.pricing_unit || 'per_month'
+  )
+  const [pricingDescInput, setPricingDescInput] = useState<string>(
+    profile?.pricing_description || ''
+  )
+  const [savingPricing, setSavingPricing] = useState(false)
+
+  const publicSlug = profileData?.profile_slug || profileData?.id || ''
   const publicProfileUrl = `/tutors/${publicSlug}`
 
-  // Profile completion calculation
+  // Profile completion calculation: Teaching fee is marked done if profile pricing OR any batch pricing is set
+  const hasAnyBatchPricing = batches.some((b) => b.pricing_rate != null && Number(b.pricing_rate) > 0)
+  const hasProfilePricing = profileData?.pricing_rate != null && Number(profileData.pricing_rate) > 0
+
   const completionChecks = [
-    { label: 'Full Name', done: Boolean(profile?.full_name?.trim()) },
-    { label: 'Headline', done: Boolean(profile?.headline?.trim()) },
-    { label: 'Bio / Teaching Approach', done: Boolean(profile?.bio?.trim() || profile?.teaching_approach?.trim()) },
-    { label: 'Subjects & Classes', done: (profile?.primary_subjects?.length || 0) > 0 },
-    { label: 'Teaching Fee', done: profile?.pricing_rate != null && Number(profile.pricing_rate) > 0 },
-    { label: 'Profile Photo', done: Boolean(profile?.avatar_url) },
+    { label: 'Full Name', done: Boolean(profileData?.full_name?.trim()) },
+    { label: 'Headline', done: Boolean(profileData?.headline?.trim()) },
+    { label: 'Bio / Teaching Approach', done: Boolean(profileData?.bio?.trim() || profileData?.teaching_approach?.trim()) },
+    { label: 'Subjects & Classes', done: (profileData?.primary_subjects?.length || 0) > 0 },
+    { label: 'Teaching Fee', done: hasProfilePricing || hasAnyBatchPricing },
+    { label: 'Profile Photo', done: Boolean(profileData?.avatar_url) },
   ]
   const completedCount = completionChecks.filter((c) => c.done).length
   const completionPercent = Math.round((completedCount / completionChecks.length) * 100)
+
+  // Save Pricing handler
+  async function handleSavePricing() {
+    setSavingPricing(true)
+    const rateVal = pricingRateInput.trim() !== '' ? Number(pricingRateInput) : null
+    if (rateVal !== null && (isNaN(rateVal) || rateVal < 0)) {
+      toast('error', 'Invalid Amount', 'Please enter a valid tuition fee number.')
+      setSavingPricing(false)
+      return
+    }
+
+    try {
+      const res = await updateTutorMarketplacePricingAction({
+        pricing_rate: rateVal,
+        pricing_unit: pricingUnitInput,
+        pricing_description: pricingDescInput.trim() || null,
+        pricing_currency: 'INR',
+      })
+
+      if (!res.success) {
+        toast('error', 'Update Failed', res.error || 'Could not update pricing.')
+        return
+      }
+
+      setProfileData((prev: any) => ({
+        ...prev,
+        pricing_rate: rateVal,
+        pricing_unit: pricingUnitInput,
+        pricing_description: pricingDescInput.trim() || null,
+      }))
+
+      toast(
+        'success',
+        rateVal !== null ? 'Marketplace Pricing Saved' : 'Pricing Reset',
+        rateVal !== null
+          ? `Default rate set to ₹${rateVal} /${pricingUnitInput.replace('per_', '')}.`
+          : 'Default pricing marked as not set.'
+      )
+      setIsPricingModalOpen(false)
+      router.refresh()
+    } catch {
+      toast('error', 'Error', 'Something went wrong saving pricing.')
+    } finally {
+      setSavingPricing(false)
+    }
+  }
+
+  // Clear pricing handler
+  async function handleClearPricing() {
+    setSavingPricing(true)
+    try {
+      const res = await updateTutorMarketplacePricingAction({
+        pricing_rate: null,
+      })
+
+      if (!res.success) {
+        toast('error', 'Update Failed', res.error || 'Could not clear pricing.')
+        return
+      }
+
+      setProfileData((prev: any) => ({
+        ...prev,
+        pricing_rate: null,
+      }))
+      setPricingRateInput('')
+
+      toast('info', 'Pricing Cleared', 'Tutor rate set to "Pricing not set".')
+      setIsPricingModalOpen(false)
+      router.refresh()
+    } catch {
+      toast('error', 'Error', 'Something went wrong clearing pricing.')
+    } finally {
+      setSavingPricing(false)
+    }
+  }
 
   // Filter batches
   const marketplaceBatches = batches.filter((b) => b.is_public)
@@ -241,6 +334,41 @@ export function TutorMarketplaceClient({
         </div>
       </div>
 
+      {/* OPERATIONAL STATUS SUMMARY */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
+        <div className="flex flex-col">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Marketplace Profile</span>
+          <span className="text-sm font-black text-[#172B4D] flex items-center gap-1.5 mt-0.5">
+            <span className={`h-2 w-2 rounded-full ${isPublicProfile ? 'bg-[#55C832]' : 'bg-slate-300'}`} />
+            {isPublicProfile ? 'Published' : 'Draft / Private'}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Marketplace Batches</span>
+          <span className="text-sm font-black text-[#172B4D] mt-0.5">
+            {marketplaceBatches.length} Published <span className="text-xs text-slate-400 font-normal">/ {draftBatches.length} Draft</span>
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Default Pricing</span>
+          <span className="text-sm font-black text-[#172B4D] mt-0.5">
+            {profileData?.pricing_rate != null ? (
+              <span className="text-emerald-700">
+                ₹{profileData.pricing_rate} <span className="text-xs font-semibold text-slate-500">/{profileData.pricing_unit ? profileData.pricing_unit.replace('per_', '') : 'month'}</span>
+              </span>
+            ) : (
+              <span className="text-slate-400 font-semibold">Pricing not set</span>
+            )}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[11px] font-bold uppercase text-slate-400">Join Requests</span>
+          <span className="text-sm font-black text-[#172B4D] mt-0.5">
+            {requests.pending.length} Pending
+          </span>
+        </div>
+      </div>
+
       {/* SECTION 1: YOUR MARKETPLACE PRESENCE */}
       <Card className="border border-gray-200 bg-white shadow-xs overflow-hidden">
         <div className="h-2 bg-gradient-to-r from-[#55C832] via-[#318A25] to-[#172B4D]" />
@@ -249,22 +377,22 @@ export function TutorMarketplaceClient({
             {/* Left: Tutor details */}
             <div className="flex items-start gap-4">
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-[#172B4D] to-[#318A25] text-white flex items-center justify-center font-black text-2xl shadow-md shrink-0">
-                {profile?.full_name?.charAt(0) || 'T'}
+                {profileData?.full_name?.charAt(0) || 'T'}
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-lg sm:text-xl font-black text-[#172B4D]">
-                    {profile?.full_name || 'Your Tutor Profile'}
+                    {profileData?.full_name || 'Your Tutor Profile'}
                   </h2>
                   <Badge variant={isPublicProfile ? 'success' : 'default'} className="text-[11px]">
                     {isPublicProfile ? '● Published on Marketplace' : 'Draft / Private'}
                   </Badge>
                 </div>
                 <p className="text-xs sm:text-sm font-semibold text-slate-600">
-                  {profile?.headline || 'No headline set yet'}
+                  {profileData?.headline || 'No headline set yet'}
                 </p>
                 <p className="text-xs text-slate-500 font-medium">
-                  {profile?.location_region || 'Location not specified'} • {profile?.experience_years ? `${profile.experience_years} years experience` : 'Experience not set'}
+                  {profileData?.location_region || 'Location not specified'} • {profileData?.experience_years ? `${profileData.experience_years} years experience` : 'Experience not set'}
                 </p>
               </div>
             </div>
@@ -340,25 +468,46 @@ export function TutorMarketplaceClient({
           {/* Pricing & Subjects Overview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
             <div className="p-3.5 rounded-2xl bg-white border border-slate-200 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Default Pricing Rate</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Default Pricing</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPricingRateInput(profileData?.pricing_rate != null ? String(profileData.pricing_rate) : '')
+                    setPricingUnitInput(profileData?.pricing_unit || 'per_month')
+                    setPricingDescInput(profileData?.pricing_description || '')
+                    setIsPricingModalOpen(true)
+                  }}
+                  className="text-xs font-bold text-[#318A25] hover:text-[#256c1d] flex items-center gap-1 underline underline-offset-2"
+                >
+                  <Edit2 className="h-3 w-3" />
+                  <span>Edit</span>
+                </button>
+              </div>
               <p className="text-base font-black text-[#172B4D]">
-                {profile?.pricing_rate != null ? `₹${profile.pricing_rate}` : 'Not set'}{' '}
-                <span className="text-xs font-medium text-slate-500">
-                  {profile?.pricing_unit ? `/${profile.pricing_unit.replace('per_', '')}` : ''}
-                </span>
+                {profileData?.pricing_rate != null ? (
+                  <>
+                    ₹{profileData.pricing_rate}{' '}
+                    <span className="text-xs font-medium text-slate-500">
+                      /{profileData?.pricing_unit ? profileData.pricing_unit.replace('per_', '') : 'month'}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-slate-400 font-semibold text-sm">Pricing not set</span>
+                )}
               </p>
               <p className="text-[11px] text-slate-500 font-medium truncate">
-                {profile?.pricing_description || 'No pricing note'}
+                {profileData?.pricing_description || 'No pricing note'}
               </p>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-white border border-slate-200 space-y-1">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Teaching Mode</span>
               <p className="text-sm font-bold text-[#172B4D] capitalize">
-                {profile?.teaching_mode || 'Both Online & Offline'}
+                {profileData?.teaching_mode || 'Both Online & Offline'}
               </p>
               <p className="text-[11px] text-slate-500 font-medium">
-                {profile?.teaching_languages?.join(', ') || 'Languages not specified'}
+                {profileData?.teaching_languages?.join(', ') || 'Languages not specified'}
               </p>
             </div>
 
@@ -659,6 +808,105 @@ export function TutorMarketplaceClient({
           )}
         </CardBody>
       </Card>
+
+      {/* PRICING EDIT MODAL */}
+      {isPricingModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-5 animate-scale-in">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-emerald-50 text-[#318A25] flex items-center justify-center">
+                  <DollarSign className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-[#172B4D]">Edit Marketplace Pricing</h3>
+                  <p className="text-xs text-slate-500">Set your default tuition fee for student discovery.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPricingModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-[#172B4D] block mb-1">Fee Rate (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    placeholder="e.g. 800"
+                    value={pricingRateInput}
+                    onChange={(e) => setPricingRateInput(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:border-[#55C832] focus:ring-1 focus:ring-[#55C832] outline-none"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">Leave empty or 0 to show "Pricing not set".</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-[#172B4D] block mb-1">Billing Frequency</label>
+                <select
+                  value={pricingUnitInput}
+                  onChange={(e) => setPricingUnitInput(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:border-[#55C832] focus:ring-1 focus:ring-[#55C832] outline-none bg-white"
+                >
+                  <option value="per_month">per month</option>
+                  <option value="per_class">per class</option>
+                  <option value="per_hour">per hour</option>
+                  <option value="per_course">per course</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-[#172B4D] block mb-1">Pricing Note (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Includes study notes and weekly practice sheets"
+                  value={pricingDescInput}
+                  onChange={(e) => setPricingDescInput(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:border-[#55C832] focus:ring-1 focus:ring-[#55C832] outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handleClearPricing}
+                disabled={savingPricing}
+                className="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline"
+              >
+                Clear Rate (Not Set)
+              </button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsPricingModalOpen(false)}
+                  disabled={savingPricing}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSavePricing}
+                  disabled={savingPricing}
+                  className="bg-[#55C832] hover:bg-[#318A25] text-white font-bold"
+                >
+                  {savingPricing ? 'Saving...' : 'Save Pricing'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

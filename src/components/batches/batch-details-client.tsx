@@ -130,7 +130,7 @@ export function BatchDetailsClient({
   const nextSession = upcomingSessions[0] || null
 
   // Pricing calculations
-  const feeRate = (batch as any).pricing_rate ?? tutorProfile?.pricing_rate ?? 800
+  const feeRate = (batch as any).pricing_rate ?? tutorProfile?.pricing_rate ?? null
   const feeUnit = ((batch as any).pricing_unit ?? tutorProfile?.pricing_unit ?? 'per_month').replace('per_', '')
   const feeCurrency = (batch as any).pricing_currency ?? tutorProfile?.pricing_currency ?? 'INR'
   const feeDescription = (batch as any).pricing_description || tutorProfile?.pricing_description || ''
@@ -283,7 +283,13 @@ export function BatchDetailsClient({
                 </span>
                 <span>•</span>
                 <span className="font-black text-[#172B4D]">
-                  ₹{feeRate} <span className="text-gray-500 font-medium">/{feeUnit}</span>
+                  {feeRate != null ? (
+                    <>
+                      ₹{feeRate} <span className="text-gray-500 font-medium">/{feeUnit}</span>
+                    </>
+                  ) : (
+                    <span className="text-gray-500 font-medium">Pricing not set</span>
+                  )}
                 </span>
                 {(batch as any).max_students && (
                   <>
@@ -622,7 +628,7 @@ export function BatchDetailsClient({
                 <div className="flex items-center justify-between py-1 border-b border-gray-100">
                   <span className="text-gray-500">Marketplace Fee Rate</span>
                   <span className="font-black text-[#172B4D]">
-                    ₹{feeRate} /{feeUnit}
+                    {feeRate != null ? `₹${feeRate} /${feeUnit}` : 'Pricing not set'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-gray-100">
@@ -1049,7 +1055,13 @@ export function BatchDetailsClient({
                   Public Listing Price for Prospective Students
                 </h4>
                 <p className="text-xl font-black text-[#172B4D]">
-                  ₹{feeRate} <span className="text-xs font-normal text-gray-500">/{feeUnit}</span>
+                  {feeRate != null ? (
+                    <>
+                      ₹{feeRate} <span className="text-xs font-normal text-gray-500">/{feeUnit}</span>
+                    </>
+                  ) : (
+                    <span className="text-sm font-semibold text-gray-500">Pricing not set</span>
+                  )}
                 </p>
                 <p className="text-[11px] text-gray-600">
                   {feeDescription || 'Tuition rate published on student discovery profile.'}

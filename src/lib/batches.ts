@@ -2,6 +2,72 @@ import { createClient } from '@/lib/supabase/server'
 import { getActiveWorkspace } from '@/lib/workspace'
 import type { Batch, BatchWithCount, EnrolledStudent, Student } from '@/types'
 
+export interface BatchPricingMeta {
+  rate?: number | null
+  unit?: string | null
+  currency?: string | null
+  description?: string | null
+  max_students?: number | null
+}
+
+export function cleanBatchDescription(raw?: string | null): string {
+  if (!raw) return ''
+  return raw.replace(/<!-- NUZIGO_PRICING:.*? -->/g, '').trim()
+}
+
+export function extractBatchPricingMetadata(batch: any): BatchPricingMeta {
+  if (!batch) return {}
+  // If native column has rate, use it
+  if (batch.pricing_rate != null) {
+    return {
+      rate: Number(batch.pricing_rate),
+      unit: batch.pricing_unit || 'per_month',
+      currency: batch.pricing_currency || 'INR',
+      description: batch.pricing_description || null,
+      max_students: batch.max_students != null ? Number(batch.max_students) : null,
+    }
+  }
+
+  // Check description or public_description for embedded pricing tag
+  const searchStr = `${batch.description || ''} ${batch.public_description || ''}`
+  const match = searchStr.match(/<!-- NUZIGO_PRICING:(.*?) -->/)
+  if (match && match[1]) {
+    try {
+      const parsed = JSON.parse(match[1])
+      return {
+        rate: parsed.rate != null ? Number(parsed.rate) : null,
+        unit: parsed.unit || 'per_month',
+        currency: parsed.currency || 'INR',
+        description: parsed.description || null,
+        max_students: parsed.max_students != null ? Number(parsed.max_students) : null,
+      }
+    } catch {
+      // ignore JSON parse error
+    }
+  }
+
+  return {}
+}
+
+export function injectBatchPricingMetadata(
+  desc?: string | null,
+  pricing?: BatchPricingMeta
+): string | null {
+  const clean = cleanBatchDescription(desc)
+  if (!pricing || (pricing.rate == null && pricing.max_students == null)) {
+    return clean || null
+  }
+  const payload = {
+    rate: pricing.rate != null ? Number(pricing.rate) : null,
+    unit: pricing.unit || 'per_month',
+    currency: pricing.currency || 'INR',
+    description: pricing.description || null,
+    max_students: pricing.max_students != null ? Number(pricing.max_students) : null,
+  }
+  const tag = `<!-- NUZIGO_PRICING:${JSON.stringify(payload)} -->`
+  return clean ? `${clean} ${tag}` : tag
+}
+
 export async function getBatches(workspaceId?: string): Promise<{ data: BatchWithCount[]; error: string | null }> {
   try {
     const supabase = await createClient()
@@ -50,10 +116,19 @@ export async function getBatches(workspaceId?: string): Promise<{ data: BatchWit
       }
     }
 
-    const batchesWithCount: BatchWithCount[] = batchesData.map((b) => ({
-      ...b,
-      student_count: countMap[b.id] || 0,
-    }))
+    const batchesWithCount: BatchWithCount[] = batchesData.map((b) => {
+      const meta = extractBatchPricingMetadata(b)
+      return {
+        ...b,
+        description: cleanBatchDescription(b.description),
+        pricing_rate: (b as any).pricing_rate != null ? Number((b as any).pricing_rate) : (meta.rate ?? null),
+        pricing_unit: (b as any).pricing_unit || meta.unit || 'per_month',
+        pricing_currency: (b as any).pricing_currency || meta.currency || 'INR',
+        pricing_description: (b as any).pricing_description || meta.description || null,
+        max_students: (b as any).max_students != null ? Number((b as any).max_students) : (meta.max_students ?? null),
+        student_count: countMap[b.id] || 0,
+      }
+    })
 
     return { data: batchesWithCount, error: null }
   } catch {
@@ -92,11 +167,20 @@ export async function getBatchById(id: string, workspaceId?: string): Promise<{ 
       .eq('batch_id', id)
       .eq('status', 'active')
 
+    const meta = extractBatchPricingMetadata(batch)
+    const cleanBatch: BatchWithCount = {
+      ...(batch as Batch),
+      description: cleanBatchDescription(batch.description),
+      pricing_rate: (batch as any).pricing_rate != null ? Number((batch as any).pricing_rate) : (meta.rate ?? null),
+      pricing_unit: (batch as any).pricing_unit || meta.unit || 'per_month',
+      pricing_currency: (batch as any).pricing_currency || meta.currency || 'INR',
+      pricing_description: (batch as any).pricing_description || meta.description || null,
+      max_students: (batch as any).max_students != null ? Number((batch as any).max_students) : (meta.max_students ?? null),
+      student_count: count || 0,
+    }
+
     return {
-      data: {
-        ...(batch as Batch),
-        student_count: count || 0,
-      },
+      data: cleanBatch,
       error: null,
     }
   } catch (err: unknown) {

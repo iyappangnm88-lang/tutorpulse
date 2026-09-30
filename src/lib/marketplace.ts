@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { extractBatchPricingMetadata, cleanBatchDescription } from '@/lib/batches'
 import type { Batch } from '@/types'
 
 export * from './marketplace-utils'
@@ -187,25 +188,37 @@ export async function getPublicTutorBySlug(
     .eq('status', 'active')
     .order('created_at', { ascending: false })
 
-  const offerings: PublicTeachingOffering[] = (batches || []).map((b) => ({
-    id: b.id,
-    batchName: b.name,
-    subject: b.subject,
-    className: b.class_name,
-    classMode: b.class_mode || 'offline',
-    schedule: b.schedule,
-    workingDays: b.working_days,
-    startTime: b.start_time,
-    endTime: b.end_time,
-    location: b.location,
-    description: b.description,
-    publicDescription: b.public_description,
-    pricingRate: (b as any).pricing_rate != null ? Number((b as any).pricing_rate) : null,
-    pricingUnit: (b as any).pricing_unit || 'per_month',
-    pricingCurrency: (b as any).pricing_currency || 'INR',
-    pricingDescription: (b as any).pricing_description || null,
-    maxStudents: (b as any).max_students != null ? Number((b as any).max_students) : null,
-  }))
+  const offerings: PublicTeachingOffering[] = (batches || []).map((b) => {
+    const meta = extractBatchPricingMetadata(b)
+    const effectiveRate =
+      (b as any).pricing_rate != null
+        ? Number((b as any).pricing_rate)
+        : (meta.rate ?? ((profile as any).pricing_rate != null ? Number((profile as any).pricing_rate) : null))
+    const effectiveUnit = (b as any).pricing_unit || meta.unit || (profile as any).pricing_unit || 'per_month'
+    const effectiveCurrency = (b as any).pricing_currency || meta.currency || (profile as any).pricing_currency || 'INR'
+    const effectiveDescription = (b as any).pricing_description || meta.description || (profile as any).pricing_description || null
+    const effectiveMaxStudents = (b as any).max_students != null ? Number((b as any).max_students) : (meta.max_students ?? null)
+
+    return {
+      id: b.id,
+      batchName: b.name,
+      subject: b.subject,
+      className: b.class_name,
+      classMode: b.class_mode || 'offline',
+      schedule: b.schedule,
+      workingDays: b.working_days,
+      startTime: b.start_time,
+      endTime: b.end_time,
+      location: b.location,
+      description: cleanBatchDescription(b.description),
+      publicDescription: cleanBatchDescription(b.public_description),
+      pricingRate: effectiveRate,
+      pricingUnit: effectiveUnit,
+      pricingCurrency: effectiveCurrency,
+      pricingDescription: effectiveDescription,
+      maxStudents: effectiveMaxStudents,
+    }
+  })
 
   return {
     profile: {

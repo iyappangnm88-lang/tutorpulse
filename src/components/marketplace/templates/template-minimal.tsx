@@ -158,6 +158,13 @@ export function TemplateMinimal({
                             {formatTimeRange(batch.startTime, batch.endTime)}
                           </span>
                         )}
+                        <span className="font-mono text-black font-medium">
+                          {batch.pricingRate != null ? (
+                            `₹${batch.pricingRate} /${batch.pricingUnit ? batch.pricingUnit.replace('per_', '') : 'month'}`
+                          ) : (
+                            <span className="text-neutral-400">Pricing not set</span>
+                          )}
+                        </span>
                       </div>
 
                       {(batch.publicDescription || batch.description) && (

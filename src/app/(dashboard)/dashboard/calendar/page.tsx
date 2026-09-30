@@ -2,7 +2,6 @@ import React from 'react'
 import type { Metadata } from 'next'
 import { PageHeader } from '@/components/ui/page-header'
 import { CalendarView } from '@/components/calendar/calendar-view'
-import { PageGuide } from '@/components/help/page-guide'
 import { syncAndGetSessionsForDateRange, formatDateKey, addDays } from '@/lib/class-sessions'
 import { getBatches } from '@/lib/batches'
 import { getActiveWorkspace } from '@/lib/workspace'
@@ -52,8 +51,6 @@ export default async function CalendarPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <PageGuide topicId="calendar" defaultCollapsed={sessions.length > 0} />
-
       <PageHeader
         title="Calendar & Sessions"
         description="Monitor daily classes, launch sessions, manage attendance, and reschedule occurrences seamlessly."

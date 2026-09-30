@@ -41,10 +41,8 @@ import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveWorkspace } from '@/lib/workspace'
 import { formatCurrency } from '@/lib/fee-utils'
-import { PageGuide } from '@/components/help/page-guide'
 import { InviteCodeBadge } from '@/components/dashboard/invite-code-badge'
 import { NextClassHero } from '@/components/dashboard/next-class-hero'
-import { TutorWorkflowPath } from '@/components/tutor/tutor-workflow-path'
 import type { Metadata } from 'next'
 import type { ClassSessionWithBatch } from '@/types'
 
@@ -341,19 +339,6 @@ export default async function DashboardPage() {
     .eq('id', user?.id || '')
     .maybeSingle()
 
-  const tutorPathState = {
-    hasProfile: Boolean(tutorProfile?.full_name && tutorProfile?.bio),
-    batchesCount,
-    studentsCount,
-    hasScheduledSessions: (todaySessions.length + upcomingSessions.length) > 0,
-    hasPreparedQuestions: false,
-    hasCompletedSession: todaySessions.some((s) => s.status === 'completed') || ((reportData?.kpis.overall_attendance_pct ?? 0) > 0),
-    hasAssignedWork: (homeworkRes.data?.length || 0) > 0 || (testsRes.data?.length || 0) > 0,
-    hasTrackedAttendance: (reportData?.kpis.overall_attendance_pct ?? 0) > 0,
-    inviteCode: activeWorkspace?.invite_code || null,
-    nextSessionId: nextSession?.id || null,
-  }
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* 1. Welcome Hero Banner with Active Workspace Indicator */}
@@ -447,9 +432,6 @@ export default async function DashboardPage() {
         />
       )}
 
-      {/* Adaptive Tutor Operational Path */}
-      <TutorWorkflowPath state={tutorPathState} />
-
       {/* Public Tutor Profile Marketplace Card */}
       <div className="rounded-3xl border-2 border-[#55C832]/25 bg-gradient-to-r from-emerald-50/50 via-white to-[#FAFBEF] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
@@ -516,9 +498,6 @@ export default async function DashboardPage() {
           </Link>
         </div>
       </div>
-
-      {/* Context-Aware Dashboard Guide Banner */}
-      <PageGuide topicId="dashboard" defaultCollapsed={batchesCount > 0 && studentsCount > 0} />
 
       {/* 3. Key Overview KPI Metrics (4 clean cards) */}
       <section aria-labelledby="metrics-heading">

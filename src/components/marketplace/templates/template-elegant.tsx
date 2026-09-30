@@ -220,6 +220,13 @@ export function TemplateElegant({
                               <span>{formatTimeRange(batch.startTime, batch.endTime)}</span>
                             </span>
                           )}
+                          <span className="flex items-center gap-1 font-semibold text-stone-800 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
+                            {batch.pricingRate != null ? (
+                              <>₹{batch.pricingRate} <span className="text-[10px] text-stone-500">/{batch.pricingUnit ? batch.pricingUnit.replace('per_', '') : 'month'}</span></>
+                            ) : (
+                              <span className="text-stone-400">Pricing not set</span>
+                            )}
+                          </span>
                         </div>
                       </div>
 

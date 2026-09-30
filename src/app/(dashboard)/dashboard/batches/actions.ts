@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveWorkspace } from '@/lib/workspace'
 import { validateBatchSchedule } from '@/lib/scheduling'
+import { injectBatchPricingMetadata } from '@/lib/batches'
 import type { Batch, BatchInsert, BatchUpdate, Student } from '@/types'
 
 export interface ActionResult<T = unknown> {
@@ -89,6 +90,18 @@ export async function createBatchAction(
       delete fallbackBatch.pricing_currency
       delete fallbackBatch.pricing_description
       delete fallbackBatch.max_students
+
+      // Persist pricing metadata inside batch description
+      if (input.pricing_rate != null || input.max_students != null) {
+        fallbackBatch.description = injectBatchPricingMetadata(fallbackBatch.description, {
+          rate: input.pricing_rate != null ? Number(input.pricing_rate) : null,
+          unit: input.pricing_unit || 'per_month',
+          currency: input.pricing_currency || 'INR',
+          description: input.pricing_description || null,
+          max_students: input.max_students != null ? Number(input.max_students) : null,
+        })
+      }
+
       insertRes = await supabase
         .from('batches')
         .insert(fallbackBatch)
@@ -101,6 +114,19 @@ export async function createBatchAction(
     if (error) {
       console.error('createBatchAction error:', error)
       return { success: false, error: error.message }
+    }
+
+    // Sync default pricing to tutor's profile so discovery has transparent rates
+    if (input.pricing_rate != null && Number(input.pricing_rate) > 0) {
+      await supabase
+        .from('profiles')
+        .update({
+          pricing_rate: Number(input.pricing_rate),
+          pricing_unit: input.pricing_unit || 'per_month',
+          pricing_currency: input.pricing_currency || 'INR',
+          pricing_description: input.pricing_description?.trim() || null,
+        })
+        .eq('id', user.id)
     }
 
     // Attach students if provided during creation
@@ -119,8 +145,10 @@ export async function createBatchAction(
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/dashboard/marketplace')
     revalidatePath('/dashboard/batches')
     revalidatePath('/dashboard/attendance')
+    revalidatePath('/tutors')
     return { success: true, data: data as Batch }
   } catch (err: unknown) {
     console.error('createBatchAction exception:', err)
@@ -227,6 +255,21 @@ export async function updateBatchAction(
       delete fallbackData.pricing_currency
       delete fallbackData.pricing_description
       delete fallbackData.max_students
+
+      let baseDesc = fallbackData.description
+      if (baseDesc === undefined) {
+        const { data: currentB } = await supabase.from('batches').select('description').eq('id', id).single()
+        baseDesc = currentB?.description || null
+      }
+
+      fallbackData.description = injectBatchPricingMetadata(baseDesc, {
+        rate: input.pricing_rate !== undefined ? (input.pricing_rate != null ? Number(input.pricing_rate) : null) : null,
+        unit: input.pricing_unit || 'per_month',
+        currency: input.pricing_currency || 'INR',
+        description: input.pricing_description || null,
+        max_students: input.max_students !== undefined ? (input.max_students != null ? Number(input.max_students) : null) : null,
+      })
+
       updateRes = await supabase
         .from('batches')
         .update(fallbackData)
@@ -241,6 +284,19 @@ export async function updateBatchAction(
     if (error) {
       console.error('updateBatchAction error:', error)
       return { success: false, error: error.message }
+    }
+
+    // Sync default pricing to tutor's profile if updated
+    if (input.pricing_rate !== undefined && input.pricing_rate != null && Number(input.pricing_rate) > 0) {
+      await supabase
+        .from('profiles')
+        .update({
+          pricing_rate: Number(input.pricing_rate),
+          pricing_unit: input.pricing_unit || 'per_month',
+          pricing_currency: input.pricing_currency || 'INR',
+          pricing_description: input.pricing_description?.trim() || null,
+        })
+        .eq('id', user.id)
     }
 
     // If class_mode was updated, synchronize future unstarted scheduled sessions
@@ -268,11 +324,13 @@ export async function updateBatchAction(
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/dashboard/marketplace')
     revalidatePath('/dashboard/batches')
     revalidatePath(`/dashboard/batches/${id}`)
     revalidatePath('/dashboard/attendance')
     revalidatePath('/dashboard/calendar')
     revalidatePath('/dashboard/classroom')
+    revalidatePath('/tutors')
     return { success: true, data: data as Batch }
   } catch (err: unknown) {
     console.error('updateBatchAction exception:', err)
@@ -556,3 +614,44 @@ export async function toggleTutorMarketplaceVisibilityAction(
     return { success: false, error: 'Failed to update marketplace profile visibility.' }
   }
 }
+
+export async function updateTutorMarketplacePricingAction(input: {
+  pricing_rate: number | null
+  pricing_unit?: string
+  pricing_currency?: string
+  pricing_description?: string | null
+}): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Unauthorized. Please sign in.' }
+
+    const updates: Record<string, any> = {
+      pricing_rate: input.pricing_rate !== null && !isNaN(Number(input.pricing_rate)) ? Number(input.pricing_rate) : null,
+      pricing_unit: input.pricing_unit || 'per_month',
+      pricing_currency: input.pricing_currency || 'INR',
+      pricing_description: input.pricing_description?.trim() || null,
+      updated_at: new Date().toISOString(),
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+
+    if (error) {
+      console.error('updateTutorMarketplacePricingAction error:', error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard/marketplace')
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/batches')
+    revalidatePath('/tutors')
+    return { success: true }
+  } catch (err: unknown) {
+    console.error('updateTutorMarketplacePricingAction exception:', err)
+    return { success: false, error: 'Failed to save pricing.' }
+  }
+}
+

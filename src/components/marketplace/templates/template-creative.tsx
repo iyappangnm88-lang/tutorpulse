@@ -240,6 +240,13 @@ export function TemplateCreative({
                               <span>{formatTimeRange(batch.startTime, batch.endTime)}</span>
                             </span>
                           )}
+                          <span className="flex items-center gap-1 font-bold text-orange-900 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">
+                            {batch.pricingRate != null ? (
+                              <>₹{batch.pricingRate} <span className="text-[10px] font-medium text-orange-700">/{batch.pricingUnit ? batch.pricingUnit.replace('per_', '') : 'month'}</span></>
+                            ) : (
+                              <span className="text-neutral-500 font-medium">Pricing not set</span>
+                            )}
+                          </span>
                         </div>
                       </div>
 

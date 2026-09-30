@@ -271,10 +271,19 @@ export function TemplateAcademic({
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-[11px] font-mono text-slate-500">
-                          Enrollment Code: {batch.id.slice(0, 8).toUpperCase()}
-                        </span>
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                          <span className="text-[11px] font-mono text-slate-500">
+                            Enrollment Code: {batch.id.slice(0, 8).toUpperCase()}
+                          </span>
+                          <span className="font-mono text-xs font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                            {batch.pricingRate != null ? (
+                              <>₹{batch.pricingRate} /{batch.pricingUnit ? batch.pricingUnit.replace('per_', '') : 'month'}</>
+                            ) : (
+                              'Pricing not set'
+                            )}
+                          </span>
+                        </div>
 
                         <div>
                           {reqStatus === 'pending' ? (

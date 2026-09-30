@@ -289,6 +289,13 @@ export function TemplateModern({
                                 <span>{formatTimeRange(batch.startTime, batch.endTime)}</span>
                               </span>
                             )}
+                            <span className="flex items-center gap-1 font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              {batch.pricingRate != null ? (
+                                <>₹{batch.pricingRate} <span className="text-[10px] font-medium text-emerald-600">/{batch.pricingUnit ? batch.pricingUnit.replace('per_', '') : 'month'}</span></>
+                              ) : (
+                                <span className="text-slate-500 font-medium">Pricing not set</span>
+                              )}
+                            </span>
                           </div>
                         </div>
 

@@ -8,7 +8,6 @@ import { getStudents } from '@/lib/students'
 import { getBatches } from '@/lib/batches'
 import { getActiveWorkspace } from '@/lib/workspace'
 import { createClient } from '@/lib/supabase/server'
-import { PageGuide } from '@/components/help/page-guide'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -55,8 +54,6 @@ export default async function StudentsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <PageGuide topicId="students" defaultCollapsed={Boolean(students && students.length > 0)} />
-
       <PageHeader
         title="Students"
         description="Manage your enrolled students, contact info, and academic records."
