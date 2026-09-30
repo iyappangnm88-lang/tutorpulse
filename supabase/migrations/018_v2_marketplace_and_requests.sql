@@ -147,31 +147,36 @@ BEGIN
     v_email := COALESCE(v_student_profile.email, '');
 
     -- 3. Ensure student roster record exists in tutor's workspace
-    SELECT id INTO v_existing_student
-    FROM public.students
-    WHERE tutor_id = v_tutor_id
-      AND (email = v_email OR (user_id IS NOT NULL AND user_id = v_req.student_user_id))
+    SELECT student_record_id INTO v_student_id
+    FROM public.student_tutor_connections
+    WHERE student_user_id = v_req.student_user_id
+      AND tutor_id = v_tutor_id
+      AND student_record_id IS NOT NULL
     LIMIT 1;
 
-    IF v_existing_student.id IS NOT NULL THEN
-        v_student_id := v_existing_student.id;
-    ELSE
+    IF v_student_id IS NULL AND v_email <> '' THEN
+        SELECT id INTO v_student_id
+        FROM public.students
+        WHERE tutor_id = v_tutor_id
+          AND LOWER(TRIM(email)) = LOWER(v_email)
+        LIMIT 1;
+    END IF;
+
+    IF v_student_id IS NULL THEN
         INSERT INTO public.students (
             tutor_id,
             workspace_id,
             full_name,
             email,
             class_name,
-            status,
-            user_id
+            status
         ) VALUES (
             v_tutor_id,
-            v_req.workspace_id,
+            COALESCE(v_req.workspace_id, (SELECT id FROM public.workspaces WHERE tutor_id = v_tutor_id LIMIT 1)),
             v_display_name,
-            v_email,
+            NULLIF(v_email, ''),
             v_student_profile.grade_level,
-            'active',
-            v_req.student_user_id
+            'active'
         )
         RETURNING id INTO v_student_id;
     END IF;

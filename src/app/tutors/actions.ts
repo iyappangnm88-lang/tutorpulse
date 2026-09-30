@@ -208,7 +208,10 @@ export async function respondJoinRequestAction(
 
       if (rpcError) {
         console.error('accept_join_request RPC error:', rpcError)
-        return { success: false, error: rpcError.message }
+        return {
+          success: false,
+          error: "We couldn't enroll this student right now. Please try again.",
+        }
       }
 
       const result = rpcResult as { success: boolean; error?: string }
@@ -235,7 +238,10 @@ export async function respondJoinRequestAction(
     revalidatePath('/dashboard/requests')
     revalidatePath('/dashboard/students')
     revalidatePath('/dashboard/batches')
+    revalidatePath('/student')
+    revalidatePath('/student/dashboard')
     revalidatePath('/student/tutors')
+    revalidatePath('/student/classes')
 
     return { success: true }
   } catch (err: unknown) {
