@@ -78,7 +78,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
   const searchResults = searchQuery.trim() ? searchHelp(searchQuery) : []
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Nuzilo Help Center">
+    <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Nuzigo Help Center">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-2xs transition-opacity duration-200"
@@ -97,7 +97,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                   <BookOpen className="h-4 w-4" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-gray-900">Nuzilo Guidance & Help</h2>
+                  <h2 className="text-sm font-bold text-gray-900">Nuzigo Guidance & Help</h2>
                   <p className="text-[11px] text-gray-500">Everything you need to master your tuition workflow</p>
                 </div>
               </div>
@@ -323,7 +323,7 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
               /* Getting Started Tab */
               <div className="space-y-4 text-xs">
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">Welcome to Nuzilo!</h3>
+                  <h3 className="text-sm font-bold text-gray-900">Welcome to Nuzigo!</h3>
                   <p className="text-gray-500 text-[11px] mt-0.5">
                     A simple guide for solo tutors and small tuition centers.
                   </p>
@@ -333,14 +333,14 @@ export function HelpDrawer({ isOpen, onClose, initialTopicId }: HelpDrawerProps)
                   <div className="p-3 rounded-2xl bg-[#FAFBEF]/60 border border-gray-200">
                     <p className="font-bold text-[#172B4D] text-xs mb-1">1. Batches are your foundation</p>
                     <p className="text-gray-600 text-[11px]">
-                      Everything in Nuzilo starts with a Batch. A batch connects a subject, a cohort of students, and a weekly recurring schedule.
+                      Everything in Nuzigo starts with a Batch. A batch connects a subject, a cohort of students, and a weekly recurring schedule.
                     </p>
                   </div>
 
                   <div className="p-3 rounded-2xl bg-[#FAFBEF]/60 border border-gray-200">
                     <p className="font-bold text-[#172B4D] text-xs mb-1">2. Recurring Schedule vs Class Sessions</p>
                     <p className="text-gray-600 text-[11px]">
-                      Your batch schedule defines recurring class days (e.g. Mon, Wed). Nuzilo automatically generates individual sessions on your Calendar so you can take attendance or reschedule holiday dates.
+                      Your batch schedule defines recurring class days (e.g. Mon, Wed). Nuzigo automatically generates individual sessions on your Calendar so you can take attendance or reschedule holiday dates.
                     </p>
                   </div>
 

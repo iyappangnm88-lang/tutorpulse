@@ -49,7 +49,7 @@ import type { Metadata } from 'next'
 import type { ClassSessionWithBatch } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'Dashboard — Nuzilo',
+  title: 'Dashboard — Nuzigo',
 }
 
 export const dynamic = 'force-dynamic'
@@ -464,7 +464,7 @@ export default async function DashboardPage() {
               {tutorProfile?.is_public_marketplace ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
                   <span className="h-2 w-2 rounded-full bg-[#55C832]" />
-                  Live on Nuzilo Marketplace
+                  Live on Nuzigo Marketplace
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[11px] font-bold border border-amber-200">
@@ -475,7 +475,7 @@ export default async function DashboardPage() {
             </div>
             <p className="text-xs text-slate-600 font-medium max-w-xl leading-relaxed">
               {tutorProfile?.is_public_marketplace
-                ? 'Your teaching profile is discoverable by students searching for tutors on Nuzilo.'
+                ? 'Your teaching profile is discoverable by students searching for tutors on Nuzigo.'
                 : 'Publish your profile in settings so prospective students and parents can discover your batches and subjects.'}
             </p>
           </div>
@@ -506,7 +506,7 @@ export default async function DashboardPage() {
 
           <Link
             href="/dashboard/settings"
-            className="btn-nuzilo-secondary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1"
+            className="btn-nuzigo-secondary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1"
           >
             <span>Edit Profile</span>
           </Link>

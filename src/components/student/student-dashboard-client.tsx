@@ -76,14 +76,14 @@ export function StudentDashboardClient({
 
   return (
     <div className="space-y-6">
-      {/* 1. NUZILO TOP STATS BAR */}
+      {/* 1. NUZIGO TOP STATS BAR */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-2">
           <span className="h-9 w-9 rounded-xl bg-[#55C832] flex items-center justify-center text-white font-black text-lg shadow-sm">
             N
           </span>
           <div>
-            <div className="text-xs font-bold tracking-wider uppercase text-[#318A25]">Nuzilo Learning</div>
+            <div className="text-xs font-bold tracking-wider uppercase text-[#318A25]">Nuzigo Learning</div>
             <div className="text-xs text-slate-500 font-medium">Level 1 Scholar</div>
           </div>
         </div>
@@ -120,7 +120,7 @@ export function StudentDashboardClient({
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832] px-3 py-1 text-xs font-bold text-white shadow-xs">
               <Sparkles className="h-3.5 w-3.5" />
-              Nuzilo Student
+              Nuzigo Student
             </span>
             {profile.gradeLevel && (
               <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-slate-100 backdrop-blur-xs">
@@ -147,7 +147,7 @@ export function StudentDashboardClient({
                 } across ${enrolledBatches.length} ${
                   enrolledBatches.length === 1 ? 'batch' : 'batches'
                 }. Complete milestones on your learning journey below to earn XP and level up.`
-              : 'Welcome to Nuzilo! Discover verified tutors across subjects or enter an invite code from your teacher to begin your interactive classes.'}
+              : 'Welcome to Nuzigo! Discover verified tutors across subjects or enter an invite code from your teacher to begin your interactive classes.'}
           </p>
 
           {/* Quick Actions Bar */}
@@ -227,7 +227,7 @@ export function StudentDashboardClient({
 
       {/* 4. BADGES & ACHIEVEMENTS SHELF */}
       {badges.length > 0 && (
-        <div className="card-nuzilo p-5 sm:p-6">
+        <div className="card-nuzigo p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xl">🏆</span>
@@ -707,7 +707,7 @@ export function StudentDashboardClient({
             </div>
             <Link
               href="/student/marketplace"
-              className="btn-nuzilo-primary text-xs font-bold py-2 px-3 w-full flex items-center justify-center gap-1.5 shadow-sm"
+              className="btn-nuzigo-primary text-xs font-bold py-2 px-3 w-full flex items-center justify-center gap-1.5 shadow-sm"
             >
               <span>Explore All Tutors</span>
               <ArrowRight className="h-3.5 w-3.5" />

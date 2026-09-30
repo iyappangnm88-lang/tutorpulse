@@ -79,7 +79,7 @@ export function StudentSidebar({
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-[#172B4D] tracking-tight flex items-center gap-1.5">
-              Nuzilo
+              Nuzigo
               <span className="text-[10px] font-bold text-[#318A25] bg-[#55C832]/15 px-1.5 py-0.5 rounded border border-[#55C832]/30">
                 Student
               </span>

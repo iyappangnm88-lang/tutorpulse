@@ -31,6 +31,8 @@ import {
   Zap,
   Trophy,
   Wifi,
+  Maximize,
+  Minimize,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -255,6 +257,31 @@ export function ClassroomView({
 
   // Stage View Mode: Video Grid vs Digital Whiteboard
   const [activeStageView, setActiveStageView] = useState<'video' | 'whiteboard'>('video')
+
+  // Fullscreen Viewport Mode
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement))
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen()
+      } else if (document.exitFullscreen) {
+        await document.exitFullscreen()
+      }
+    } catch (err) {
+      console.warn('Fullscreen toggle failed:', err)
+    }
+  }, [])
 
   // References to Engine Instances
   const signalingRef = useRef<ClassroomSignalingChannel | null>(null)
@@ -751,7 +778,7 @@ export function ClassroomView({
   const remoteParticipants = participants.filter((p) => p.id !== userId)
 
   return (
-    <div className="h-screen w-screen bg-gray-950 text-white flex flex-col overflow-hidden select-none">
+    <div className="fixed inset-0 z-50 h-screen w-screen bg-gray-950 text-white flex flex-col overflow-hidden select-none">
       {/* ===================================================================== */}
       {/* 1. TOP HEADER BAR                                                     */}
       {/* ===================================================================== */}
@@ -884,6 +911,27 @@ export function ClassroomView({
               </button>
             </div>
           )}
+
+          {/* Fullscreen Mode Toggle */}
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white transition-colors border border-gray-800 cursor-pointer shadow-xs"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize className="h-3.5 w-3.5 text-[#55C832]" />
+                <span className="hidden lg:inline text-[11px]">Exit Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <Maximize className="h-3.5 w-3.5 text-gray-400" />
+                <span className="hidden lg:inline text-[11px]">Fullscreen</span>
+              </>
+            )}
+          </button>
 
           {/* Host Start Class Action */}
           {initialRole === 'host' && status === 'scheduled' && (
@@ -1699,6 +1747,24 @@ export function ClassroomView({
                 {unreadCount}
               </span>
             )}
+          </button>
+
+          {/* Fullscreen Toggle */}
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className={`flex flex-col items-center justify-center h-12 w-12 sm:h-12 sm:w-14 rounded-2xl transition-all cursor-pointer ${
+              isFullscreen
+                ? 'bg-emerald-600 text-white shadow-lg ring-2 ring-emerald-400'
+                : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+            }`}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+            <span className="text-[8px] font-bold mt-0.5 hidden sm:inline">
+              {isFullscreen ? 'Exit' : 'Full'}
+            </span>
           </button>
 
           {/* Leave Button */}

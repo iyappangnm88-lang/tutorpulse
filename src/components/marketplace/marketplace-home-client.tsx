@@ -319,12 +319,23 @@ export function MarketplaceHomeClient({
                     <div className="space-y-3">
                       {/* Top Header with Avatar and Mode */}
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-xl bg-[#55C832]/20 text-[#318A25] font-bold text-base flex items-center justify-center shrink-0 border border-[#55C832]/30">
-                            {initials}
-                          </div>
+                        <Link
+                          href={`/tutors/${encodeURIComponent(tutor.profileSlug || tutor.id)}`}
+                          className="flex items-center gap-3 group"
+                        >
+                          {tutor.avatarUrl ? (
+                            <img
+                              src={tutor.avatarUrl}
+                              alt={tutor.fullName}
+                              className="h-12 w-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="h-12 w-12 rounded-xl bg-[#55C832]/20 text-[#318A25] font-bold text-base flex items-center justify-center shrink-0 border border-[#55C832]/30">
+                              {initials}
+                            </div>
+                          )}
                           <div>
-                            <h3 className="font-bold text-gray-900 text-base leading-tight">
+                            <h3 className="font-bold text-gray-900 text-base leading-tight group-hover:text-[#318A25] transition-colors">
                               {tutor.fullName}
                             </h3>
                             {tutor.locationRegion && (
@@ -334,7 +345,7 @@ export function MarketplaceHomeClient({
                               </p>
                             )}
                           </div>
-                        </div>
+                        </Link>
 
                         <Badge
                           variant={
@@ -357,7 +368,7 @@ export function MarketplaceHomeClient({
                         </p>
                       ) : (
                         <p className="text-xs text-gray-400 italic">
-                          Independent Tutor on Nuzilo
+                          Independent Tutor on Nuzigo
                         </p>
                       )}
 
@@ -417,7 +428,7 @@ export function MarketplaceHomeClient({
                         )}
                       </div>
 
-                      <Link href={`/tutors/${tutor.profileSlug}`}>
+                      <Link href={`/tutors/${encodeURIComponent(tutor.profileSlug || tutor.id)}`}>
                         <Button size="sm" className="text-xs gap-1 bg-[#55C832] hover:bg-[#318A25]">
                           <span>View Classes</span>
                           <ChevronRight className="h-3.5 w-3.5" />
@@ -440,7 +451,7 @@ export function MarketplaceHomeClient({
               <h3 className="text-base font-bold text-gray-900">
                 {hasActiveFilters
                   ? 'No tutors match your filter criteria'
-                  : 'Welcome to the Nuzilo Directory'}
+                  : 'Welcome to the Nuzigo Directory'}
               </h3>
               <p className="text-xs text-gray-500 leading-relaxed">
                 {hasActiveFilters
@@ -504,7 +515,7 @@ export function MarketplaceHomeClient({
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white py-6 mt-12 text-center text-xs text-gray-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© {new Date().getFullYear()} Nuzilo. Empowering independent education.</p>
+          <p>© {new Date().getFullYear()} Nuzigo. Empowering independent education.</p>
           <div className="flex items-center gap-4 text-[11px]">
             <Link href="/tutors" className="hover:text-[#318A25]">
               Browse Directory

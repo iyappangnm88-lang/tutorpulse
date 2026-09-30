@@ -10,7 +10,9 @@ import {
   BookOpen,
   Award,
   HeartHandshake,
-  CheckCircle2
+  CheckCircle2,
+  Flame,
+  Zap,
 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { NuzigoLogo } from '@/components/brand/nuzigo-logo'
@@ -62,7 +64,7 @@ export default function OverviewPage() {
             </Link>
             <Link
               href="/signup"
-              className="btn-nuzilo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
+              className="btn-nuzigo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
             >
               <span>Get Started</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -94,21 +96,21 @@ export default function OverviewPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/signup"
-              className="btn-nuzilo-primary text-sm font-black px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
+              className="btn-nuzigo-primary text-sm font-black px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
             >
               <span>Get Started</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/for-tutors"
-              className="btn-nuzilo-secondary text-sm font-bold px-6 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
+              className="btn-nuzigo-secondary text-sm font-bold px-6 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
             >
               <Users className="h-4 w-4 text-[#318A25]" />
               <span>For Tutors</span>
             </Link>
             <Link
               href="/for-students"
-              className="btn-nuzilo-secondary text-sm font-bold px-6 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
+              className="btn-nuzigo-secondary text-sm font-bold px-6 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
             >
               <GraduationCap className="h-4 w-4 text-[#318A25]" />
               <span>For Students</span>
@@ -177,6 +179,96 @@ export default function OverviewPage() {
       </section>
 
       {/* Two Paths Callout */}
+      {/* Gamified Tutoring Section: Real Implementation, Zero Gimmicks */}
+      <section className="py-20 bg-white border-y border-slate-200/80 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAFBEF] border border-[#55C832]/30 text-[#318A25] text-xs font-black">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Behavioral Learning Psychology</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#172B4D] tracking-tight">
+              The Science of Gamified Tutoring
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
+              We replace passive video watching with active cognitive momentum. Every mechanic in Nuzigo is backed by actual platform code to reinforce consistency and mastery.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Feature 1: Weekly Schedule Streaks */}
+            <div className="p-6 rounded-3xl bg-[#FAFBEF]/70 border border-slate-200 space-y-4 hover:shadow-md transition-shadow">
+              <div className="h-12 w-12 rounded-2xl bg-amber-500/15 text-amber-700 flex items-center justify-center font-bold">
+                <Flame className="h-6 w-6 text-amber-600" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-black text-[#172B4D]">Weekly Timetable Streaks</h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  Streaks in Nuzigo are tied to your tutor's actual cohort schedule. Attend every scheduled batch session during the week to grow your weekly streak. Skip, and accountability resets.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-bold text-[#318A25] flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Powered by Batch Attendance Records</span>
+              </div>
+            </div>
+
+            {/* Feature 2: In-Class Rapid Questions */}
+            <div className="p-6 rounded-3xl bg-[#FAFBEF]/70 border border-slate-200 space-y-4 hover:shadow-md transition-shadow">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/15 text-emerald-700 flex items-center justify-center font-bold">
+                <Zap className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-black text-[#172B4D]">Real-Time In-Class Quizzes</h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  Tutors push rapid-fire concept questions directly into the live classroom stream. Students submit answers instantly on mobile or desktop with immediate validation.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-bold text-[#318A25] flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Zero Passive Lecture Fatigue</span>
+              </div>
+            </div>
+
+            {/* Feature 3: XP & Gold Coins */}
+            <div className="p-6 rounded-3xl bg-[#FAFBEF]/70 border border-slate-200 space-y-4 hover:shadow-md transition-shadow">
+              <div className="h-12 w-12 rounded-2xl bg-blue-500/15 text-blue-700 flex items-center justify-center font-bold">
+                <Award className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-black text-[#172B4D]">XP, Badges & Gold Coins</h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  Every homework submission, quiz completion, and punctuality streak adds XP to student profiles and credits Gold Coins in a verifiable transaction ledger.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-bold text-[#318A25] flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Verifiable Mastery Milestones</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Gamification Philosophy Notice */}
+          <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/50 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
+                <span>Not a video game — a habit-building academic system.</span>
+              </h4>
+              <p className="text-xs text-emerald-800 leading-relaxed font-medium">
+                We believe games with arbitrary spins distract from real education. Nuzigo’s mechanics reward diligence, focus, and peer accountability in real live classrooms.
+              </p>
+            </div>
+            <Link
+              href="/for-students"
+              className="shrink-0 text-xs font-bold text-white bg-[#318A25] hover:bg-[#256e1d] px-4 py-2 rounded-xl transition-colors"
+            >
+              Explore Student Journey →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Ready to pick your path */}
       <section className="py-20 bg-[#FAFBEF] px-4 sm:px-6">
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="text-center max-w-xl mx-auto space-y-2">
@@ -202,13 +294,13 @@ export default function OverviewPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/for-tutors"
-                  className="btn-nuzilo-secondary text-xs font-bold py-2.5 px-4 flex-1 text-center"
+                  className="btn-nuzigo-secondary text-xs font-bold py-2.5 px-4 flex-1 text-center"
                 >
                   Explore Features
                 </Link>
                 <Link
                   href="/signup?role=tutor"
-                  className="btn-nuzilo-primary text-xs font-bold py-2.5 px-4 flex-1 text-center"
+                  className="btn-nuzigo-primary text-xs font-bold py-2.5 px-4 flex-1 text-center"
                 >
                   Create Tutor Account
                 </Link>
@@ -228,13 +320,13 @@ export default function OverviewPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/for-students"
-                  className="btn-nuzilo-secondary text-xs font-bold py-2.5 px-4 flex-1 text-center"
+                  className="btn-nuzigo-secondary text-xs font-bold py-2.5 px-4 flex-1 text-center"
                 >
                   Explore Features
                 </Link>
                 <Link
                   href="/signup?role=student"
-                  className="btn-nuzilo-primary text-xs font-bold py-2.5 px-4 flex-1 text-center"
+                  className="btn-nuzigo-primary text-xs font-bold py-2.5 px-4 flex-1 text-center"
                 >
                   Start Learning
                 </Link>

@@ -30,7 +30,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Clean footer */}
       <div className="mt-8 text-center text-xs text-slate-400 space-y-1">
-        <p>&copy; {new Date().getFullYear()} Nuzilo. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Nuzigo. All rights reserved.</p>
         <p className="text-[11px] text-slate-500">Designed & Developed by Kishore • Contact: 6381889943</p>
       </div>
     </div>

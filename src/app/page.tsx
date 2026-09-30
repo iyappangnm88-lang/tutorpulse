@@ -55,7 +55,7 @@ export default async function PreLandingPage() {
             {user ? (
               <Link
                 href={dashboardHref}
-                className="btn-nuzilo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-sm"
+                className="btn-nuzigo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-sm"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight className="h-3.5 w-3.5" />

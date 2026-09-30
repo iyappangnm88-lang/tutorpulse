@@ -105,7 +105,7 @@ export function StudentLearningJourney({ journey, studentName }: StudentLearning
             <div className="mt-5 flex items-center justify-center gap-2">
               <Link
                 href="/student/marketplace"
-                className="btn-nuzilo-primary inline-flex items-center gap-1.5 px-4 text-xs font-bold text-white shadow-xs"
+                className="btn-nuzigo-primary inline-flex items-center gap-1.5 px-4 text-xs font-bold text-white shadow-xs"
               >
                 <span>Find a Tutor</span>
                 <ArrowRight className="w-3.5 h-3.5" />

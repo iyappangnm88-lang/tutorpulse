@@ -1,13 +1,13 @@
 {
-  "name": "TutorPulse — Teach, Track, Update, Collect",
-  "short_name": "TutorPulse",
-  "description": "Manage students, attendance, homework, tests, fees, and parent communication in one simple workspace.",
+  "name": "Nuzigo — Learning, Teaching, and Growing Together",
+  "short_name": "Nuzigo",
+  "description": "Nuzigo is the modern, connected education platform for independent tutors, curious students, and engaged parents.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fafafa",
-  "theme_color": "#4f46e5",
+  "background_color": "#FAFBEF",
+  "theme_color": "#55C832",
   "lang": "en",
   "categories": ["education", "productivity", "business"],
   "icons": [

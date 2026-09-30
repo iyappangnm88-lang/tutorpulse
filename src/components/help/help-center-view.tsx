@@ -94,7 +94,7 @@ export function HelpCenterView() {
         <div className="relative z-10 max-w-2xl">
           <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">
             <BookOpen className="h-4 w-4 text-[#55C832]" />
-            <span>Nuzilo Knowledge Base</span>
+            <span>Nuzigo Knowledge Base</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
             How can we help you teach and manage today?

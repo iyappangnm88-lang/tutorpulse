@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: BatchDetailPageProps): Promis
   const { id } = await params
   const { data: batch } = await getBatchById(id)
   return {
-    title: batch ? `${batch.name} Workspace — Nuzilo` : 'Batch Workspace — Nuzilo',
+    title: batch ? `${batch.name} Workspace — Nuzigo` : 'Batch Workspace — Nuzigo',
   }
 }
 

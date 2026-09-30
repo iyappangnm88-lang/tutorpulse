@@ -15,7 +15,9 @@ import {
   ChevronRight,
   PlayCircle,
   ShieldCheck,
-  Monitor
+  Monitor,
+  Flame,
+  Zap,
 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { NuzigoLogo } from '@/components/brand/nuzigo-logo'
@@ -70,7 +72,7 @@ export default function ForTutorsPage() {
             </Link>
             <Link
               href="/signup?role=tutor"
-              className="btn-nuzilo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
+              className="btn-nuzigo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
             >
               <span>Create Tutor Account</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -102,14 +104,14 @@ export default function ForTutorsPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/signup?role=tutor"
-              className="btn-nuzilo-primary text-sm font-black px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
+              className="btn-nuzigo-primary text-sm font-black px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
             >
               <span>Create Your Tutor Account</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href="#workflow"
-              className="btn-nuzilo-secondary text-sm font-bold px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
+              className="btn-nuzigo-secondary text-sm font-bold px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
             >
               <PlayCircle className="h-4 w-4 text-[#318A25]" />
               <span>See How It Works</span>
@@ -263,6 +265,89 @@ export default function ForTutorsPage() {
         </div>
       </section>
 
+      {/* Why Tutors Excel with Gamified Tutoring */}
+      <section className="py-20 bg-white border-t border-slate-200/80 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="text-xs font-black text-[#318A25] uppercase tracking-wider bg-[#FAFBEF] px-3 py-1 rounded-full border border-[#55C832]/30">
+              The Tutor Advantage
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#172B4D] tracking-tight">
+              Why Tutors Excel with Gamified Tutoring
+            </h2>
+            <p className="text-sm text-slate-600 font-medium leading-relaxed">
+              Gamified tutoring is not about playful distractions. It’s an intentional pedagogical framework designed to solve the two biggest headaches for online tutors: silent screens and chronic absenteeism.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/50 border-2 border-slate-200 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                <Zap className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="text-xl font-black text-[#172B4D]">
+                Active Participation vs Silent Screens
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                Traditional video calls lead to passive listening, turned-off webcams, and disengaged students. With Nuzigo’s live classroom questions, you push rapid conceptual checks that require every student to respond. You see answers, comprehension percentages, and common pitfalls immediately without waiting.
+              </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>100% active cognitive contribution during every lesson</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/50 border-2 border-slate-200 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                <Flame className="h-6 w-6 text-amber-600" />
+              </div>
+              <h3 className="text-xl font-black text-[#172B4D]">
+                Predictable Attendance with Schedule Streaks
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                Our streak logic isn't an arbitrary daily app login. It verifies attendance against your batch schedule timetable. When students know their weekly streak relies on showing up on Tuesday and Thursday, attendance consistency rises naturally without nagging parents.
+              </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Proven reduction in unexcused missed classes</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/50 border-2 border-slate-200 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                <ShieldCheck className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-black text-[#172B4D]">
+                Unified Workspace Eliminates App Fatigue
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                Stop switching between Zoom meetings, Google Drive links, PDF scanner apps, Excel spreadsheets, and endless WhatsApp groups. From live WebRTC whiteboard teaching to assignment grading, attendance logging, and parent transparency — everything stays in one cohesive hub.
+              </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Save 5+ hours of administrative overhead every single week</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/50 border-2 border-slate-200 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                <Award className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-black text-[#172B4D]">
+                Authentic Educator Positioning
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                We make no false earning promises or exaggerated claims. You receive a verified educator profile with 5 distinct personal-brand templates (Modern, Elegant, Academic, Minimal, Creative) to showcase your syllabus, credentials, and open cohorts directly to prospective families.
+              </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Professional personal-brand templates and direct inquiries</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-20 bg-gradient-to-br from-[#172B4D] via-[#10203a] to-[#0a1424] text-white px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center space-y-6">
@@ -276,7 +361,7 @@ export default function ForTutorsPage() {
           <div className="pt-2">
             <Link
               href="/signup?role=tutor"
-              className="btn-nuzilo-primary text-sm font-black px-8 py-3.5 inline-flex items-center gap-2 shadow-xl"
+              className="btn-nuzigo-primary text-sm font-black px-8 py-3.5 inline-flex items-center gap-2 shadow-xl"
             >
               <span>Create Your Tutor Account</span>
               <ArrowRight className="h-4 w-4" />

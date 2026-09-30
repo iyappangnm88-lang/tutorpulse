@@ -40,27 +40,27 @@
   --brand-yellow: #FFC928;
   --brand-orange: #FF9F43;
   --brand-red: #F05252;
-  --nuzilo-green: #55C832;
-  --nuzilo-deep-green: #318A25;
-  --nuzilo-navy: #172B4D;
-  --nuzilo-cream: #FAFBEF;
-  --nuzilo-yellow: #FFC928;
-  --nuzilo-orange: #FF9F43;
-  --nuzilo-red: #F05252;
-  --nuzilo-white: #FFFFFF;
+  --nuzigo-green: #55C832;
+  --nuzigo-deep-green: #318A25;
+  --nuzigo-navy: #172B4D;
+  --nuzigo-cream: #FAFBEF;
+  --nuzigo-yellow: #FFC928;
+  --nuzigo-orange: #FF9F43;
+  --nuzigo-red: #F05252;
+  --nuzigo-white: #FFFFFF;
 
   /* Backward compatibility aliases */
-  --nuzilo-green: #55C832;
-  --nuzilo-deep-green: #318A25;
-  --nuzilo-navy: #172B4D;
-  --nuzilo-cream: #FAFBEF;
-  --nuzilo-yellow: #FFC928;
-  --nuzilo-orange: #FF9F43;
-  --nuzilo-red: #F05252;
+  --nuzigo-green: #55C832;
+  --nuzigo-deep-green: #318A25;
+  --nuzigo-navy: #172B4D;
+  --nuzigo-cream: #FAFBEF;
+  --nuzigo-yellow: #FFC928;
+  --nuzigo-orange: #FF9F43;
+  --nuzigo-red: #F05252;
 }
 
-/* Nuzilo Tactical & Playful Buttons & Cards */
-.btn-nuzilo-primary,
+/* Nuzigo Tactical & Playful Buttons & Cards */
+.btn-nuzigo-primary,
 .btn-nuzilo-primary {
   background-color: #55C832;
   color: #ffffff;
@@ -70,17 +70,17 @@
   min-height: 48px;
   transition: transform 0.1s ease, border-bottom 0.1s ease;
 }
-.btn-nuzilo-primary:hover,
+.btn-nuzigo-primary:hover,
 .btn-nuzilo-primary:hover {
   background-color: #4eb52c;
 }
-.btn-nuzilo-primary:active,
+.btn-nuzigo-primary:active,
 .btn-nuzilo-primary:active {
   transform: translateY(2px);
   border-bottom-width: 2px;
 }
 
-.btn-nuzilo-secondary,
+.btn-nuzigo-secondary,
 .btn-nuzilo-secondary {
   background-color: #ffffff;
   color: #172B4D;
@@ -91,12 +91,13 @@
   min-height: 48px;
   transition: transform 0.1s ease, border-bottom 0.1s ease;
 }
-.btn-nuzilo-secondary:active,
+.btn-nuzigo-secondary:active,
 .btn-nuzilo-secondary:active {
   transform: translateY(2px);
   border-bottom-width: 2px;
 }
 
+.btn-nuzigo-reward,
 .btn-nuzilo-reward {
   background-color: #FFC928;
   color: #172B4D;
@@ -106,15 +107,17 @@
   min-height: 48px;
   transition: transform 0.1s ease, border-bottom 0.1s ease;
 }
+.btn-nuzigo-reward:hover,
 .btn-nuzilo-reward:hover {
   background-color: #f7be1b;
 }
+.btn-nuzigo-reward:active,
 .btn-nuzilo-reward:active {
   transform: translateY(2px);
   border-bottom-width: 2px;
 }
 
-.card-nuzilo,
+.card-nuzigo,
 .card-nuzilo {
   background: #ffffff;
   border-radius: 20px;

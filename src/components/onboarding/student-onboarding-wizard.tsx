@@ -159,7 +159,7 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
               🎓
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Welcome to Nuzilo!
+              Welcome to Nuzigo!
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
               Tell us your name and current class so we can organize your homework, classes, and progress reports.
@@ -264,10 +264,10 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
               🤝
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Do you have a Nuzilo invitation?
+              Do you have a Nuzigo invitation?
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-              If your tutor gave you an invite link or code (like TP-XXXXXX), you can connect immediately. Or explore Nuzilo directly!
+              If your tutor gave you an invite link or code (like TP-XXXXXX), you can connect immediately. Or explore Nuzigo directly!
             </p>
           </div>
 
@@ -321,14 +321,14 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
                 <div className="h-10 w-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center">
                   <Compass className="h-5 w-5" />
                 </div>
-                <h4 className="font-bold text-gray-900 text-sm">Explore Nuzilo</h4>
+                <h4 className="font-bold text-gray-900 text-sm">Explore Nuzigo</h4>
                 <p className="text-xs text-gray-500 leading-relaxed">
                   Start without a tutor. You can join your tutor anytime later or browse future tutors.
                 </p>
               </div>
 
               <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] text-gray-400">
-                A tutor is not required to use Nuzilo.
+                A tutor is not required to use Nuzigo.
               </div>
             </div>
           </div>

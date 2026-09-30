@@ -6,7 +6,7 @@ import { ParentForm } from '@/components/parents/parent-form'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Add Parent — Nuzilo',
+  title: 'Add Parent — Nuzigo',
 }
 
 export default function NewParentPage() {

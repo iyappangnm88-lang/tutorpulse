@@ -139,7 +139,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
         return
       }
 
-      toast('success', 'Profile Ready!', 'Welcome to your Nuzilo teaching workspace.')
+      toast('success', 'Profile Ready!', 'Welcome to your Nuzigo teaching workspace.')
       router.push('/dashboard')
       router.refresh()
     } catch (err: any) {
@@ -179,7 +179,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
         </div>
       )}
 
-      {/* SCREEN 1: Welcome to Nuzilo */}
+      {/* SCREEN 1: Welcome to Nuzigo */}
       {step === 1 && (
         <div className="space-y-6">
           <div className="space-y-2 text-center sm:text-left">
@@ -187,7 +187,7 @@ export function TutorOnboardingWizard({ initialName = '' }: { initialName?: stri
               👋
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Welcome to Nuzilo
+              Welcome to Nuzigo
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
               Let&apos;s personalize your tutor profile. This name will appear on your batches, attendance sheets, and parent portal.

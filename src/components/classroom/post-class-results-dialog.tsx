@@ -153,7 +153,7 @@ export function PostClassResultsDialog({
                   size="sm"
                   className="w-full sm:w-auto text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5"
                 >
-                  <span>Go to Nuzilo Path</span>
+                  <span>Go to Nuzigo Path</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>

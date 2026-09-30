@@ -137,7 +137,7 @@ export interface ClassRoomDetails {
 
 /**
  * Clean Video Provider Abstraction.
- * Nuzilo does not depend directly on any vendor SDK.
+ * Nuzigo does not depend directly on any vendor SDK.
  * Providers (WebRTC mesh, LiveKit, SFU, etc.) can be swapped or added without rewriting the application.
  */
 export interface VideoProvider {

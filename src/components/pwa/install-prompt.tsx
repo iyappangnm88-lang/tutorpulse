@@ -47,7 +47,7 @@ export function usePwaInstall() {
       deferredPrompt = null
       setCanInstall(false)
       setIsInstalled(true)
-      console.log('[Nuzilo PWA] App was successfully installed.')
+      console.log('[Nuzigo PWA] App was successfully installed.')
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -71,7 +71,7 @@ export function usePwaInstall() {
       }
       return false
     } catch (err) {
-      console.error('[Nuzilo PWA] Install prompt error:', err)
+      console.error('[Nuzigo PWA] Install prompt error:', err)
       return false
     }
   }
@@ -91,10 +91,10 @@ export function SidebarInstallButton() {
     <button
       onClick={promptInstall}
       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#318A25] bg-[#FAFBEF]/80 hover:bg-[#55C832]/20/90 active:bg-[#55C832]/25 transition-all border border-[#55C832]/30/60 cursor-pointer shadow-2xs"
-      title="Install Nuzilo on your device"
+      title="Install Nuzigo on your device"
     >
       <Download className="h-4 w-4 text-[#318A25] shrink-0" />
-      <span className="truncate">Install Nuzilo App</span>
+      <span className="truncate">Install Nuzigo App</span>
     </button>
   )
 }
@@ -143,7 +143,7 @@ export function InstallBanner() {
         </div>
         <div className="min-w-0">
           <p className="text-xs font-bold text-gray-900 truncate">
-            Install Nuzilo
+            Install Nuzigo
           </p>
           <p className="text-[11px] text-gray-500 line-clamp-1">
             Fast, offline-ready & standalone app

@@ -11,7 +11,10 @@ import {
   Sparkles,
   BarChart3,
   CalendarCheck,
-  HeartHandshake
+  HeartHandshake,
+  Zap,
+  Coins,
+  Target,
 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { NuzigoLogo } from '@/components/brand/nuzigo-logo'
@@ -66,7 +69,7 @@ export default function ForStudentsPage() {
             </Link>
             <Link
               href="/signup?role=student"
-              className="btn-nuzilo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
+              className="btn-nuzigo-primary text-xs font-bold px-4 py-2 flex items-center gap-1.5 shadow-md"
             >
               <span>Start Learning</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -98,14 +101,14 @@ export default function ForStudentsPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/signup?role=student"
-              className="btn-nuzilo-primary text-sm font-black px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
+              className="btn-nuzigo-primary text-sm font-black px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
             >
               <span>Start Learning</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/overview"
-              className="btn-nuzilo-secondary text-sm font-bold px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
+              className="btn-nuzigo-secondary text-sm font-bold px-8 py-3.5 flex items-center justify-center gap-2 w-full sm:w-auto bg-white"
             >
               <Sparkles className="h-4 w-4 text-[#318A25]" />
               <span>Explore Nuzigo</span>
@@ -178,28 +181,76 @@ export default function ForStudentsPage() {
         </div>
       </section>
 
-      {/* Habit Streaks & Parent Connection */}
-      <section id="habits" className="py-20 bg-[#FAFBEF] px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto space-y-8">
+      {/* Gamified Habit System & Parent Connection */}
+      <section id="habits" className="py-20 bg-white border-t border-slate-200/80 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="text-xs font-black text-[#318A25] uppercase tracking-wider bg-[#FAFBEF] px-3 py-1 rounded-full border border-[#55C832]/30">
+              The Learning Loop
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#172B4D] tracking-tight">
+              Turn Study Habits into Unstoppable Momentum
+            </h2>
+            <p className="text-sm text-slate-600 font-medium leading-relaxed">
+              Real academic progress doesn't come from all-nighters. It comes from showing up consistently. Nuzigo turns every class, quiz, and assignment into verifiable milestones.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-8 rounded-3xl bg-white border-2 border-slate-200/90 space-y-4">
-              <div className="h-10 w-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-                <Flame className="h-5 w-5" />
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/60 border-2 border-slate-200/90 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                <Flame className="h-6 w-6 text-orange-600" />
               </div>
-              <h3 className="text-xl font-black text-[#172B4D]">Build Healthy Study Habits</h3>
+              <h3 className="text-xl font-black text-[#172B4D]">Batch Schedule Streaks</h3>
               <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-                Consistency beats cramming. Nuzigo’s weekly schedule streaks encourage students to show up, prepare, and stay engaged session after session.
+                Your streak isn't a random phone game counter. It calculates whether you attended all your scheduled batch sessions this week. Keep your weekly study flame burning by showing up on time, class after class.
               </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Weekly cohort streak tracking in your student portal</span>
+              </div>
             </div>
 
-            <div className="p-8 rounded-3xl bg-white border-2 border-slate-200/90 space-y-4">
-              <div className="h-10 w-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center font-bold">
-                <HeartHandshake className="h-5 w-5" />
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/60 border-2 border-slate-200/90 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                <Zap className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="text-xl font-black text-[#172B4D]">Live Classroom Rapid Quizzes</h3>
+              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+                During live classes, your teacher launches instant rapid-response questions. Tap your answer on your phone or laptop in seconds. See immediate answer explanations and climb the session leaderboard.
+              </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Instant cognitive feedback without fear of speaking up</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/60 border-2 border-slate-200/90 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                <Coins className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-black text-[#172B4D]">XP & Gold Coins Ledger</h3>
+              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+                Earn XP for every attended lesson, quiz answered, and homework submitted on time. Gold Coins are stored in your tamper-evident ledger to reflect your commitment and perseverance.
+              </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Earned purely through academic effort and timeliness</span>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-[#FAFBEF]/60 border-2 border-slate-200/90 space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-violet-100 text-violet-600 flex items-center justify-center font-bold">
+                <HeartHandshake className="h-6 w-6 text-violet-600" />
               </div>
               <h3 className="text-xl font-black text-[#172B4D]">Connected Parent Portal</h3>
               <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-                Parents get a dedicated portal to view attendance, exam scores, and teacher updates with zero guesswork and complete peace of mind.
+                Parents get transparent, real-time access to verify attendance timestamps, test scores, homework reviews, and monthly fee receipts. Zero confusion, total trust.
               </p>
+              <div className="pt-2 text-xs font-bold text-[#318A25] flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Dedicated parent login with read-only progress views</span>
+              </div>
             </div>
           </div>
         </div>
@@ -218,7 +269,7 @@ export default function ForStudentsPage() {
           <div className="pt-2">
             <Link
               href="/signup?role=student"
-              className="btn-nuzilo-primary text-sm font-black px-8 py-3.5 inline-flex items-center gap-2 shadow-xl"
+              className="btn-nuzigo-primary text-sm font-black px-8 py-3.5 inline-flex items-center gap-2 shadow-xl"
             >
               <span>Start Learning Free</span>
               <ArrowRight className="h-4 w-4" />

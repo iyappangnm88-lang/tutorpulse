@@ -101,6 +101,7 @@ export async function getPublicTutors(
     profileSlug: p.profile_slug || p.id,
     locationRegion: p.location_region || null,
     publicOfferingCount: offeringCountMap.get(p.id) || 0,
+    profileTemplate: (p as any).profile_template || 'modern',
   }))
 
   const totalCount = count || 0
@@ -116,6 +117,7 @@ export async function getPublicTutors(
 
 /**
  * Fetches a single public tutor profile by slug or ID with public offerings.
+ * Solves the PostgreSQL 22P02 invalid UUID syntax error when querying text slugs.
  */
 export async function getPublicTutorBySlug(
   slugOrId: string,
@@ -123,20 +125,52 @@ export async function getPublicTutorBySlug(
 ): Promise<PublicTutorDetail | null> {
   const supabase = await createClient()
 
-  // Match either profile_slug or id
+  const raw = slugOrId ? decodeURIComponent(slugOrId).trim() : ''
+  if (!raw) return null
+
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)
+
   let query = supabase
     .from('profiles')
     .select('*')
-    .or(`profile_slug.eq.${slugOrId},id.eq.${slugOrId}`)
     .eq('role', 'tutor')
+
+  if (isUuid) {
+    query = query.or(`id.eq.${raw},profile_slug.eq.${raw}`)
+  } else {
+    query = query.eq('profile_slug', raw)
+  }
 
   if (!allowPrivate) {
     query = query.eq('is_public_marketplace', true)
   }
 
-  const { data: profile, error } = await query.maybeSingle()
+  let { data: profile, error } = await query.maybeSingle()
 
-  if (error || !profile) {
+  // Fallback: If not found by exact slug and input is not UUID, try case-insensitive slug match
+  if (!profile && !isUuid) {
+    let fallbackQuery = supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'tutor')
+      .ilike('profile_slug', raw)
+
+    if (!allowPrivate) {
+      fallbackQuery = fallbackQuery.eq('is_public_marketplace', true)
+    }
+
+    const fallbackRes = await fallbackQuery.maybeSingle()
+    if (fallbackRes.data) {
+      profile = fallbackRes.data
+    }
+  }
+
+  if (error && !profile) {
+    console.error('getPublicTutorBySlug error:', error)
+    return null
+  }
+
+  if (!profile) {
     return null
   }
 
@@ -179,6 +213,7 @@ export async function getPublicTutorBySlug(
       profileSlug: profile.profile_slug || profile.id,
       locationRegion: profile.location_region || null,
       publicOfferingCount: offerings.length,
+      profileTemplate: (profile as any).profile_template || 'modern',
       teachingApproach: profile.teaching_approach || null,
       availabilityHours: Array.isArray(profile.availability_hours)
         ? (profile.availability_hours as any)

@@ -37,7 +37,7 @@ interface PrepareClassPageProps {
 export async function generateMetadata({ params }: PrepareClassPageProps): Promise<Metadata> {
   const { sessionId } = await params
   return {
-    title: `Prepare Live Class — Nuzilo`,
+    title: `Prepare Live Class — Nuzigo`,
   }
 }
 

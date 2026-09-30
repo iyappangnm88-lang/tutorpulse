@@ -14,6 +14,7 @@ export interface PublicTutorSummary {
   profileSlug: string
   locationRegion: string | null
   publicOfferingCount: number
+  profileTemplate?: 'elegant' | 'academic' | 'modern' | 'minimal' | 'creative' | string
 }
 
 export interface PublicTeachingOffering {

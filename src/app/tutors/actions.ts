@@ -257,6 +257,7 @@ export interface UpdateTutorPublicProfileInput {
   customSlug?: string
   publicContactPreference?: 'platform' | 'email' | 'none'
   availabilityHours?: Array<{ day: string; start_time: string; end_time: string }>
+  profileTemplate?: 'modern' | 'elegant' | 'academic' | 'minimal' | 'creative'
 }
 
 export async function updateTutorPublicProfileAction(
@@ -350,11 +351,24 @@ export async function updateTutorPublicProfileAction(
     if (input.locationRegion !== undefined) updates.location_region = input.locationRegion.trim() || null
     if (input.publicContactPreference !== undefined) updates.public_contact_preference = input.publicContactPreference
     if (input.availabilityHours !== undefined) updates.availability_hours = input.availabilityHours
+    if (input.profileTemplate !== undefined) {
+      const validTemplates = ['modern', 'elegant', 'academic', 'minimal', 'creative']
+      if (validTemplates.includes(input.profileTemplate)) {
+        updates.profile_template = input.profileTemplate
+      }
+    }
 
-    const { error: updateError } = await supabase
+    let { error: updateError } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', user.id)
+
+    // Graceful fallback if profile_template column is not yet present in Supabase table
+    if (updateError && updateError.code === '42703' && updates.profile_template) {
+      delete updates.profile_template
+      const retry = await supabase.from('profiles').update(updates).eq('id', user.id)
+      updateError = retry.error
+    }
 
     if (updateError) {
       console.error('updateTutorPublicProfileAction error:', updateError)
@@ -371,5 +385,139 @@ export async function updateTutorPublicProfileAction(
   } catch (err: unknown) {
     console.error('updateTutorPublicProfileAction exception:', err)
     return { success: false, error: 'Failed to update public tutor profile.' }
+  }
+}
+
+/**
+ * Action to update only the tutor's public profile aesthetic template.
+ */
+export async function updateProfileTemplateAction(
+  template: string
+): Promise<ActionResult<{ template: string }>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { success: false, error: 'Unauthorized. Please sign in.' }
+    }
+
+    const validTemplates = ['modern', 'elegant', 'academic', 'minimal', 'creative']
+    const normalized = template.toLowerCase().trim()
+    if (!validTemplates.includes(normalized)) {
+      return {
+        success: false,
+        error: `Invalid template: ${template}. Choose from modern, elegant, academic, minimal, creative.`,
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ profile_template: normalized })
+      .eq('id', user.id)
+
+    if (updateError) {
+      if (updateError.code === '42703') {
+        return {
+          success: false,
+          error:
+            'Please execute database migration 023_avatars_storage_and_template.sql in Supabase SQL editor to enable the profile_template column.',
+        }
+      }
+      return { success: false, error: updateError.message }
+    }
+
+    revalidatePath('/dashboard/settings')
+    revalidatePath('/tutors')
+
+    return { success: true, data: { template: normalized } }
+  } catch (err: unknown) {
+    console.error('updateProfileTemplateAction exception:', err)
+    return { success: false, error: 'Failed to update profile template.' }
+  }
+}
+
+/**
+ * Action to upload a tutor profile picture from the user's device.
+ * Validates file type, size, uploads to Supabase storage, and updates profiles.avatar_url.
+ */
+export async function uploadAvatarAction(
+  formData: FormData
+): Promise<ActionResult<{ avatarUrl: string }>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { success: false, error: 'Unauthorized. Please sign in.' }
+    }
+
+    const file = formData.get('avatar') as File | null
+    if (!file) {
+      return { success: false, error: 'No image file provided.' }
+    }
+
+    // Validate size (max 3MB)
+    const MAX_SIZE = 3 * 1024 * 1024
+    if (file.size > MAX_SIZE) {
+      return { success: false, error: 'Image file size must be less than 3MB.' }
+    }
+
+    // Validate mime type
+    const validMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+    if (!validMimes.includes(file.type.toLowerCase())) {
+      return { success: false, error: 'Invalid image type. Supported: JPG, PNG, WEBP.' }
+    }
+
+    const fileExt = file.name.split('.').pop() || 'png'
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`
+    const filePath = `tutors/${fileName}`
+
+    // Attempt upload to avatars bucket
+    const fileBuffer = await file.arrayBuffer()
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, fileBuffer, {
+        contentType: file.type,
+        upsert: true,
+      })
+
+    let publicUrl = ''
+
+    if (uploadError) {
+      console.warn('Storage bucket upload failed, using optimized base64 fallback:', uploadError.message)
+      // Base64 data URL fallback if storage bucket is not yet provisioned
+      const base64Data = Buffer.from(fileBuffer).toString('base64')
+      publicUrl = `data:${file.type};base64,${base64Data}`
+    } else {
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      publicUrl = urlData.publicUrl
+    }
+
+    // Update profiles table with avatarUrl
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl })
+      .eq('id', user.id)
+
+    if (profileError) {
+      console.error('Failed to update profile avatar_url:', profileError)
+      return { success: false, error: profileError.message }
+    }
+
+    revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard')
+    revalidatePath('/tutors')
+
+    return { success: true, data: { avatarUrl: publicUrl } }
+  } catch (err: unknown) {
+    console.error('uploadAvatarAction exception:', err)
+    return { success: false, error: 'Failed to upload profile picture.' }
   }
 }

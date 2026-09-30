@@ -15,6 +15,10 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
+  Upload,
+  Camera,
+  Palette,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,7 +31,11 @@ import {
   updateTutorProfileAction,
   triggerPasswordResetAction,
 } from '@/app/(dashboard)/dashboard/settings/actions'
-import { updateTutorPublicProfileAction } from '@/app/tutors/actions'
+import {
+  updateTutorPublicProfileAction,
+  updateProfileTemplateAction,
+  uploadAvatarAction,
+} from '@/app/tutors/actions'
 import { calculateProfileCompleteness } from '@/lib/marketplace-utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -53,6 +61,7 @@ interface SettingsClientProps {
     teaching_approach?: string | null
     public_contact_preference?: 'platform' | 'email' | 'none' | null
     availability_hours?: Array<{ day: string; start_time: string; end_time: string }> | null
+    profile_template?: string | null
   }
   userMetadata?: {
     tuition_center_name?: string
@@ -63,6 +72,12 @@ interface SettingsClientProps {
 export function SettingsClient({ initialProfile, userMetadata }: SettingsClientProps) {
   const { toast } = useToast()
   const router = useRouter()
+
+  // Avatar & Photo State
+  const [avatarUrl, setAvatarUrl] = useState(initialProfile.avatar_url || '')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
   // Basic Profile State
   const [fullName, setFullName] = useState(initialProfile.full_name || '')
@@ -93,6 +108,10 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
   const [publicContactPreference, setPublicContactPreference] = useState<
     'platform' | 'email' | 'none'
   >(initialProfile.public_contact_preference || 'platform')
+  const [profileTemplate, setProfileTemplate] = useState<string>(
+    (initialProfile as any).profile_template || 'modern'
+  )
+  const [savingTemplate, setSavingTemplate] = useState(false)
 
   const [savingProfile, setSavingProfile] = useState(false)
   const [savingMarketplace, setSavingMarketplace] = useState(false)
@@ -121,8 +140,64 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
     target_classes: parsedClasses,
     teaching_mode: teachingMode,
     teaching_approach: teachingApproach,
-    avatar_url: initialProfile.avatar_url,
+    avatar_url: avatarUrl || initialProfile.avatar_url,
   })
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 3 * 1024 * 1024) {
+      toast('error', 'File Too Large', 'Please select an image smaller than 3MB.')
+      return
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      toast('error', 'Invalid Format', 'Supported formats: JPG, PNG, WEBP.')
+      return
+    }
+
+    const localUrl = URL.createObjectURL(file)
+    setAvatarPreview(localUrl)
+    setUploadingAvatar(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+      const res = await uploadAvatarAction(formData)
+
+      if (!res.success) {
+        toast('error', 'Upload Failed', res.error || 'Could not upload photo.')
+        setAvatarPreview(null)
+      } else if (res.data?.avatarUrl) {
+        setAvatarUrl(res.data.avatarUrl)
+        toast('success', 'Profile Photo Updated', 'Your new photo is now live on your profile.')
+        router.refresh()
+      }
+    } catch {
+      toast('error', 'Upload Error', 'Something went wrong while uploading photo.')
+      setAvatarPreview(null)
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  async function handleTemplateChange(templateKey: string) {
+    setProfileTemplate(templateKey)
+    setSavingTemplate(true)
+    try {
+      const res = await updateProfileTemplateAction(templateKey)
+      if (res.success) {
+        toast('success', 'Style Applied', `Switched public profile style to ${templateKey.toUpperCase()}.`)
+        router.refresh()
+      }
+    } catch {
+      // Ignored, will be saved when full form submits
+    } finally {
+      setSavingTemplate(false)
+    }
+  }
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -178,6 +253,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
         locationRegion: locationRegion || undefined,
         customSlug: profileSlug || undefined,
         publicContactPreference,
+        profileTemplate: profileTemplate as any,
       })
 
       if (!res.success) {
@@ -193,7 +269,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
         'success',
         isPublicMarketplace ? 'Public Profile Live' : 'Public Profile Saved',
         isPublicMarketplace
-          ? 'Your profile is now visible on the Nuzilo Marketplace.'
+          ? 'Your profile is now visible on the Nuzigo Marketplace.'
           : 'Your public profile settings have been saved (marketplace visibility is currently OFF).'
       )
       router.refresh()
@@ -254,7 +330,66 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
             Basic account information and internal coaching details.
           </p>
         </CardHeader>
-        <CardBody>
+        <CardBody className="space-y-6">
+          {/* Profile Picture Device Uploader */}
+          <div className="p-4 rounded-xl border border-gray-200/80 bg-gray-50/50 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+            <div className="relative shrink-0">
+              {avatarPreview || avatarUrl ? (
+                <img
+                  src={avatarPreview || avatarUrl}
+                  alt={fullName}
+                  className="h-20 w-20 rounded-2xl object-cover border-2 border-emerald-500/30 shadow-sm"
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-[#55C832] to-[#318A25] text-white font-extrabold text-2xl flex items-center justify-center shadow-sm">
+                  {fullName ? fullName.slice(0, 2).toUpperCase() : 'TU'}
+                </div>
+              )}
+              {uploadingAvatar && (
+                <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center text-white">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5 text-center sm:text-left flex-1">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-1.5">
+                <Camera className="h-4 w-4 text-[#318A25]" />
+                <span>Profile Photo</span>
+              </h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Upload a professional headshot from your device to display on your public profile, batch listings, and student messages. JPG, PNG, or WEBP (Max 3MB).
+              </p>
+
+              <div className="pt-1 flex items-center justify-center sm:justify-start gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleAvatarChange}
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="text-xs gap-1.5 font-medium border-gray-300 hover:bg-white"
+                >
+                  <Upload className="h-3.5 w-3.5 text-gray-600" />
+                  <span>{uploadingAvatar ? 'Uploading...' : 'Upload Photo'}</span>
+                </Button>
+                {avatarUrl && (
+                  <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>Photo active</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -334,7 +469,7 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
                 </h2>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
-                Control your presence on the public Nuzilo directory and enable student join requests.
+                Control your presence on the public Nuzigo directory and enable student join requests.
               </p>
             </div>
 
@@ -563,6 +698,105 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
                   placeholder="e.g. Koramangala, Bangalore or South Delhi"
                   disabled={savingMarketplace}
                 />
+              </div>
+            </div>
+
+            {/* 5 Distinct Profile Templates Selector */}
+            <div className="space-y-3 pt-4 border-t border-gray-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <Label className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                    <Palette className="h-4 w-4 text-[#318A25]" />
+                    <span>Public Profile Aesthetic Theme</span>
+                  </Label>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Select one of 5 distinct professional design templates tailored for your teaching brand.
+                  </p>
+                </div>
+                {previewSlug && (
+                  <Link href={`/tutors/${previewSlug}`} target="_blank">
+                    <span className="text-xs text-[#318A25] font-semibold hover:underline flex items-center gap-1">
+                      <span>Preview Live Profile</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </span>
+                  </Link>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                {[
+                  {
+                    key: 'modern',
+                    title: 'Modern Tech',
+                    badge: 'Emerald / Sleek',
+                    desc: 'Dynamic split hero, high-contrast metrics, glassmorphic batch cards, electric emerald accents.',
+                    bg: 'border-emerald-300 bg-emerald-50/30',
+                  },
+                  {
+                    key: 'elegant',
+                    title: 'Elegant Editorial',
+                    badge: 'Warm Stone / Serif',
+                    desc: 'Timeless serif typography, warm stone palette, refined quote block for teaching philosophy.',
+                    bg: 'border-amber-300 bg-amber-50/30',
+                  },
+                  {
+                    key: 'academic',
+                    title: 'Academic Dossier',
+                    badge: 'Deep Navy / Formal',
+                    desc: 'Scholarly navy theme, structured curriculum hierarchy, formal credentials, rigorous course sections.',
+                    bg: 'border-blue-300 bg-blue-50/30',
+                  },
+                  {
+                    key: 'minimal',
+                    title: 'Scandinavian Minimal',
+                    badge: 'Black & White',
+                    desc: 'Ultra-clean black & white aesthetic, generous whitespace, focused single-column enrollment.',
+                    bg: 'border-neutral-400 bg-neutral-100/50',
+                  },
+                  {
+                    key: 'creative',
+                    title: 'Creative Passion',
+                    badge: 'Terracotta & Amber',
+                    desc: 'Vibrant expressive palette, approachable rounded cards, friendly conversational introduction.',
+                    bg: 'border-orange-300 bg-orange-50/30',
+                  },
+                ].map((tpl) => {
+                  const isSelected = profileTemplate === tpl.key
+
+                  return (
+                    <div
+                      key={tpl.key}
+                      onClick={() => handleTemplateChange(tpl.key)}
+                      className={`relative cursor-pointer rounded-xl border p-4 transition-all ${
+                        isSelected
+                          ? `ring-2 ring-[#55C832] ${tpl.bg} shadow-xs`
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-xs font-bold text-gray-900">{tpl.title}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white font-medium text-gray-600 border border-gray-200">
+                          {tpl.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 leading-relaxed">
+                        {tpl.desc}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between text-[11px]">
+                        <span className={isSelected ? 'text-[#318A25] font-bold flex items-center gap-1' : 'text-gray-400'}>
+                          {isSelected ? (
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span>Active Style</span>
+                            </>
+                          ) : (
+                            'Click to select'
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 

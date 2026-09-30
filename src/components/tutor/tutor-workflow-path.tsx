@@ -202,7 +202,7 @@ export function TutorWorkflowPath({ state }: { state: TutorPathState }) {
               </div>
               <p className="text-xs text-gray-600 mt-1">
                 {isNewTutor
-                  ? "Welcome to Nuzilo! Follow this operational guide to get your teaching workspace and first cohort ready."
+                  ? "Welcome to Nuzigo! Follow this operational guide to get your teaching workspace and first cohort ready."
                   : "Your operational workflow for running, scheduling, and tracking your coaching batches."}
               </p>
             </div>

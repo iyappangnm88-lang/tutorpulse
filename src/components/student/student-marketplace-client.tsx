@@ -123,12 +123,23 @@ export function StudentMarketplaceClient({
                 <CardBody className="p-5 space-y-4 flex-1 flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-[#FAFBEF] text-[#318A25] font-bold text-sm flex items-center justify-center border border-gray-200 shrink-0">
-                          {initials}
-                        </div>
+                      <Link
+                        href={`/tutors/${encodeURIComponent(tutor.profileSlug || tutor.id)}`}
+                        className="flex items-center gap-3 group"
+                      >
+                        {tutor.avatarUrl ? (
+                          <img
+                            src={tutor.avatarUrl}
+                            alt={tutor.fullName}
+                            className="h-10 w-10 rounded-xl object-cover border border-gray-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-xl bg-[#FAFBEF] text-[#318A25] font-bold text-sm flex items-center justify-center border border-gray-200 shrink-0">
+                            {initials}
+                          </div>
+                        )}
                         <div>
-                          <h3 className="text-sm font-bold text-gray-900 leading-snug">
+                          <h3 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#318A25] transition-colors">
                             {tutor.fullName}
                           </h3>
                           {tutor.locationRegion && (
@@ -138,7 +149,7 @@ export function StudentMarketplaceClient({
                             </p>
                           )}
                         </div>
-                      </div>
+                      </Link>
 
                       <Badge
                         variant={
@@ -183,7 +194,7 @@ export function StudentMarketplaceClient({
                         : 'Inquiries Open'}
                     </span>
 
-                    <Link href={`/tutors/${tutor.profileSlug}`}>
+                    <Link href={`/tutors/${encodeURIComponent(tutor.profileSlug || tutor.id)}`}>
                       <Button size="sm" className="text-xs gap-1 bg-[#55C832] hover:bg-[#318A25]">
                         <span>View Classes</span>
                         <ArrowRight className="h-3.5 w-3.5" />
