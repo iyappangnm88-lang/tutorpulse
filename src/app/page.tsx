@@ -1,12 +1,12 @@
 import React from 'react'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { MarketingLanding } from '@/components/landing/marketing-landing'
+import { PreLandingPage } from '@/components/landing/pre-landing-page'
 
 export const metadata: Metadata = {
-  title: 'Nuzigo — Everything you need to teach, learn, and grow',
+  title: 'Nuzigo — What brings you to Nuzigo?',
   description:
-    'Nuzigo is the modern, connected education platform uniting tutor marketplace discovery, edge-to-edge classrooms, batch management, learning engagement, and transparent student progress.',
+    'Choose your path on Nuzigo: professional discovery & workspace for tutors, interactive live classes & study streaks for students, and connected progress for parents.',
 }
 
 export default async function HomePage() {
@@ -42,7 +42,7 @@ export default async function HomePage() {
     : null
 
   return (
-    <MarketingLanding
+    <PreLandingPage
       currentUser={currentUser}
       dashboardHref={dashboardHref}
     />
