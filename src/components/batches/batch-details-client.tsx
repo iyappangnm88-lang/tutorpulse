@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -50,7 +50,7 @@ import { Dialog } from '@/components/ui/dialog'
 import { useToast } from '@/contexts/toast-context'
 import { AddStudentsDialog } from './add-students-dialog'
 import { removeStudentFromBatchAction } from '@/app/(dashboard)/dashboard/batches/actions'
-import { recordPaymentAction } from '@/app/(dashboard)/dashboard/fees/actions'
+import { recordPaymentAction, recordBatchStudentPaymentAction } from '@/app/(dashboard)/dashboard/fees/actions'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import { HomeworkStatusBadge } from '@/components/homework/homework-status-badge'
 import { HomeworkProgressBar } from '@/components/homework/homework-progress-bar'
@@ -119,6 +119,7 @@ export function BatchDetailsClient({
 
   // Payment Recording Modal State
   const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false)
+  const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<EnrolledStudent | null>(null)
   const [selectedFeeForPayment, setSelectedFeeForPayment] = useState<FeeWithDetails | null>(null)
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI')
@@ -135,12 +136,50 @@ export function BatchDetailsClient({
   const feeCurrency = (batch as any).pricing_currency ?? tutorProfile?.pricing_currency ?? 'INR'
   const feeDescription = (batch as any).pricing_description || tutorProfile?.pricing_description || ''
 
-  // Fee metrics (Private payment records)
-  const totalBilled = fees.reduce((sum, f) => sum + (f.amount || 0), 0)
-  const totalCollected = fees.reduce((sum, f) => sum + (f.total_paid || 0), 0)
-  const totalBalance = fees.reduce((sum, f) => sum + (f.balance || 0), 0)
-  const paidCount = fees.filter((f) => f.balance === 0).length
-  const pendingCount = fees.filter((f) => f.balance > 0).length
+  // Student Fee Map (student_id -> FeeWithDetails)
+  const studentFeeMap = useMemo(() => {
+    const map = new Map<string, FeeWithDetails>()
+    for (const f of fees) {
+      if (f.student_id) map.set(f.student_id, f)
+    }
+    return map
+  }, [fees])
+
+  // Fee metrics calculated over enrolled students in this cohort
+  const { totalBilled, totalCollected, totalBalance, paidCount, pendingCount } = useMemo(() => {
+    let billed = 0
+    let collected = 0
+    let balance = 0
+    let paid = 0
+    let pending = 0
+
+    for (const e of enrolled) {
+      const f = studentFeeMap.get(e.student.id)
+      if (f) {
+        billed += Number(f.amount || 0)
+        collected += Number(f.total_paid || 0)
+        balance += Number(f.balance || 0)
+        if (f.balance === 0) {
+          paid++
+        } else {
+          pending++
+        }
+      } else {
+        const studentRate = feeRate ?? 0
+        billed += studentRate
+        balance += studentRate
+        pending++
+      }
+    }
+
+    return {
+      totalBilled: billed,
+      totalCollected: collected,
+      totalBalance: balance,
+      paidCount: paid,
+      pendingCount: pending,
+    }
+  }, [enrolled, studentFeeMap, feeRate])
 
   // Homework & Test metrics
   const pendingHomeworkCount = homeworkList.filter(
@@ -174,8 +213,8 @@ export function BatchDetailsClient({
   // Handle Recording Payment
   async function handleRecordPaymentSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedFeeForPayment) {
-      toast('error', 'Selection Required', 'Please select an invoice.')
+    if (!selectedStudentForPayment) {
+      toast('error', 'Selection Required', 'Please select an enrolled student.')
       return
     }
     const numAmount = Number(paymentAmount)
@@ -186,8 +225,9 @@ export function BatchDetailsClient({
 
     setRecordingPayment(true)
     try {
-      const res = await recordPaymentAction({
-        fee_id: selectedFeeForPayment.id,
+      const res = await recordBatchStudentPaymentAction({
+        batch_id: batch.id,
+        student_id: selectedStudentForPayment.student.id,
         amount: numAmount,
         payment_date: paymentDate,
         payment_method: paymentMethod,
@@ -199,25 +239,9 @@ export function BatchDetailsClient({
         return
       }
 
-      // Update fee locally
-      setFees((prev) =>
-        prev.map((f) => {
-          if (f.id === selectedFeeForPayment.id) {
-            const newPaid = f.total_paid + numAmount
-            const newBal = Math.max(0, f.amount - newPaid)
-            return {
-              ...f,
-              total_paid: newPaid,
-              balance: newBal,
-              status: newBal === 0 ? 'Paid' : 'Partially Paid',
-            }
-          }
-          return f
-        })
-      )
-
-      toast('success', 'Payment Recorded', `Recorded ₹${numAmount} for ${selectedFeeForPayment.student?.full_name}.`)
+      toast('success', 'Payment Recorded', `Recorded ₹${numAmount} for ${selectedStudentForPayment.student?.full_name}.`)
       setIsRecordPaymentOpen(false)
+      setSelectedStudentForPayment(null)
       setSelectedFeeForPayment(null)
       setPaymentAmount('')
       setPaymentNotes('')
@@ -285,10 +309,17 @@ export function BatchDetailsClient({
                 <span className="font-black text-[#172B4D]">
                   {feeRate != null ? (
                     <>
-                      ₹{feeRate} <span className="text-gray-500 font-medium">/{feeUnit}</span>
+                      <span>Teaching fee: ₹{feeRate}</span>
+                      <span className="text-gray-500 font-medium">/{feeUnit}</span>
+                      <span className="ml-1 text-xs font-bold text-[#318A25]">(✓ Set)</span>
                     </>
                   ) : (
-                    <span className="text-gray-500 font-medium">Pricing not set</span>
+                    <Link
+                      href={`/dashboard/marketplace/batches/${batch.id}/edit`}
+                      className="text-amber-600 font-semibold hover:underline"
+                    >
+                      Teaching fee: Not set
+                    </Link>
                   )}
                 </span>
                 {(batch as any).max_students && (
@@ -626,9 +657,18 @@ export function BatchDetailsClient({
               </CardHeader>
               <CardBody className="p-4 space-y-3 text-xs">
                 <div className="flex items-center justify-between py-1 border-b border-gray-100">
-                  <span className="text-gray-500">Marketplace Fee Rate</span>
+                  <span className="text-gray-500">Teaching Fee</span>
                   <span className="font-black text-[#172B4D]">
-                    {feeRate != null ? `₹${feeRate} /${feeUnit}` : 'Pricing not set'}
+                    {feeRate != null ? (
+                      <span className="text-[#318A25] font-bold">₹{feeRate} /{feeUnit} (✓ Set)</span>
+                    ) : (
+                      <Link
+                        href={`/dashboard/marketplace/batches/${batch.id}/edit`}
+                        className="text-amber-600 font-bold hover:underline"
+                      >
+                        Teaching fee: Not set
+                      </Link>
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-gray-100">
@@ -1031,12 +1071,12 @@ export function BatchDetailsClient({
         </div>
       )}
 
-      {/* TAB 7: FEES (Section 13 & 14 Requirement: Batch Fees vs Marketplace Pricing) */}
+      {/* TAB 7: FEES (Batch-Centric Fees & Enrolled Student Payment Tracking) */}
       {activeTab === 'fees' && (
         <div className="space-y-6">
-          {/* Section 14 Distinction Banner */}
+          {/* Marketplace Batch Fee & Payment Tracking Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Marketplace Batch Fee Card (Public-Facing Pricing) */}
+            {/* Marketplace Batch Fee Card */}
             <Card className="border-2 border-[#55C832]/30 bg-[#FAFBEF]/60">
               <CardBody className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
@@ -1052,19 +1092,29 @@ export function BatchDetailsClient({
                   </Link>
                 </div>
                 <h4 className="text-xs font-bold text-gray-500">
-                  Public Listing Price for Prospective Students
+                  Authoritative Batch Teaching Fee
                 </h4>
-                <p className="text-xl font-black text-[#172B4D]">
+                <div className="text-xl font-black text-[#172B4D]">
                   {feeRate != null ? (
-                    <>
-                      ₹{feeRate} <span className="text-xs font-normal text-gray-500">/{feeUnit}</span>
-                    </>
+                    <div className="space-y-1">
+                      <p>
+                        ₹{feeRate} <span className="text-xs font-normal text-gray-500">/{feeUnit}</span>
+                      </p>
+                      <span className="inline-block text-xs font-bold text-[#318A25] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        ₹{feeRate}/{feeUnit} • Teaching fee configured
+                      </span>
+                    </div>
                   ) : (
-                    <span className="text-sm font-semibold text-gray-500">Pricing not set</span>
+                    <div className="space-y-1.5">
+                      <span className="text-sm font-bold text-amber-600">Teaching fee: Not set</span>
+                      <p className="text-xs font-medium text-gray-500">
+                        Teaching fee not set. <Link href={`/dashboard/marketplace/batches/${batch.id}/edit`} className="text-[#318A25] underline font-bold">Set the batch fee in Marketplace.</Link>
+                      </p>
+                    </div>
                   )}
-                </p>
+                </div>
                 <p className="text-[11px] text-gray-600">
-                  {feeDescription || 'Tuition rate published on student discovery profile.'}
+                  {feeDescription || 'Every enrolled student in this cohort automatically follows the batch teaching fee.'}
                 </p>
               </CardBody>
             </Card>
@@ -1076,7 +1126,7 @@ export function BatchDetailsClient({
                   Private Payment Tracking
                 </span>
                 <h4 className="text-xs font-bold text-gray-500">
-                  Enrolled Student Invoices & Collected Dues
+                  Cohort Dues & Collection Summary
                 </h4>
                 <div className="flex items-center gap-3 pt-1 text-xs">
                   <div>
@@ -1098,113 +1148,101 @@ export function BatchDetailsClient({
             </Card>
           </div>
 
-          {/* Invoices List */}
+          {/* Enrolled Students Fee Tracking List */}
           <Card className="border border-gray-200">
             <CardHeader className="border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-[#172B4D] flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-[#55C832]" />
-                  <span>Student Fee Invoices</span>
+                  <span>Enrolled Student Fee Tracking</span>
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Record offline or online payments from enrolled students in {batch.name}.
+                  {feeRate != null
+                    ? `Every enrolled student automatically follows the batch's ₹${feeRate}/${feeUnit} fee.`
+                    : 'Configure the batch fee in Marketplace to enable payment tracking.'}
                 </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Link href={`/dashboard/fees/new?batch=${batch.id}`}>
-                  <Button size="sm" variant="outline" className="text-xs font-bold gap-1">
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>+ New Invoice</span>
-                  </Button>
-                </Link>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (fees.length > 0) {
-                      setSelectedFeeForPayment(fees[0])
-                      setPaymentAmount(String(fees[0].balance || fees[0].amount))
-                      setIsRecordPaymentOpen(true)
-                    } else {
-                      toast('info', 'No Invoices', 'Create a fee invoice first before recording payments.')
-                    }
-                  }}
-                  className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold gap-1 shadow-xs"
-                >
-                  <DollarSign className="h-3.5 w-3.5" />
-                  <span>Record Payment</span>
-                </Button>
               </div>
             </CardHeader>
             <CardBody className="p-4">
-              {fees.length === 0 ? (
+              {enrolled.length === 0 ? (
                 <div className="text-center py-8 px-4 rounded-xl border border-dashed border-gray-200">
-                  <CreditCard className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-[#172B4D]">No fee invoices for this batch yet</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Generate fee invoices for students enrolled in this cohort to track tuition payments.
+                  <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-[#172B4D]">
+                    No enrolled students yet. Students who join this batch will appear here automatically.
                   </p>
-                  <Link href={`/dashboard/fees/new?batch=${batch.id}`}>
-                    <Button size="sm" className="mt-3 bg-[#55C832] hover:bg-[#318A25] text-white text-xs">
-                      Create First Invoice
-                    </Button>
-                  </Link>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Add students to this cohort to begin tracking attendance, homework, and batch teaching fees.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {fees.map((fee) => (
-                    <div
-                      key={fee.id}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-gray-100 bg-white hover:border-[#55C832]/40 transition-colors gap-3"
-                    >
-                      <div>
-                        <p className="text-sm font-bold text-[#172B4D]">
-                          {fee.student?.full_name || 'Enrolled Student'}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Due: {fee.due_date || 'No due date'} • Amount: ₹{fee.amount.toLocaleString()}
-                        </p>
-                      </div>
+                  {enrolled.map((enrolledItem: EnrolledStudent) => {
+                    const student = enrolledItem.student
+                    const studentFee = studentFeeMap.get(student.id)
+                    const isPaid = studentFee ? studentFee.balance === 0 : false
+                    const isPartial = studentFee ? studentFee.balance > 0 && studentFee.balance < studentFee.amount : false
+                    const remainingBalance = studentFee ? studentFee.balance : (feeRate ?? 0)
 
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                            fee.balance === 0
-                              ? 'bg-[#55C832]/20 text-[#318A25]'
-                              : fee.balance < fee.amount
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {fee.balance === 0
-                            ? 'Paid in Full'
-                            : fee.balance < fee.amount
-                            ? `Partial (₹${fee.balance} due)`
-                            : `Pending (₹${fee.amount})`}
-                        </span>
+                    return (
+                      <div
+                        key={student.id}
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-gray-100 bg-white hover:border-[#55C832]/40 transition-colors gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-emerald-50 text-[#318A25] font-black text-sm flex items-center justify-center border border-emerald-100">
+                            {student.full_name?.charAt(0).toUpperCase() || 'S'}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#172B4D]">
+                              {student.full_name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Batch Fee: <span className="font-semibold text-gray-700">{feeRate != null ? `₹${feeRate}` : 'Not set'}</span>
+                              {studentFee?.due_date ? ` • Due: ${studentFee.due_date}` : ''}
+                            </p>
+                          </div>
+                        </div>
 
-                        {fee.balance > 0 && (
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                              isPaid
+                                ? 'bg-[#55C832]/20 text-[#318A25]'
+                                : isPartial
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {isPaid
+                              ? 'Paid'
+                              : isPartial
+                              ? `Partial (₹${remainingBalance} due)`
+                              : `Pending (₹${remainingBalance} due)`}
+                          </span>
+
                           <Button
                             size="sm"
+                            disabled={feeRate == null}
                             onClick={() => {
-                              setSelectedFeeForPayment(fee)
-                              setPaymentAmount(String(fee.balance))
+                              if (feeRate == null) {
+                                toast('error', 'Fee Not Set', 'Set the batch fee in Marketplace before recording payments.')
+                                return
+                              }
+                              setSelectedStudentForPayment(enrolledItem)
+                              setPaymentAmount(String(remainingBalance > 0 ? remainingBalance : feeRate))
+                              setPaymentDate(new Date().toISOString().split('T')[0])
+                              setPaymentNotes('')
                               setIsRecordPaymentOpen(true)
                             }}
-                            className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-semibold py-1 px-2.5"
+                            className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-semibold py-1 px-3 shadow-xs"
                           >
-                            Record Pay
+                            <DollarSign className="h-3.5 w-3.5 mr-1" />
+                            <span>Record Payment</span>
                           </Button>
-                        )}
-
-                        <Link href={`/dashboard/fees/${fee.id}`}>
-                          <Button size="sm" variant="outline" className="text-xs">
-                            View
-                          </Button>
-                        </Link>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </CardBody>
@@ -1330,34 +1368,31 @@ export function BatchDetailsClient({
         </Card>
       )}
 
-      {/* Modal: Record Payment */}
+      {/* Modal: Record Payment against Enrolled Student */}
       <Dialog
         isOpen={isRecordPaymentOpen}
         onClose={() => {
           setIsRecordPaymentOpen(false)
+          setSelectedStudentForPayment(null)
           setSelectedFeeForPayment(null)
         }}
-        title="Record Student Fee Payment"
-        description="Record a received tuition payment for an enrolled student in this batch."
+        title="Record Batch Fee Payment"
+        description="Record a received tuition payment against the established batch fee."
       >
         <form onSubmit={handleRecordPaymentSubmit} className="space-y-4 pt-2">
-          <div className="space-y-1">
-            <Label htmlFor="fee_select">Student Invoice</Label>
-            <Select
-              id="fee_select"
-              value={selectedFeeForPayment?.id || ''}
-              onChange={(e) => {
-                const found = fees.find((f) => f.id === e.target.value) || null
-                setSelectedFeeForPayment(found)
-                if (found) setPaymentAmount(String(found.balance || found.amount))
-              }}
-            >
-              {fees.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.student?.full_name} — Balance: ₹{f.balance} (Total: ₹{f.amount})
-                </option>
-              ))}
-            </Select>
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Student:</span>
+              <span className="font-bold text-[#172B4D]">{selectedStudentForPayment?.student.full_name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Cohort Batch:</span>
+              <span className="font-bold text-[#172B4D]">{batch.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Authoritative Batch Fee:</span>
+              <span className="font-bold text-[#318A25]">₹{feeRate != null ? `${feeRate} /${feeUnit}` : 'Not set'}</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1413,7 +1448,11 @@ export function BatchDetailsClient({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsRecordPaymentOpen(false)}
+              onClick={() => {
+                setIsRecordPaymentOpen(false)
+                setSelectedStudentForPayment(null)
+                setSelectedFeeForPayment(null)
+              }}
               disabled={recordingPayment}
             >
               Cancel

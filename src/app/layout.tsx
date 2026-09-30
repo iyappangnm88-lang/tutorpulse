@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
-import { AuthProvider } from '@/contexts/auth-context'
 import { ToastProvider } from '@/contexts/toast-context'
 import { ToastContainer } from '@/components/ui/toast'
 import { Analytics } from '@vercel/analytics/next'
@@ -61,12 +60,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <meta name="theme-color" content="#55C832" />
       </head>
       <body className="h-full antialiased">
-        <AuthProvider>
-          <ToastProvider>
-            {children}
-            <ToastContainer />
-          </ToastProvider>
-        </AuthProvider>
+        <ToastProvider>
+          {children}
+          <ToastContainer />
+        </ToastProvider>
         <PwaRegister />
         <InstallBanner />
         <Analytics />

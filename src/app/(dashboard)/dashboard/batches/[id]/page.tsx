@@ -35,15 +35,14 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes, feesRes, profileRes] = await Promise.all([
+  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes, profileRes] = await Promise.all([
     getBatchById(id),
     getBatchEnrolledStudents(id),
     getAvailableStudentsForBatch(id),
     getBatchHomework(id),
     getBatchTests(id),
     getBatchUpcomingSessions(id, 5),
-    getFees(),
-    user ? supabase.from('profiles').select('*').eq('id', user.id).single() : Promise.resolve({ data: null }),
+    user ? supabase.from('profiles').select('id, pricing_rate, pricing_unit, pricing_type, subjects, bio, experience_years').eq('id', user.id).maybeSingle() : Promise.resolve({ data: null }),
   ])
 
   const batch = batchRes.data
@@ -55,7 +54,8 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
 
   // Filter fees for enrolled students of this batch
   const enrolledStudentIds = (enrolledRes.data || []).map((e) => e.student.id)
-  const batchFees = (feesRes.data || []).filter((f) => enrolledStudentIds.includes(f.student_id))
+  const feesRes = await getFees({ studentIds: enrolledStudentIds })
+  const batchFees = feesRes.data || []
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">

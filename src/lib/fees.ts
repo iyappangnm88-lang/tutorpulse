@@ -10,6 +10,7 @@ import { roundCurrency, deriveFeeStatus } from './fee-utils'
 
 export async function getFees(options?: {
   studentId?: string
+  studentIds?: string[]
   status?: string
   workspaceId?: string
 }): Promise<{ data: FeeWithDetails[]; error: string | null }> {
@@ -20,6 +21,10 @@ export async function getFees(options?: {
     if (!wsId) {
       const activeWs = await getActiveWorkspace()
       wsId = activeWs.activeWorkspace?.id
+    }
+
+    if (options?.studentIds !== undefined && options.studentIds.length === 0) {
+      return { data: [], error: null }
     }
 
     let query = supabase
@@ -37,6 +42,10 @@ export async function getFees(options?: {
 
     if (options?.studentId) {
       query = query.eq('student_id', options.studentId)
+    }
+
+    if (options?.studentIds && options.studentIds.length > 0) {
+      query = query.in('student_id', options.studentIds)
     }
 
     const { data, error } = await query

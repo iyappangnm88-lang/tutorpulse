@@ -47,3 +47,34 @@ export async function getSessionAttendance(
     return { data: [], error: 'Failed to load session attendance.' }
   }
 }
+
+export async function getMonthlyAttendancePct(workspaceId?: string): Promise<number | null> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      .toISOString()
+      .split('T')[0]
+
+    let query = supabase
+      .from('attendance')
+      .select('status')
+      .eq('tutor_id', user.id)
+      .gte('attendance_date', startOfMonth)
+
+    if (workspaceId) {
+      query = query.eq('workspace_id', workspaceId)
+    }
+
+    const { data, error } = await query
+    if (error || !data || data.length === 0) return null
+
+    const presentCount = data.filter((a) => a.status === 'present' || a.status === 'late').length
+    return Math.round((presentCount / data.length) * 100)
+  } catch {
+    return null
+  }
+}
+

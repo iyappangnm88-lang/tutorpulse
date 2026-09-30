@@ -29,7 +29,7 @@ import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { syncSystemAlerts, getTutorNotifications } from '@/lib/communication'
-import { getReportAggregatedData } from '@/lib/reports'
+import { getMonthlyAttendancePct } from '@/lib/attendance'
 import { getStudents } from '@/lib/students'
 import { getBatches } from '@/lib/batches'
 import { isBatchScheduledOnDate, formatTimeRange } from '@/lib/scheduling'
@@ -145,7 +145,7 @@ export default async function DashboardPage() {
 
   // Safely fetch all dashboard data scoped strictly to the active workspace
   let notifications: Awaited<ReturnType<typeof getTutorNotifications>> = []
-  let reportData: Awaited<ReturnType<typeof getReportAggregatedData>> | null = null
+  let monthlyAttendancePct: number | null = null
   let studentsRes: Awaited<ReturnType<typeof getStudents>> = { data: [], error: null }
   let batchesRes: Awaited<ReturnType<typeof getBatches>> = { data: [], error: null }
   let todaySessionsRes: Awaited<ReturnType<typeof getTodaySessions>> = { data: [], error: null }
@@ -159,7 +159,7 @@ export default async function DashboardPage() {
   try {
     [
       notifications,
-      reportData,
+      monthlyAttendancePct,
       studentsRes,
       batchesRes,
       todaySessionsRes,
@@ -169,7 +169,7 @@ export default async function DashboardPage() {
       feesRes,
     ] = await Promise.all([
       getTutorNotifications().catch(() => []),
-      getReportAggregatedData({ range: 'this_month' }).catch(() => null),
+      getMonthlyAttendancePct(wsId).catch(() => null),
       getStudents(wsId).catch(() => ({ data: [], error: null })),
       getBatches(wsId).catch(() => ({ data: [], error: null })),
       getTodaySessions(wsId).catch(() => ({ data: [], error: null })),
@@ -183,7 +183,15 @@ export default async function DashboardPage() {
   }
 
   const studentsCount = studentsRes.data?.length || 0
+  const activeStudentsCount = (studentsRes.data || []).filter((s) => s.status === 'active').length
   const batchesCount = batchesRes.data?.length || 0
+  const feesList = feesRes.data || []
+  const pendingFeesTotal = feesList
+    .filter((f) => f.status === 'Pending' || f.status === 'Overdue')
+    .reduce((sum, f) => sum + (f.amount || 0), 0)
+  const collectedFeesTotal = feesList
+    .filter((f) => f.status === 'Paid')
+    .reduce((sum, f) => sum + (f.amount || 0), 0)
   const todaySessions = (todaySessionsRes.data || []) as ClassSessionWithBatch[]
   const upcomingSessions = (upcomingSessionsRes.data || []) as ClassSessionWithBatch[]
   const todayDate = new Date()
@@ -507,7 +515,7 @@ export default async function DashboardPage() {
             icon={Users}
             label={isOffline ? 'Offline Students' : 'Online Students'}
             value={studentsCount}
-            sub={`${reportData?.kpis.active_students || 0} active in ${isOffline ? 'physical' : 'digital'} roster`}
+            sub={`${activeStudentsCount} active in ${isOffline ? 'physical' : 'digital'} roster`}
             iconColor={isOffline ? 'text-amber-600' : 'text-[#318A25]'}
             iconBg={isOffline ? 'bg-amber-50' : 'bg-[#FAFBEF]'}
             href="/dashboard/students"
@@ -525,8 +533,8 @@ export default async function DashboardPage() {
             icon={ClipboardCheck}
             label="Attendance %"
             value={
-              reportData?.kpis.overall_attendance_pct !== undefined
-                ? `${reportData.kpis.overall_attendance_pct}%`
+              monthlyAttendancePct !== null
+                ? `${monthlyAttendancePct}%`
                 : '—'
             }
             sub="Month to date"
@@ -537,8 +545,8 @@ export default async function DashboardPage() {
           <MetricCard
             icon={CreditCard}
             label="Pending Fees"
-            value={formatCurrency(reportData?.kpis.fees_outstanding || 0)}
-            sub={`${formatCurrency(reportData?.kpis.fees_total_collected || 0)} collected`}
+            value={formatCurrency(pendingFeesTotal)}
+            sub={`${formatCurrency(collectedFeesTotal)} collected`}
             iconColor="text-purple-600"
             iconBg="bg-purple-50"
             href="/dashboard/fees"

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { NuzigoLogo } from '@/components/brand/nuzigo-logo'
-import { createClient } from '@/lib/supabase/server'
+import { getOptionalUser } from '@/lib/auth-helpers'
 
 export const metadata: Metadata = {
   title: 'Nuzigo Overview — Connected Education Platform',
@@ -23,10 +23,7 @@ export const metadata: Metadata = {
 }
 
 export default async function OverviewPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user } = await getOptionalUser()
 
   return (
     <div className="min-h-screen bg-[#FAFBEF] text-[#172B4D] selection:bg-[#55C832] selection:text-white font-sans flex flex-col justify-between">

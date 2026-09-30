@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { getOptionalUser } from '@/lib/auth-helpers'
 import { StudentMarketingLanding } from '@/components/landing/student-marketing-landing'
 
 export const metadata: Metadata = {
@@ -10,25 +10,12 @@ export const metadata: Metadata = {
 }
 
 export default async function ForStudentsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  let userRole: 'tutor' | 'student' | 'parent' | null = null
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle()
-    userRole = (profile?.role as any) || null
-  }
+  const { user, role } = await getOptionalUser()
 
   const currentUser = user
     ? {
         email: user.email || '',
-        role: userRole,
+        role,
       }
     : null
 

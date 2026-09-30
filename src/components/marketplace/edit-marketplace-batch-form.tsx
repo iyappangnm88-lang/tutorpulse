@@ -54,7 +54,7 @@ export function EditMarketplaceBatchForm({ batch, tutorProfile }: EditMarketplac
     end_time: safeEndTime,
     classes_per_week: batch.classes_per_week ?? (batch.working_days?.length || 3),
     max_students: (batch as any).max_students != null ? String((batch as any).max_students) : '15',
-    pricing_rate: (batch as any).pricing_rate != null ? String((batch as any).pricing_rate) : (tutorProfile?.pricing_rate ? String(tutorProfile.pricing_rate) : '800'),
+    pricing_rate: (batch as any).pricing_rate != null ? String((batch as any).pricing_rate) : (tutorProfile?.pricing_rate ? String(tutorProfile.pricing_rate) : ''),
     pricing_unit: (batch as any).pricing_unit || tutorProfile?.pricing_unit || 'per_month',
     pricing_currency: (batch as any).pricing_currency || tutorProfile?.pricing_currency || 'INR',
     pricing_description: (batch as any).pricing_description || tutorProfile?.pricing_description || '',

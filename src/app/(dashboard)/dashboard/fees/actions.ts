@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { roundCurrency, deriveFeeStatus } from '@/lib/fees'
+import { extractBatchPricingMetadata } from '@/lib/batches'
 import type { Fee, Payment, PaymentMethod } from '@/types'
 
 export interface ActionResult<T = unknown> {
@@ -342,3 +343,157 @@ export async function deletePaymentAction(paymentId: string): Promise<ActionResu
     return { success: false, error: 'Failed to delete payment.' }
   }
 }
+
+export async function recordBatchStudentPaymentAction(input: {
+  batch_id: string
+  student_id: string
+  amount: number
+  payment_date: string
+  payment_method: PaymentMethod
+  reference_number?: string | null
+  notes?: string | null
+}): Promise<ActionResult<Payment>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { success: false, error: 'Unauthorized. Please sign in.' }
+    }
+
+    const payAmount = roundCurrency(Number(input.amount))
+    if (isNaN(payAmount) || payAmount <= 0) {
+      return { success: false, error: 'Payment amount must be greater than ₹0.' }
+    }
+
+    // 1. Fetch batch to verify ownership and retrieve authoritative teaching fee
+    const { data: batch, error: batchError } = await supabase
+      .from('batches')
+      .select('*')
+      .eq('id', input.batch_id)
+      .eq('tutor_id', user.id)
+      .single()
+
+    if (batchError || !batch) {
+      return { success: false, error: 'Batch not found or unauthorized.' }
+    }
+
+    const meta = extractBatchPricingMetadata(batch)
+    const authoritativeRate = (batch as any).pricing_rate != null
+      ? Number((batch as any).pricing_rate)
+      : (meta.rate ?? null)
+
+    if (authoritativeRate == null || authoritativeRate <= 0) {
+      return { success: false, error: 'Batch does not have a teaching fee configured. Please set the fee in Marketplace first.' }
+    }
+
+    // 2. Fetch student to verify ownership and get workspace_id
+    const { data: student, error: studentError } = await supabase
+      .from('students')
+      .select('id, full_name, workspace_id')
+      .eq('id', input.student_id)
+      .eq('tutor_id', user.id)
+      .single()
+
+    if (studentError || !student) {
+      return { success: false, error: 'Student not found or unauthorized.' }
+    }
+
+    // 3. Find if there is an existing fee record for this student and batch
+    const { data: existingFees } = await supabase
+      .from('fees')
+      .select(`*, payments (amount)`)
+      .eq('student_id', input.student_id)
+      .eq('tutor_id', user.id)
+      .order('created_at', { ascending: false })
+
+    // Check if there is an active fee record with remaining balance
+    let targetFee = (existingFees || []).find((f) => {
+      const paid = (f.payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0)
+      return (Number(f.amount) - paid) > 0
+    })
+
+    // If no fee with remaining balance exists, auto-provision a fee record for the batch teaching fee
+    if (!targetFee) {
+      const todayStr = new Date().toISOString().split('T')[0]
+      const currentMonthName = new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' })
+      const feeTitle = `${batch.name} Tuition Fee - ${currentMonthName}`
+
+      const { data: newFee, error: createFeeError } = await supabase
+        .from('fees')
+        .insert({
+          tutor_id: user.id,
+          workspace_id: student.workspace_id || (batch as any).workspace_id || null,
+          student_id: input.student_id,
+          title: feeTitle,
+          description: `Authoritative batch tuition for ${batch.name} (Batch ID: ${batch.id})`,
+          amount: authoritativeRate,
+          due_date: input.payment_date || todayStr,
+          status: 'Pending',
+          notes: input.notes?.trim() || null,
+        })
+        .select()
+        .single()
+
+      if (createFeeError || !newFee) {
+        console.error('Auto-provision fee error:', createFeeError)
+        return { success: false, error: createFeeError?.message || 'Failed to create fee record.' }
+      }
+
+      targetFee = { ...newFee, payments: [] }
+    }
+
+    // 4. Calculate existing paid and remaining
+    const existingPayments = targetFee.payments || []
+    const existingPaid = roundCurrency(
+      existingPayments.reduce((sum: number, p: { amount: number }) => sum + Number(p.amount), 0)
+    )
+    const remainingBalance = roundCurrency(Math.max(0, Number(targetFee.amount) - existingPaid))
+
+    if (payAmount > remainingBalance) {
+      return {
+        success: false,
+        error: `Payment amount (₹${payAmount}) exceeds remaining balance of ₹${remainingBalance}.`,
+      }
+    }
+
+    // 5. Insert payment record
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .insert({
+        tutor_id: user.id,
+        fee_id: targetFee.id,
+        student_id: input.student_id,
+        amount: payAmount,
+        payment_date: input.payment_date || new Date().toISOString().split('T')[0],
+        payment_method: input.payment_method,
+        reference_number: input.reference_number?.trim() || null,
+        notes: input.notes?.trim() || null,
+      })
+      .select()
+      .single()
+
+    if (paymentError) {
+      console.error('recordBatchStudentPaymentAction payment insert error:', paymentError)
+      return { success: false, error: paymentError.message }
+    }
+
+    // 6. Update fee status based on new total paid
+    const newTotalPaid = roundCurrency(existingPaid + payAmount)
+    const newStatus = deriveFeeStatus(Number(targetFee.amount), newTotalPaid, targetFee.due_date)
+
+    await supabase
+      .from('fees')
+      .update({ status: newStatus })
+      .eq('id', targetFee.id)
+
+    revalidatePath('/dashboard/fees')
+    revalidatePath(`/dashboard/batches/${input.batch_id}`)
+    revalidatePath(`/dashboard/students/${input.student_id}`)
+    return { success: true, data: payment as Payment }
+  } catch (err: unknown) {
+    console.error('recordBatchStudentPaymentAction exception:', err)
+    return { success: false, error: 'Failed to record payment.' }
+  }
+}
+

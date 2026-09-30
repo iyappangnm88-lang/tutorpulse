@@ -39,8 +39,20 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/contexts/toast-context'
 import { formatTimeRange } from '@/lib/scheduling'
 import { formatFriendlyDate } from '@/lib/calendar-utils'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
-import { DigitalWhiteboard } from '@/components/whiteboard/digital-whiteboard'
+
+const DigitalWhiteboard = dynamic(
+  () => import('@/components/whiteboard/digital-whiteboard').then((mod) => mod.DigitalWhiteboard),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex-1 flex items-center justify-center bg-gray-950 text-gray-400 text-xs">
+        Loading whiteboard canvas...
+      </div>
+    ),
+  }
+)
 import { EndClassDialog } from './end-class-dialog'
 import { ClassroomChatPanel } from './classroom-chat-panel'
 import { ClassroomPollsPanel } from './classroom-polls-panel'

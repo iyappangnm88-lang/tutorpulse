@@ -63,13 +63,7 @@ export function StudentClassesClient({
       )
       .subscribe()
 
-    // 10s fallback polling to guarantee live updates even if WebSocket reconnected
-    const interval = setInterval(() => {
-      router.refresh()
-    }, 10000)
-
     return () => {
-      clearInterval(interval)
       supabase.removeChannel(channel)
     }
   }, [router])

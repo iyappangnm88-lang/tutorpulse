@@ -69,13 +69,7 @@ export function StudentDashboardClient({
       )
       .subscribe()
 
-    // 15s fallback polling for background updates
-    const interval = setInterval(() => {
-      router.refresh()
-    }, 15000)
-
     return () => {
-      clearInterval(interval)
       supabase.removeChannel(channel)
     }
   }, [router])

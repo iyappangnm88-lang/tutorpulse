@@ -262,13 +262,17 @@ export async function updateBatchAction(
         baseDesc = currentB?.description || null
       }
 
-      fallbackData.description = injectBatchPricingMetadata(baseDesc, {
+      const metaToInject = {
         rate: input.pricing_rate !== undefined ? (input.pricing_rate != null ? Number(input.pricing_rate) : null) : null,
         unit: input.pricing_unit || 'per_month',
         currency: input.pricing_currency || 'INR',
         description: input.pricing_description || null,
         max_students: input.max_students !== undefined ? (input.max_students != null ? Number(input.max_students) : null) : null,
-      })
+      }
+      fallbackData.description = injectBatchPricingMetadata(baseDesc, metaToInject)
+      if (fallbackData.public_description !== undefined) {
+        fallbackData.public_description = injectBatchPricingMetadata(fallbackData.public_description, metaToInject)
+      }
 
       updateRes = await supabase
         .from('batches')
@@ -327,6 +331,7 @@ export async function updateBatchAction(
     revalidatePath('/dashboard/marketplace')
     revalidatePath('/dashboard/batches')
     revalidatePath(`/dashboard/batches/${id}`)
+    revalidatePath('/dashboard/fees')
     revalidatePath('/dashboard/attendance')
     revalidatePath('/dashboard/calendar')
     revalidatePath('/dashboard/classroom')

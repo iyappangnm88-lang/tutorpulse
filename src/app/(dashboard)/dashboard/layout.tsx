@@ -2,6 +2,7 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveWorkspace } from '@/lib/workspace'
+import { AuthProvider } from '@/contexts/auth-context'
 import { WorkspaceProvider } from '@/contexts/workspace-context'
 import { DashboardShell } from './dashboard-shell'
 
@@ -35,14 +36,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { activeWorkspace, workspaceType, workspaces } = await getActiveWorkspace()
 
   return (
-    <WorkspaceProvider
-      initialWorkspace={activeWorkspace}
-      initialWorkspaceType={workspaceType}
-      workspaces={workspaces}
-    >
-      <DashboardShell>
-        {children}
-      </DashboardShell>
-    </WorkspaceProvider>
+    <AuthProvider>
+      <WorkspaceProvider
+        initialWorkspace={activeWorkspace}
+        initialWorkspaceType={workspaceType}
+        workspaces={workspaces}
+      >
+        <DashboardShell>
+          {children}
+        </DashboardShell>
+      </WorkspaceProvider>
+    </AuthProvider>
   )
 }
