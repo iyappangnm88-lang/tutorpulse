@@ -115,23 +115,50 @@ export async function completeTutorOnboardingAction(
       return { success: false, error: 'Please select at least one primary subject you teach.' }
     }
 
+    const isPublic = Boolean(data.isPublicMarketplace)
+    const baseSlug = displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'tutor'
+    const profileSlug = `${baseSlug}-${user.id.slice(0, 4)}`
+
+    const updates: Record<string, any> = {
+      full_name: displayName,
+      role: 'tutor',
+      bio: data.bio?.trim() || null,
+      primary_subjects: data.primarySubjects,
+      target_classes: data.targetClasses || [],
+      teaching_languages: data.teachingLanguages || [],
+      teaching_mode: data.teachingMode || 'both',
+      experience_years: data.experienceYears ?? 0,
+      is_public_marketplace: isPublic,
+      profile_slug: profileSlug,
+      onboarding_completed: true,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (data.headline?.trim()) updates.headline = data.headline.trim()
+    if (data.teachingApproach?.trim()) updates.teaching_approach = data.teachingApproach.trim()
+    if (data.locationRegion?.trim()) updates.location_region = data.locationRegion.trim()
+    if (data.profileTemplate) updates.profile_template = data.profileTemplate
+    if (data.pricingRate !== undefined && data.pricingRate !== null) updates.pricing_rate = data.pricingRate
+    if (data.pricingUnit) updates.pricing_unit = data.pricingUnit
+    if (data.pricingCurrency) updates.pricing_currency = data.pricingCurrency
+    if (data.pricingDescription?.trim()) updates.pricing_description = data.pricingDescription.trim()
+
     // Update profiles table
-    const { error: profileError } = await supabase
+    let { error: profileError } = await supabase
       .from('profiles')
-      .update({
-        full_name: displayName,
-        role: 'tutor',
-        bio: data.bio?.trim() || null,
-        primary_subjects: data.primarySubjects,
-        target_classes: data.targetClasses || [],
-        teaching_languages: data.teachingLanguages || [],
-        teaching_mode: data.teachingMode || 'both',
-        experience_years: data.experienceYears ?? 0,
-        is_public_marketplace: false, // Strict: never automatically list publicly
-        onboarding_completed: true,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updates)
       .eq('id', user.id)
+
+    // Graceful fallback if newer columns are not yet in Supabase schema
+    if (profileError && profileError.code === '42703') {
+      delete updates.pricing_rate
+      delete updates.pricing_unit
+      delete updates.pricing_currency
+      delete updates.pricing_description
+      delete updates.profile_template
+      const retry = await supabase.from('profiles').update(updates).eq('id', user.id)
+      profileError = retry.error
+    }
 
     if (profileError) {
       return { success: false, error: profileError.message }

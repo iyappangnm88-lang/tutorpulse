@@ -15,6 +15,10 @@ export interface PublicTutorSummary {
   locationRegion: string | null
   publicOfferingCount: number
   profileTemplate?: 'elegant' | 'academic' | 'modern' | 'minimal' | 'creative' | string
+  pricingRate?: number | null
+  pricingUnit?: 'per_class' | 'per_hour' | 'per_month' | string | null
+  pricingCurrency?: string | null
+  pricingDescription?: string | null
 }
 
 export interface PublicTeachingOffering {

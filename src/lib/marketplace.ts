@@ -22,7 +22,7 @@ export async function getPublicTutors(
   let query = supabase
     .from('profiles')
     .select(
-      'id, full_name, avatar_url, headline, bio, primary_subjects, target_classes, teaching_mode, teaching_languages, experience_years, profile_slug, location_region, is_public_marketplace',
+      'id, full_name, avatar_url, headline, bio, primary_subjects, target_classes, teaching_mode, teaching_languages, experience_years, profile_slug, location_region, is_public_marketplace, profile_template, pricing_rate, pricing_unit, pricing_currency, pricing_description',
       { count: 'exact' }
     )
     .eq('role', 'tutor')
@@ -102,6 +102,10 @@ export async function getPublicTutors(
     locationRegion: p.location_region || null,
     publicOfferingCount: offeringCountMap.get(p.id) || 0,
     profileTemplate: (p as any).profile_template || 'modern',
+    pricingRate: (p as any).pricing_rate != null ? Number((p as any).pricing_rate) : null,
+    pricingUnit: (p as any).pricing_unit || 'per_month',
+    pricingCurrency: (p as any).pricing_currency || 'INR',
+    pricingDescription: (p as any).pricing_description || null,
   }))
 
   const totalCount = count || 0
@@ -214,6 +218,10 @@ export async function getPublicTutorBySlug(
       locationRegion: profile.location_region || null,
       publicOfferingCount: offerings.length,
       profileTemplate: (profile as any).profile_template || 'modern',
+      pricingRate: (profile as any).pricing_rate != null ? Number((profile as any).pricing_rate) : null,
+      pricingUnit: (profile as any).pricing_unit || 'per_month',
+      pricingCurrency: (profile as any).pricing_currency || 'INR',
+      pricingDescription: (profile as any).pricing_description || null,
       teachingApproach: profile.teaching_approach || null,
       availabilityHours: Array.isArray(profile.availability_hours)
         ? (profile.availability_hours as any)

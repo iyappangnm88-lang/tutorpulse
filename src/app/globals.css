@@ -11,14 +11,14 @@
   --color-brand-yellow: #FFC928;
   --color-brand-orange: #FF9F43;
   --color-brand-red: #F05252;
-  --color-nuzilo-green: #55C832;
-  --color-nuzilo-deep-green: #318A25;
-  --color-nuzilo-navy: #172B4D;
-  --color-nuzilo-cream: #FAFBEF;
-  --color-nuzilo-yellow: #FFC928;
-  --color-nuzilo-orange: #FF9F43;
-  --color-nuzilo-red: #F05252;
-  --color-nuzilo-white: #FFFFFF;
+  --color-nuzigo-green: #55C832;
+  --color-nuzigo-deep-green: #318A25;
+  --color-nuzigo-navy: #172B4D;
+  --color-nuzigo-cream: #FAFBEF;
+  --color-nuzigo-yellow: #FFC928;
+  --color-nuzigo-orange: #FF9F43;
+  --color-nuzigo-red: #F05252;
+  --color-nuzigo-white: #FFFFFF;
 
   /* Backward compatibility aliases */
   --color-nuzilo-green: #55C832;

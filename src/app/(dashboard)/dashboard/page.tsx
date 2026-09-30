@@ -476,13 +476,13 @@ export default async function DashboardPage() {
             <p className="text-xs text-slate-600 font-medium max-w-xl leading-relaxed">
               {tutorProfile?.is_public_marketplace
                 ? 'Your teaching profile is discoverable by students searching for tutors on Nuzigo.'
-                : 'Publish your profile in settings so prospective students and parents can discover your batches and subjects.'}
+                : 'Your marketplace profile isn’t published yet. Complete and publish it so students and parents searching for your subjects can discover your classes.'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          {tutorProfile?.profile_slug ? (
+          {tutorProfile?.profile_slug && tutorProfile?.is_public_marketplace ? (
             <Link
               href={`/tutors/${tutorProfile.profile_slug}`}
               target="_blank"
@@ -506,9 +506,13 @@ export default async function DashboardPage() {
 
           <Link
             href="/dashboard/settings"
-            className="btn-nuzigo-secondary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1"
+            className={
+              tutorProfile?.is_public_marketplace
+                ? 'btn-nuzigo-secondary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1'
+                : 'btn-nuzigo-primary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm'
+            }
           >
-            <span>Edit Profile</span>
+            <span>{tutorProfile?.is_public_marketplace ? 'Edit Profile' : 'Complete Marketplace Profile'}</span>
           </Link>
         </div>
       </div>

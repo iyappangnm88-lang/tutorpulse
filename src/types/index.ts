@@ -16,6 +16,16 @@ export interface TutorOnboardingData {
   teachingLanguages?: string[]
   teachingMode?: 'online' | 'offline' | 'both'
   experienceYears?: number
+  // Marketplace & Pricing fields
+  isPublicMarketplace?: boolean
+  headline?: string
+  teachingApproach?: string
+  locationRegion?: string
+  profileTemplate?: 'modern' | 'elegant' | 'academic' | 'minimal' | 'creative' | string
+  pricingRate?: number | null
+  pricingUnit?: 'per_class' | 'per_hour' | 'per_month' | string
+  pricingCurrency?: string
+  pricingDescription?: string
 }
 
 export interface StudentOnboardingData {
