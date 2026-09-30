@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Video,
   MapPin,
@@ -12,8 +13,12 @@ import {
   Sparkles,
   Info,
   ChevronRight,
+  Radio,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
+import { formatFriendlyDate } from '@/lib/calendar-utils'
+import { formatTimeRange } from '@/lib/scheduling'
 import type { ClassSession } from '@/types'
 import type { StudentEnrolledBatch } from '@/lib/student-portal'
 
@@ -37,7 +42,37 @@ export function StudentClassesClient({
   pastSessions,
   enrolledBatches,
 }: StudentClassesClientProps) {
+  const router = useRouter()
   const [currentTab, setCurrentTab] = useState<TabType>('schedule')
+
+  // Real-time synchronization for live and scheduled session status updates
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('student_classes_sync')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'class_sessions',
+        },
+        () => {
+          router.refresh()
+        }
+      )
+      .subscribe()
+
+    // 10s fallback polling to guarantee live updates even if WebSocket reconnected
+    const interval = setInterval(() => {
+      router.refresh()
+    }, 10000)
+
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
+  }, [router])
 
   return (
     <div className="space-y-6">
@@ -123,6 +158,8 @@ export function StudentClassesClient({
               </h2>
               {liveSessions.map((session) => {
                 const isOnline = session.class_mode === 'online'
+                const friendlyDate = formatFriendlyDate(session.session_date)
+                const timeRange = formatTimeRange(session.start_time, session.end_time)
 
                 return (
                   <div
@@ -144,8 +181,10 @@ export function StudentClassesClient({
                         <h3 className="text-base font-bold text-gray-900 mt-1">
                           {session.notes || session.batch_name || 'Live Class Session'}
                         </h3>
-                        <p className="text-xs text-gray-600 mt-0.5">
-                          Tutor: {session.tutor_name}
+                        <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-2">
+                          <span>Tutor: {session.tutor_name}</span>
+                          <span>•</span>
+                          <span className="font-medium text-gray-700">{friendlyDate} ({timeRange})</span>
                         </p>
                       </div>
                     </div>
@@ -188,18 +227,30 @@ export function StudentClassesClient({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {upcomingSessions.map((session) => {
                   const isOnline = session.class_mode === 'online'
+                  const friendlyDate = formatFriendlyDate(session.session_date)
+                  const timeRange = formatTimeRange(session.start_time, session.end_time)
+                  const isToday = friendlyDate === 'Today'
 
                   return (
                     <div
                       key={session.id}
-                      className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs flex flex-col justify-between"
+                      className={`rounded-2xl border bg-white p-5 shadow-2xs flex flex-col justify-between ${
+                        isToday ? 'border-[#55C832]/40 ring-1 ring-[#55C832]/20' : 'border-gray-100'
+                      }`}
                     >
                       <div>
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                          <span className="font-semibold text-[#318A25]">{session.batch_name}</span>
-                          <span className="flex items-center gap-1 text-[11px]">
-                            <Clock className="h-3 w-3" />
-                            {session.session_date} {session.start_time ? `• ${session.start_time}` : ''}
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-[#318A25]">{session.batch_name}</span>
+                            {isToday && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/30">
+                                Today
+                              </span>
+                            )}
+                          </div>
+                          <span className="flex items-center gap-1 text-[11px] font-medium text-gray-700">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            {friendlyDate} • {timeRange}
                           </span>
                         </div>
                         <h3 className="text-sm font-bold text-gray-900">
@@ -221,9 +272,16 @@ export function StudentClassesClient({
 
                         {isOnline ? (
                           <Link href={`/student/classroom/${session.id}`}>
-                            <Button size="sm" variant="outline" className="text-xs h-7">
+                            <Button
+                              size="sm"
+                              className={`text-xs h-7 font-semibold ${
+                                isToday
+                                  ? 'bg-[#55C832] hover:bg-[#318A25] text-white shadow-xs'
+                                  : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
                               <Video className="mr-1 h-3 w-3" />
-                              Class Room
+                              {isToday ? 'Enter Classroom' : 'Class Room'}
                             </Button>
                           </Link>
                         ) : (
@@ -316,7 +374,7 @@ export function StudentClassesClient({
                   <div>
                     <p className="text-xs font-bold text-gray-900">{session.notes || session.batch_name}</p>
                     <p className="text-[11px] text-gray-400 mt-0.5">
-                      {session.tutor_name} • {session.session_date}
+                      {session.tutor_name} • {formatFriendlyDate(session.session_date)} {session.start_time ? `• ${formatTimeRange(session.start_time, session.end_time)}` : ''}
                     </p>
                   </div>
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">

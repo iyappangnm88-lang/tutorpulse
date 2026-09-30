@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getStudentEnrolledBatches } from '@/lib/student-portal'
 import { StudentClassesClient } from '@/components/student/student-classes-client'
 
+import { formatDateKey } from '@/lib/calendar-utils'
+
 export const dynamic = 'force-dynamic'
 
 export default async function StudentClassesPage() {
@@ -29,10 +31,12 @@ export default async function StudentClassesPage() {
         batches:batch_id (name)
       `)
       .in('batch_id', batchIds)
-      .order('session_date', { ascending: false })
-      .limit(40)
+      .order('session_date', { ascending: true })
+      .order('start_time', { ascending: true })
+      .limit(60)
 
     if (sessions) {
+      const todayKey = formatDateKey(new Date())
       const tutorMap = new Map(enrolledBatches.map((b) => [b.tutor_id, b.tutor_name]))
       const formatted = sessions.map((s) => ({
         ...s,
@@ -40,9 +44,23 @@ export default async function StudentClassesPage() {
         tutor_name: tutorMap.get(s.tutor_id) || 'Tutor',
       }))
 
+      // Active / in-progress live sessions
       liveSessions = formatted.filter((s) => s.status === 'in_progress')
-      upcomingSessions = formatted.filter((s) => s.status === 'scheduled')
-      pastSessions = formatted.filter((s) => s.status === 'completed' || s.status === 'cancelled')
+
+      // Upcoming scheduled sessions (chronologically ascending so nearest/today's class is card #1)
+      upcomingSessions = formatted.filter(
+        (s) => s.status === 'scheduled' && s.session_date >= todayKey
+      )
+
+      // Past sessions (most recently completed or past date first)
+      pastSessions = formatted
+        .filter(
+          (s) =>
+            s.status === 'completed' ||
+            s.status === 'cancelled' ||
+            (s.status === 'scheduled' && s.session_date < todayKey)
+        )
+        .sort((a, b) => b.session_date.localeCompare(a.session_date) || (b.start_time || '').localeCompare(a.start_time || ''))
     }
   }
 

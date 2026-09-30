@@ -8,6 +8,8 @@ export {
   parseDateKey,
   addDays,
   getDateRangeArray,
+  formatFriendlyDate,
+  parseSessionDateTime,
 } from './calendar-utils'
 import {
   formatDateKey,

@@ -59,8 +59,12 @@ export async function startClassSessionAction(
     }
 
     revalidatePath(`/dashboard/classroom/${sessionId}`)
+    revalidatePath(`/student/classroom/${sessionId}`)
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/calendar')
+    revalidatePath('/student')
+    revalidatePath('/student/classes')
+    revalidatePath('/student/dashboard')
     revalidatePath('/parent')
 
     return { success: true }
@@ -118,8 +122,12 @@ export async function endClassSessionAction(
     }
 
     revalidatePath(`/dashboard/classroom/${sessionId}`)
+    revalidatePath(`/student/classroom/${sessionId}`)
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/calendar')
+    revalidatePath('/student')
+    revalidatePath('/student/classes')
+    revalidatePath('/student/dashboard')
     revalidatePath('/parent')
 
     return { success: true }

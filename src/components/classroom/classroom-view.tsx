@@ -38,6 +38,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/contexts/toast-context'
 import { formatTimeRange } from '@/lib/scheduling'
+import { formatFriendlyDate } from '@/lib/calendar-utils'
+import { createClient } from '@/lib/supabase/client'
 import { DigitalWhiteboard } from '@/components/whiteboard/digital-whiteboard'
 import { EndClassDialog } from './end-class-dialog'
 import { ClassroomChatPanel } from './classroom-chat-panel'
@@ -464,6 +466,10 @@ export function ClassroomView({
             toast('info', 'Answers Revealed! 🎯', 'Check the results and live leaderboard.')
           }
         },
+        onClassStarted: () => {
+          setStatus('in_progress')
+          toast('success', 'Class Started', 'Your tutor has started the session!')
+        },
         onClassEnded: () => {
           setStatus('completed')
           setShowPostClassDialog(true)
@@ -543,17 +549,48 @@ export function ClassroomView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
-  // Polling for students when waiting for tutor to start
+  // Polling & Realtime listening for students when waiting for tutor to start
   useEffect(() => {
     if (initialRole === 'participant' && status === 'scheduled') {
+      const supabase = createClient()
+      const channel = supabase
+        .channel(`classroom_lobby:${session.id}`)
+        .on('broadcast', { event: 'signal' }, ({ payload }) => {
+          if (payload && payload.type === 'class-started') {
+            setStatus('in_progress')
+            toast('success', 'Class Started', 'Your tutor has started the session!')
+          }
+        })
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'class_sessions',
+            filter: `id=eq.${session.id}`,
+          },
+          (payload) => {
+            if (payload.new && (payload.new as any).status === 'in_progress') {
+              setStatus('in_progress')
+              toast('success', 'Class Started', 'Your tutor has started the session!')
+            }
+          }
+        )
+        .subscribe()
+
+      // Fallback fast polling (every 3 seconds)
       const interval = setInterval(async () => {
         const res = await getClassroomTokenAction(session.id)
         if (res.success && res.sessionStatus === 'in_progress') {
           setStatus('in_progress')
           toast('success', 'Class Started', 'Your tutor has started the session!')
         }
-      }, 5000)
-      return () => clearInterval(interval)
+      }, 3000)
+
+      return () => {
+        clearInterval(interval)
+        supabase.removeChannel(channel)
+      }
     }
   }, [initialRole, status, session.id, toast])
 
@@ -721,6 +758,27 @@ export function ClassroomView({
         toast('error', 'Failed to start class', res.error)
         return
       }
+
+      // Immediately broadcast to any students waiting in lobby
+      try {
+        const supabase = createClient()
+        await supabase.channel(`classroom_lobby:${session.id}`).send({
+          type: 'broadcast',
+          event: 'signal',
+          payload: {
+            id: `${Date.now()}-start`,
+            senderId: userId,
+            senderName: currentUserName,
+            senderRole: 'host',
+            sessionId: session.id,
+            type: 'class-started',
+            timestamp: Date.now(),
+          },
+        })
+      } catch (broadcastErr) {
+        console.warn('Class start broadcast warning:', broadcastErr)
+      }
+
       setStatus('in_progress')
       toast('success', 'Class Started', 'Your online session is now live!')
     } catch (err: any) {
@@ -808,7 +866,7 @@ export function ClassroomView({
             <p className="text-[11px] text-gray-400 truncate flex items-center gap-1.5">
               <Clock className="h-3 w-3 shrink-0" />
               <span>
-                {session.session_date} • {timeRangeDisplay}
+                {formatFriendlyDate(session.session_date)} • {timeRangeDisplay}
               </span>
             </p>
           </div>
@@ -1059,9 +1117,9 @@ export function ClassroomView({
                       <span className="text-gray-300">{session.batch.subject}</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center gap-2">
                     <span className="text-gray-500">Scheduled:</span>
-                    <span className="text-gray-300">{timeRangeDisplay}</span>
+                    <span className="text-gray-300 font-semibold">{formatFriendlyDate(session.session_date)} • {timeRangeDisplay}</span>
                   </div>
                 </div>
 

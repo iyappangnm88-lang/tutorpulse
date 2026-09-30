@@ -22,6 +22,7 @@ export interface SignalingCallbacks {
   onHandAcknowledged?: (participantId: string) => void
   onPollEvent?: (event: { type: SignalType; pollId?: string; data?: any }) => void
   onQuestionEvent?: (event: { type: SignalType; questionId?: string; data?: any }) => void
+  onClassStarted?: () => void
   onClassEnded?: () => void
   onError?: (err: Error) => void
 }
@@ -143,6 +144,11 @@ export class ClassroomSignalingChannel {
 
       // If targeted to a specific peer, ignore if not targeted to this client
       if (msg.targetId && msg.targetId !== this.localMeta.id) {
+        return
+      }
+
+      if (msg.type === 'class-started') {
+        this.callbacks.onClassStarted?.()
         return
       }
 
@@ -410,6 +416,13 @@ export class ClassroomSignalingChannel {
     } catch (err) {
       console.warn('Failed to broadcast chat delete:', err)
     }
+  }
+
+  /**
+   * Tutor starts the class: notifies all connected peers via Realtime broadcast.
+   */
+  async broadcastClassStarted(): Promise<void> {
+    await this.sendSignal('class-started', {}, null)
   }
 
   /**

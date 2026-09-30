@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { StudentProfile } from '@/types/database'
 import type { ClassSession, Announcement } from '@/types'
 import { calculateGrade, calculatePercentage } from './test-utils'
+import { formatDateKey } from './calendar-utils'
 
 export interface ConnectedTutorInfo {
   connectionId: string
@@ -635,6 +636,7 @@ export async function getStudentDashboardData(studentUserId: string): Promise<St
       .in('batch_id', enrolledBatchIds)
       .in('status', ['in_progress', 'scheduled'])
       .order('session_date', { ascending: true })
+      .order('start_time', { ascending: true })
       .limit(10)
 
     if (sessions) {
@@ -668,7 +670,7 @@ export async function getStudentDashboardData(studentUserId: string): Promise<St
   const nextClass = liveClass || upcomingClasses[0] || null
 
   // 4. Construct Today's Learning items
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = formatDateKey(new Date())
   const todaysLearning: StudentTodayLearningItem[] = []
 
   for (const session of upcomingClasses) {

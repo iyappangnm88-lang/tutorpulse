@@ -47,3 +47,48 @@ export function getDateRangeArray(startDateStr: string, endDateStr: string): str
 
   return dates
 }
+
+/**
+ * Returns a clean Date object for a session combining YYYY-MM-DD and optional HH:MM time,
+ * interpreting both in local time to avoid UTC date shift.
+ */
+export function parseSessionDateTime(dateStr: string, timeStr?: string | null): Date {
+  const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
+  let hours = 0
+  let minutes = 0
+  if (timeStr) {
+    const timeParts = timeStr.split(':').map(Number)
+    hours = timeParts[0] || 0
+    minutes = timeParts[1] || 0
+  }
+  return new Date(y, m - 1, d, hours, minutes, 0)
+}
+
+/**
+ * Formats a YYYY-MM-DD date into human-readable label:
+ * - "Today" if matching user's current local date
+ * - "Tomorrow" if +1 day
+ * - "Yesterday" if -1 day
+ * - Otherwise "Wed, Sep 30" (or "Wed, Sep 30, 2026" if not current year)
+ */
+export function formatFriendlyDate(dateStr?: string | null): string {
+  if (!dateStr) return ''
+  const date = parseDateKey(dateStr)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+
+  const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Tomorrow'
+  if (diffDays === -1) return 'Yesterday'
+
+  const isCurrentYear = target.getFullYear() === today.getFullYear()
+  return target.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: isCurrentYear ? undefined : 'numeric',
+  })
+}

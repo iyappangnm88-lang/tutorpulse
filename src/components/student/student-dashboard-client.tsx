@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Video,
   BookOpen,
@@ -22,6 +23,9 @@ import {
   Compass,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
+import { formatFriendlyDate } from '@/lib/calendar-utils'
+import { formatTimeRange } from '@/lib/scheduling'
 import { JoinTutorModal } from './join-tutor-modal'
 import { StudentLearningJourney } from './student-learning-journey'
 import { StudentScheduleStreak } from './student-schedule-streak'
@@ -44,7 +48,37 @@ export function StudentDashboardClient({
   streaks,
   journey,
 }: StudentDashboardClientProps) {
+  const router = useRouter()
   const [joinModalOpen, setJoinModalOpen] = useState(false)
+
+  // Real-time synchronization for live classes
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('student_dashboard_class_sync')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'class_sessions',
+        },
+        () => {
+          router.refresh()
+        }
+      )
+      .subscribe()
+
+    // 15s fallback polling for background updates
+    const interval = setInterval(() => {
+      router.refresh()
+    }, 15000)
+
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
+  }, [router])
   const {
     profile,
     connectedTutors,
@@ -310,9 +344,10 @@ export function StudentDashboardClient({
                   {nextClass.session_date && (
                     <>
                       <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {nextClass.session_date} {nextClass.start_time ? `at ${nextClass.start_time}` : ''}
+                      <span className="flex items-center gap-1 font-medium text-slate-700">
+                        <Clock className="h-3 w-3 text-slate-400" />
+                        {formatFriendlyDate(nextClass.session_date)}
+                        {nextClass.start_time ? ` • ${formatTimeRange(nextClass.start_time, nextClass.end_time)}` : ''}
                       </span>
                     </>
                   )}

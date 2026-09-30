@@ -42,6 +42,7 @@ export type SignalType =
   | 'answer'
   | 'ice-candidate'
   | 'state-change'
+  | 'class-started'
   | 'class-ended'
   | 'hand:raise'
   | 'hand:lower'
