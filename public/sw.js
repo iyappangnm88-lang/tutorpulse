@@ -8,7 +8,7 @@
  * Only static assets and the offline fallback page are cached.
  */
 
-const CACHE_NAME = 'nuzilo-v2'
+const CACHE_NAME = 'nuzigo-v3'
 const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',

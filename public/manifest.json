@@ -1,12 +1,12 @@
 {
-  "name": "Nuzilo — Discover Tutors, Learn & Grow",
-  "short_name": "Nuzilo",
-  "description": "Discover tutors, explore subjects, book classes, and learn through an interactive online learning experience with Nuzilo.",
+  "name": "Nuzigo — Learning, Teaching, and Growing Together",
+  "short_name": "Nuzigo",
+  "description": "Nuzigo is the modern, connected education platform for independent tutors, curious students, and engaged parents.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fafafa",
+  "background_color": "#FAFBEF",
   "theme_color": "#55C832",
   "lang": "en",
   "categories": [
@@ -49,7 +49,7 @@
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "description": "Open Nuzilo Dashboard",
+      "description": "Open Nuzigo Dashboard",
       "url": "/dashboard",
       "icons": [
         {
@@ -83,4 +83,4 @@
       ]
     }
   ]
-}
+}\n

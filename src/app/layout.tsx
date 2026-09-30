@@ -23,24 +23,24 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Nuzilo — Find Top Tutors & Learn Better',
-    template: '%s | Nuzilo',
+    default: 'Nuzigo — Learning, Teaching, and Growing Together',
+    template: '%s | Nuzigo',
   },
-  description:
-    'Discover top tutors, explore subjects, book interactive online classes, and track your learning progress with Nuzilo.',
+  description: 'Nuzigo is the modern, connected education platform for independent tutors, curious students, and engaged parents.',
   manifest: '/manifest.json',
-  applicationName: 'Nuzilo',
+  applicationName: 'Nuzigo',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Nuzilo',
+    title: 'Nuzigo',
   },
   formatDetection: {
     telephone: false,
   },
   icons: {
     icon: [
-      { url: '/favicon.ico' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],

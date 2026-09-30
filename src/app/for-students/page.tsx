@@ -14,6 +14,7 @@ import {
   HeartHandshake
 } from 'lucide-react'
 import type { Metadata } from 'next'
+import { NuzigoLogo } from '@/components/brand/nuzigo-logo'
 
 export const metadata: Metadata = {
   title: 'Nuzigo for Students — Learn. Practice. Progress.',
@@ -28,8 +29,8 @@ export default function ForStudentsPage() {
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#55C832] text-white font-black text-xl shadow-md shadow-[#55C832]/30">
-              N
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#55C832] p-1.5 text-white shadow-md shadow-[#55C832]/30">
+              <NuzigoLogo variant="glyph" className="h-full w-full text-white" />
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-black text-[#172B4D] tracking-tight leading-none">
