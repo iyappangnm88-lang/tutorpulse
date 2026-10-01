@@ -156,7 +156,7 @@ export function StudentSidebar({
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/60 text-[#318A25] text-xs font-bold transition-all shadow-2xs"
             >
               <UserPlus className="h-3.5 w-3.5 text-[#55C832]" />
-              <span>Join a Tutor</span>
+              <span>{navContext?.isEnrolled ? 'Enter Invite Code' : 'Join a Tutor'}</span>
             </button>
           </div>
         )}

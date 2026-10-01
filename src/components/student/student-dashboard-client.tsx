@@ -77,6 +77,7 @@ export function StudentDashboardClient({
     profile,
     connectedTutors,
     enrolledBatches,
+    pendingRequests = [],
     nextClass,
     todaysLearning,
     upcomingClasses,
@@ -86,6 +87,9 @@ export function StudentDashboardClient({
   } = data
 
   const hasTutors = connectedTutors.length > 0
+  const hasBatches = enrolledBatches.length > 0
+  const isEnrolled = hasTutors || hasBatches
+  const hasPending = pendingRequests.length > 0
   const isNextClassOnline = nextClass?.class_mode === 'online'
 
   const streak = gamification?.streakCount ?? 1
@@ -166,63 +170,120 @@ export function StudentDashboardClient({
             {getGreeting()}, {profile.fullName} 👋
           </h1>
           <p className="mt-1 text-lg font-bold text-[#FFC800]">
-            Ready to learn?
+            {isEnrolled
+              ? 'Ready to learn?'
+              : hasPending
+              ? 'Join Request Awaiting Approval'
+              : 'Start Your Learning Journey'}
           </p>
           <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {hasTutors
+            {isEnrolled
               ? `You are connected to ${connectedTutors.length} ${
                   connectedTutors.length === 1 ? 'tutor' : 'tutors'
                 } across ${enrolledBatches.length} ${
                   enrolledBatches.length === 1 ? 'batch' : 'batches'
                 }. Complete milestones on your learning journey below to earn XP and level up.`
+              : hasPending
+              ? `Your join request for ${pendingRequests[0]?.batchName || 'your selected batch'} is awaiting tutor review. Once approved, your classes, homework, and timetable will appear automatically.`
               : 'Welcome to Nuzigo! Discover verified tutors across subjects or enter an invite code from your teacher to begin your interactive classes.'}
           </p>
 
           {/* Quick Actions Bar */}
           <div className="mt-6 flex flex-wrap items-center gap-2.5">
-            <Link href="/student/marketplace">
-              <Button
-                className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
-              >
-                <Compass className="mr-1.5 h-4 w-4" />
-                Find a Tutor
-              </Button>
-            </Link>
-            <Link href="/student/classes">
-              <Button
-                variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
-              >
-                <Video className="mr-1.5 h-3.5 w-3.5" />
-                Join Class
-              </Button>
-            </Link>
-            <Link href="/student/tests">
-              <Button
-                variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
-              >
-                <Award className="mr-1.5 h-3.5 w-3.5" />
-                Practice
-              </Button>
-            </Link>
-            <Link href="/student/homework">
-              <Button
-                variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
-              >
-                <BookOpen className="mr-1.5 h-3.5 w-3.5" />
-                Homework
-              </Button>
-            </Link>
-            <button
-              type="button"
-              onClick={() => setJoinModalOpen(true)}
-              className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 flex items-center gap-1.5 transition-colors"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              <span>Invite Code</span>
-            </button>
+            {isEnrolled ? (
+              <>
+                <Link href="/student/classes">
+                  <Button
+                    className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
+                  >
+                    <Video className="mr-1.5 h-4 w-4" />
+                    Join Class / Schedule
+                  </Button>
+                </Link>
+                <Link href="/student/homework">
+                  <Button
+                    variant="outline"
+                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+                  >
+                    <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+                    Homework
+                  </Button>
+                </Link>
+                <Link href="/student/tests">
+                  <Button
+                    variant="outline"
+                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+                  >
+                    <Award className="mr-1.5 h-3.5 w-3.5" />
+                    Practice
+                  </Button>
+                </Link>
+                <Link href="/student/marketplace">
+                  <Button
+                    variant="outline"
+                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+                  >
+                    <Compass className="mr-1.5 h-3.5 w-3.5" />
+                    Find More Tutors
+                  </Button>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setJoinModalOpen(true)}
+                  className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 flex items-center gap-1.5 transition-colors"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span>Invite Code</span>
+                </button>
+              </>
+            ) : hasPending ? (
+              <>
+                <Link href="/student/tutors">
+                  <Button
+                    className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
+                  >
+                    <Clock className="mr-1.5 h-4 w-4" />
+                    View Pending Request ({pendingRequests.length})
+                  </Button>
+                </Link>
+                <Link href="/student/marketplace">
+                  <Button
+                    variant="outline"
+                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+                  >
+                    <Compass className="mr-1.5 h-3.5 w-3.5" />
+                    Browse Tutors
+                  </Button>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setJoinModalOpen(true)}
+                  className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 flex items-center gap-1.5 transition-colors"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span>Invite Code</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/student/marketplace">
+                  <Button
+                    className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
+                  >
+                    <Compass className="mr-1.5 h-4 w-4" />
+                    Find a Tutor
+                  </Button>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setJoinModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-xs rounded-xl h-10 px-4 transition-colors"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span>Enter Invite Code</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -230,6 +291,42 @@ export function StudentDashboardClient({
         <div className="absolute -right-12 -bottom-12 h-64 w-64 rounded-full bg-[#55C832]/20 blur-3xl pointer-events-none" />
         <div className="absolute right-20 -top-10 h-44 w-44 rounded-full bg-[#FFC928]/15 blur-2xl pointer-events-none" />
       </div>
+
+      {/* 2.5. PENDING JOIN REQUESTS BANNER (IF ANY) */}
+      {hasPending && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 space-y-3 shadow-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-amber-600" />
+              <h2 className="text-sm font-bold text-amber-950">Pending Join Requests</h2>
+              <span className="text-[10px] font-bold bg-amber-200/70 text-amber-900 px-2 py-0.5 rounded-full">
+                {pendingRequests.length} Awaiting Tutor Approval
+              </span>
+            </div>
+            <Link href="/student/tutors" className="text-xs font-bold text-amber-800 hover:underline">
+              Manage Requests →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {pendingRequests.map((req) => (
+              <div key={req.id} className="p-3.5 rounded-xl border border-amber-100 bg-white shadow-2xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-900 truncate">{req.batchName}</span>
+                  <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                    Pending
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500">
+                  Tutor: {req.tutorName || 'Tutor'} • {req.batchSubject || 'All Subjects'}
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  Submitted {new Date(req.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 3. SCHEDULE-BASED WEEKLY STREAK SECTION */}
       {streaks && (
@@ -390,7 +487,7 @@ export function StudentDashboardClient({
             href="/student/tutors"
             className="mt-1 text-[11px] font-medium text-[#318A25] hover:underline inline-flex items-center"
           >
-            Manage tutors →
+            {hasTutors ? 'Manage tutors →' : hasPending ? 'Pending requests →' : 'Find a tutor →'}
           </Link>
         </div>
 
@@ -406,7 +503,7 @@ export function StudentDashboardClient({
             href="/student/classes"
             className="mt-1 text-[11px] font-medium text-sky-600 hover:underline inline-flex items-center"
           >
-            View cohorts →
+            {hasBatches ? 'View cohorts →' : 'View timetable →'}
           </Link>
         </div>
 
@@ -709,40 +806,6 @@ export function StudentDashboardClient({
 
         {/* Right Col: Connected Tutors & Announcements */}
         <div className="space-y-6">
-          {/* Find a Tutor Discovery Card */}
-          <div className="rounded-2xl border-2 border-[#55C832]/30 bg-gradient-to-b from-[#FAFBEF] to-white p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold text-[#318A25] uppercase tracking-wider bg-[#55C832]/15 px-2.5 py-0.5 rounded-full">
-                Marketplace
-              </span>
-              <Compass className="h-4 w-4 text-[#55C832]" />
-            </div>
-            <h3 className="text-sm font-black text-[#172B4D]">
-              Looking for a New Tutor?
-            </h3>
-            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-              Find verified educators by subject for concept clarity or exam preparation.
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-3 mb-3.5">
-              {['Mathematics', 'Physics', 'Chemistry', 'English', 'Biology'].map((sub) => (
-                <Link
-                  key={sub}
-                  href={`/student/marketplace?subject=${encodeURIComponent(sub)}`}
-                  className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 hover:border-[#55C832] text-slate-700 hover:text-[#318A25] text-[11px] font-bold transition-colors"
-                >
-                  {sub}
-                </Link>
-              ))}
-            </div>
-            <Link
-              href="/student/marketplace"
-              className="btn-nuzigo-primary text-xs font-bold py-2 px-3 w-full flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <span>Explore All Tutors</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
           {/* Connected Tutors Card */}
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
             <div className="flex items-center justify-between mb-3">
@@ -756,23 +819,35 @@ export function StudentDashboardClient({
                 className="text-xs font-semibold text-[#318A25] hover:underline flex items-center gap-1"
               >
                 <UserPlus className="h-3 w-3" />
-                Add Code
+                {hasTutors ? 'Add Code' : 'Invite Code'}
               </button>
             </div>
 
             {connectedTutors.length === 0 ? (
               <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-xs font-medium text-gray-700">No tutors connected yet</p>
-                <p className="text-[11px] text-gray-400 mt-1 mb-3">
-                  Have an invite code from your teacher?
+                <p className="text-xs font-medium text-gray-700">
+                  {hasPending ? 'Join Request Submitted' : 'No tutors connected yet'}
                 </p>
-                <Button
-                  size="sm"
-                  onClick={() => setJoinModalOpen(true)}
-                  className="w-full text-xs bg-[#55C832] hover:bg-[#318A25]"
-                >
-                  Enter Invite Code
-                </Button>
+                <p className="text-[11px] text-gray-400 mt-1 mb-3">
+                  {hasPending
+                    ? 'Awaiting tutor review & enrollment'
+                    : 'Have an invite code from your teacher?'}
+                </p>
+                {hasPending ? (
+                  <Link href="/student/tutors">
+                    <Button size="sm" variant="outline" className="w-full text-xs text-amber-700 border-amber-300 bg-amber-50/50 hover:bg-amber-100">
+                      View Request Status
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => setJoinModalOpen(true)}
+                    className="w-full text-xs bg-[#55C832] hover:bg-[#318A25]"
+                  >
+                    Enter Invite Code
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -826,6 +901,42 @@ export function StudentDashboardClient({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Marketplace Card */}
+          <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-[#FAFBEF] to-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-extrabold text-[#318A25] uppercase tracking-wider bg-[#55C832]/15 px-2.5 py-0.5 rounded-full">
+                Marketplace
+              </span>
+              <Compass className="h-4 w-4 text-[#55C832]" />
+            </div>
+            <h3 className="text-sm font-black text-[#172B4D]">
+              {isEnrolled ? 'Explore Other Subjects' : 'Looking for a Tutor?'}
+            </h3>
+            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+              {isEnrolled
+                ? 'Find additional specialized educators for science, math, or language skills.'
+                : 'Find verified educators by subject for concept clarity or exam preparation.'}
+            </p>
+            <div className="flex flex-wrap gap-1.5 mt-3 mb-3.5">
+              {['Mathematics', 'Physics', 'Chemistry', 'English', 'Biology'].map((sub) => (
+                <Link
+                  key={sub}
+                  href={`/student/marketplace?subject=${encodeURIComponent(sub)}`}
+                  className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 hover:border-[#55C832] text-slate-700 hover:text-[#318A25] text-[11px] font-bold transition-colors"
+                >
+                  {sub}
+                </Link>
+              ))}
+            </div>
+            <Link
+              href="/student/marketplace"
+              className="btn-nuzigo-primary text-xs font-bold py-2 px-3 w-full flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <span>{isEnrolled ? 'Browse Marketplace' : 'Explore All Tutors'}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       </div>

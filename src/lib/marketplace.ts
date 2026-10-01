@@ -358,6 +358,7 @@ export async function getStudentJoinRequests(studentUserId: string): Promise<Joi
     studentEmail: '',
     studentGrade: null,
     tutorId: r.tutor_id,
+    tutorName: tutorMap.get(r.tutor_id) || 'Tutor',
     batchId: r.batch_id,
     batchName: r.batches?.name || 'Class Batch',
     batchSubject: r.batches?.subject || null,

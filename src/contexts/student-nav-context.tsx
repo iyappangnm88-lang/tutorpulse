@@ -11,11 +11,21 @@ interface StudentNavContextType {
   isJoinModalOpen: boolean
   openJoinModal: () => void
   closeJoinModal: () => void
+  isEnrolled: boolean
+  pendingCount: number
 }
 
 const StudentNavContext = createContext<StudentNavContextType | undefined>(undefined)
 
-export function StudentNavProvider({ children }: { children: React.ReactNode }) {
+export function StudentNavProvider({
+  children,
+  isEnrolled = false,
+  pendingCount = 0,
+}: {
+  children: React.ReactNode
+  isEnrolled?: boolean
+  pendingCount?: number
+}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
   const pathname = usePathname()
@@ -45,6 +55,8 @@ export function StudentNavProvider({ children }: { children: React.ReactNode }) 
         isJoinModalOpen,
         openJoinModal,
         closeJoinModal,
+        isEnrolled,
+        pendingCount,
       }}
     >
       {children}

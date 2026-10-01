@@ -65,6 +65,7 @@ export interface JoinRequestWithDetails {
   studentEmail: string
   studentGrade: string | null
   tutorId: string
+  tutorName?: string
   batchId: string
   batchName: string
   batchSubject: string | null

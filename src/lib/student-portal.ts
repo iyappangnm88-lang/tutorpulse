@@ -3,6 +3,7 @@ import type { StudentProfile } from '@/types/database'
 import type { ClassSession, Announcement } from '@/types'
 import { calculateGrade, calculatePercentage } from './test-utils'
 import { formatDateKey } from './calendar-utils'
+import { getStudentJoinRequests, type JoinRequestWithDetails } from './marketplace'
 
 export interface ConnectedTutorInfo {
   connectionId: string
@@ -103,6 +104,7 @@ export interface StudentDashboardData {
   }
   connectedTutors: ConnectedTutorInfo[]
   enrolledBatches: StudentEnrolledBatch[]
+  pendingRequests: JoinRequestWithDetails[]
   nextClass: (ClassSession & { batch_name?: string; tutor_name?: string }) | null
   todaysLearning: StudentTodayLearningItem[]
   upcomingClasses: (ClassSession & { batch_name?: string; tutor_name?: string })[]
@@ -112,6 +114,7 @@ export interface StudentDashboardData {
   stats: {
     totalTutors: number
     totalBatches: number
+    pendingRequestsCount: number
     activeClassesCount: number
     pendingHomeworkCount: number
     completedTestsCount: number
@@ -301,38 +304,34 @@ export async function getStudentEnrolledBatches(studentUserId: string): Promise<
 
   const { data: memberships, error } = await supabase
     .from('batch_students')
-    .select(`
-      batch_id,
-      batch:batches (
-        id,
-        name,
-        subject,
-        class_name,
-        class_mode,
-        location,
-        schedule,
-        start_time,
-        end_time,
-        working_days,
-        tutor_id,
-        workspace_id
-      )
-    `)
+    .select('batch_id, student_id, status')
     .in('student_id', studentRecordIds)
+    .neq('status', 'inactive')
 
-  if (error || !memberships) return []
+  if (error || !memberships || memberships.length === 0) return []
 
-  const batchMap = new Map<string, any>()
-  for (const m of memberships) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const b = m.batch as any
-    if (b && !batchMap.has(b.id)) {
-      batchMap.set(b.id, b)
-    }
-  }
+  const batchIds = Array.from(new Set(memberships.map((m) => m.batch_id).filter(Boolean)))
+  if (batchIds.length === 0) return []
 
-  const batches = Array.from(batchMap.values())
-  if (batches.length === 0) return []
+  const { data: batches, error: batchError } = await supabase
+    .from('batches')
+    .select(`
+      id,
+      name,
+      subject,
+      class_name,
+      class_mode,
+      location,
+      schedule,
+      start_time,
+      end_time,
+      working_days,
+      tutor_id,
+      workspace_id
+    `)
+    .in('id', batchIds)
+
+  if (batchError || !batches || batches.length === 0) return []
 
   const tutorIds = Array.from(new Set(batches.map((b) => b.tutor_id)))
   const { data: tutorProfiles } = await supabase
@@ -601,15 +600,17 @@ export async function getStudentTestsDetailed(studentUserId: string): Promise<St
 export async function getStudentDashboardData(studentUserId: string): Promise<StudentDashboardData> {
   const supabase = await createClient()
 
-  // 1. Get profile, connected tutors, and enrolled batches
-  const [profileRow, userRow, connectedTutors, enrolledBatches, attendanceData] = await Promise.all([
+  // 1. Get profile, connected tutors, enrolled batches, and pending requests
+  const [profileRow, userRow, connectedTutors, enrolledBatches, attendanceData, studentJoinRequests] = await Promise.all([
     getStudentProfile(studentUserId),
     supabase.from('profiles').select('full_name, email').eq('id', studentUserId).single(),
     getStudentConnectedTutors(studentUserId),
     getStudentEnrolledBatches(studentUserId),
     getStudentAttendanceHistory(studentUserId),
+    getStudentJoinRequests(studentUserId),
   ])
 
+  const pendingRequests = studentJoinRequests.filter((r) => r.status === 'pending')
   const enrolledBatchIds = enrolledBatches.map((b) => b.id)
 
   let upcomingClasses: (ClassSession & { batch_name?: string; tutor_name?: string })[] = []
@@ -743,6 +744,7 @@ export async function getStudentDashboardData(studentUserId: string): Promise<St
     },
     connectedTutors,
     enrolledBatches,
+    pendingRequests,
     nextClass,
     todaysLearning,
     upcomingClasses,
@@ -752,6 +754,7 @@ export async function getStudentDashboardData(studentUserId: string): Promise<St
     stats: {
       totalTutors: connectedTutors.length,
       totalBatches: enrolledBatches.length,
+      pendingRequestsCount: pendingRequests.length,
       activeClassesCount: upcomingClasses.length,
       pendingHomeworkCount: homeworkList.filter((h) => h.student_status === 'Pending').length,
       completedTestsCount: testList.filter((t) => t.marks !== null).length,

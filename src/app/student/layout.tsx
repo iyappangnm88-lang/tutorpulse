@@ -2,7 +2,8 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { getStudentProfile } from '@/lib/student-portal'
+import { getStudentProfile, getStudentConnectedTutors } from '@/lib/student-portal'
+import { getStudentJoinRequests } from '@/lib/marketplace'
 import { StudentLayoutClient } from '@/components/student/student-layout-client'
 
 export const metadata: Metadata = {
@@ -49,13 +50,22 @@ export default async function StudentLayout({
     redirect('/onboarding/role')
   }
 
-  const studentProfile = await getStudentProfile(user.id)
+  const [studentProfile, connectedTutors, joinRequests] = await Promise.all([
+    getStudentProfile(user.id),
+    getStudentConnectedTutors(user.id),
+    getStudentJoinRequests(user.id),
+  ])
+
   const displayName = studentProfile?.full_name || profile.full_name || 'Student'
+  const isEnrolled = connectedTutors.length > 0
+  const pendingCount = joinRequests.filter((r) => r.status === 'pending').length
 
   return (
     <StudentLayoutClient
       displayName={displayName}
       gradeLevel={studentProfile?.grade_level}
+      isEnrolled={isEnrolled}
+      pendingCount={pendingCount}
     >
       {children}
     </StudentLayoutClient>

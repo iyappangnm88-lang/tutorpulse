@@ -11,6 +11,8 @@ import { JoinTutorModal } from './join-tutor-modal'
 interface StudentLayoutClientProps {
   displayName: string
   gradeLevel?: string | null
+  isEnrolled?: boolean
+  pendingCount?: number
   children: React.ReactNode
 }
 
@@ -50,7 +52,7 @@ function StudentLayoutInner({ displayName, gradeLevel, children }: StudentLayout
 
 export function StudentLayoutClient(props: StudentLayoutClientProps) {
   return (
-    <StudentNavProvider>
+    <StudentNavProvider isEnrolled={props.isEnrolled} pendingCount={props.pendingCount}>
       <StudentLayoutInner {...props} />
     </StudentNavProvider>
   )

@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Menu, UserPlus } from 'lucide-react'
+import Link from 'next/link'
+import { Menu, UserPlus, Compass, Clock } from 'lucide-react'
 import { useStudentNav } from '@/contexts/student-nav-context'
 import { Button } from '@/components/ui/button'
 
@@ -14,7 +15,7 @@ export function StudentHeader({
   studentName,
   gradeLevel,
 }: StudentHeaderProps) {
-  const { openMobileMenu, openJoinModal } = useStudentNav()
+  const { openMobileMenu, openJoinModal, isEnrolled, pendingCount } = useStudentNav()
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200/70 bg-white/80 backdrop-blur-md px-4 sm:px-6">
@@ -37,18 +38,51 @@ export function StudentHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={openJoinModal}
-          className="text-xs flex items-center gap-1.5 border-emerald-200 text-[#318A25] hover:bg-emerald-50 hover:border-emerald-300"
-        >
-          <UserPlus className="h-3.5 w-3.5 text-[#55C832]" />
-          <span className="hidden sm:inline">Join a Tutor</span>
-          <span className="sm:hidden">Join</span>
-        </Button>
+      <div className="flex items-center gap-2.5">
+        {isEnrolled ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openJoinModal}
+              className="text-xs font-semibold text-gray-600 hover:text-[#318A25] px-2 py-1 rounded-lg hover:bg-gray-50 flex items-center gap-1 transition-colors"
+              title="Connect with invite code"
+            >
+              <UserPlus className="h-3.5 w-3.5 text-gray-400" />
+              <span className="hidden sm:inline">Invite Code</span>
+            </button>
+            <Link href="/student/marketplace">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="text-xs flex items-center gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50"
+              >
+                <Compass className="h-3.5 w-3.5 text-[#55C832]" />
+                <span className="hidden sm:inline">Explore Tutors</span>
+                <span className="sm:hidden">Explore</span>
+              </Button>
+            </Link>
+          </div>
+        ) : pendingCount > 0 ? (
+          <Link href="/student/tutors">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs hover:bg-amber-100 transition-colors">
+              <Clock className="h-3.5 w-3.5 text-amber-600" />
+              <span>Pending Request</span>
+            </span>
+          </Link>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openJoinModal}
+            className="text-xs flex items-center gap-1.5 border-emerald-200 text-[#318A25] hover:bg-emerald-50 hover:border-emerald-300"
+          >
+            <UserPlus className="h-3.5 w-3.5 text-[#55C832]" />
+            <span className="hidden sm:inline">Join a Tutor</span>
+            <span className="sm:hidden">Join</span>
+          </Button>
+        )}
       </div>
     </header>
   )
