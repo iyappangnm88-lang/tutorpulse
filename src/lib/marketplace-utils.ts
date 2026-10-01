@@ -281,11 +281,19 @@ export function getMarketplaceStatus(
   // Core 5-state marketplace readiness evaluation
   let statusKey: 'live' | 'ready_to_publish' | 'needs_batch' | 'incomplete_with_batches' | 'incomplete'
 
-  if (isProfileComplete && hasPublishedBatches) {
-    statusKey = isPublicMarketplace ? 'live' : 'ready_to_publish'
-  } else if (isProfileComplete && !hasPublishedBatches) {
-    statusKey = 'needs_batch'
-  } else if (!isProfileComplete && hasPublishedBatches) {
+  if (isPublicMarketplace) {
+    if (hasPublishedBatches) {
+      statusKey = 'live'
+    } else {
+      statusKey = 'needs_batch'
+    }
+  } else if (isProfileComplete) {
+    if (hasPublishedBatches) {
+      statusKey = 'ready_to_publish'
+    } else {
+      statusKey = 'needs_batch'
+    }
+  } else if (hasPublishedBatches) {
     statusKey = 'incomplete_with_batches'
   } else {
     statusKey = 'incomplete'
@@ -345,7 +353,9 @@ export function getMarketplaceStatus(
         text: isPublicMarketplace ? 'Profile Live • Add Batch' : 'Profile Complete (100%) • Add Batch',
         variant: 'info',
       }
-      description = 'Your tutor profile is 100% complete! Publish at least one teaching batch so prospective students can discover your schedule and request to join.'
+      description = isPublicMarketplace
+        ? 'Your tutor profile is live on Nuzigo Marketplace! Create or publish a teaching batch so prospective students can discover your schedule and request to join.'
+        : 'Your tutor profile is 100% complete! Publish at least one teaching batch so prospective students can discover your schedule and request to join.'
       primaryAction = {
         label: '+ Create Marketplace Batch',
         href: '/dashboard/marketplace/batches/new',

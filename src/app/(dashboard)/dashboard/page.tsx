@@ -330,7 +330,22 @@ export default async function DashboardPage() {
 
   recentActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
-  const tutorName = user?.user_metadata?.name || 'Tutor'
+  // Fetch tutor profile and batches for single source of truth marketplace status
+  const [{ data: tutorProfile }, { data: allTutorBatches }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user?.id || '')
+      .maybeSingle(),
+    supabase
+      .from('batches')
+      .select('*')
+      .eq('tutor_id', user?.id || '')
+      .neq('status', 'archived'),
+  ])
+
+  const marketplaceStatus = getMarketplaceStatus(tutorProfile, allTutorBatches || [])
+  const tutorName = tutorProfile?.full_name || user?.user_metadata?.name || 'Tutor'
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
@@ -340,26 +355,6 @@ export default async function DashboardPage() {
     month: 'long',
     day: 'numeric',
   })
-
-  // Fetch tutor profile and batches for single source of truth marketplace status
-  const [{ data: tutorProfile }, { data: allTutorBatches }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select(
-        'id, full_name, bio, subjects, profile_slug, is_public_marketplace, headline, primary_subjects, teaching_approach, avatar_url, pricing_rate, pricing_unit'
-      )
-      .eq('id', user?.id || '')
-      .maybeSingle(),
-    supabase
-      .from('batches')
-      .select(
-        'id, name, is_public, status, pricing_rate, pricing_unit, pricing_description, description, public_description'
-      )
-      .eq('tutor_id', user?.id || '')
-      .neq('status', 'archived'),
-  ])
-
-  const marketplaceStatus = getMarketplaceStatus(tutorProfile, allTutorBatches || [])
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
