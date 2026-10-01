@@ -1020,12 +1020,49 @@ export function ClassroomView({
   const handleConfirmEndClass = async () => {
     setIsEnding(true)
     try {
-      await signalingRef.current?.broadcastClassEnded()
-      const res = await endClassSessionAction(session.id)
+      // 1. Non-blocking signaling broadcast with short timeout
+      try {
+        await Promise.race([
+          signalingRef.current?.broadcastClassEnded(),
+          new Promise((resolve) => setTimeout(resolve, 500)),
+        ])
+      } catch (broadcastErr) {
+        console.warn('Signaling broadcast non-fatal warning during end class:', broadcastErr)
+      }
+
+      // 2. Authoritative server action with network timeout guard
+      const endClassPromise = endClassSessionAction(session.id)
+      const timeoutPromise = new Promise<{ success: boolean; error?: string }>((_, reject) =>
+        setTimeout(() => reject(new Error('Server response timed out. Please check your network connection.')), 8000)
+      )
+
+      const res = await Promise.race([endClassPromise, timeoutPromise])
       if (!res.success) {
         toast('error', 'Failed to end class', res.error)
         return
       }
+
+      // 3. Immediately release hardware device locks and stop streams
+      stopAllTracks(localStream)
+      stopAllTracks(screenStream)
+      setLocalStream(null)
+      setScreenStream(null)
+      setIsScreenSharing(false)
+
+      // 4. Safely close peer connections and signaling channel
+      try {
+        peerPoolRef.current?.closeAll()
+      } catch (peerErr) {
+        console.warn('Error closing peer connections:', peerErr)
+      }
+
+      try {
+        await signalingRef.current?.disconnect()
+      } catch (sigErr) {
+        console.warn('Error disconnecting signaling channel:', sigErr)
+      }
+
+      // 5. Update UI state and open summary dialog
       setStatus('completed')
       setShowEndDialog(false)
       setShowPostClassDialog(true)
@@ -1039,13 +1076,21 @@ export function ClassroomView({
 
   // Student leaves class
   const handleLeaveClass = async () => {
-    peerPoolRef.current?.closeAll()
-    await signalingRef.current?.disconnect()
-    stopAllTracks(localStream)
-    stopAllTracks(screenStream)
-    if (participantLogIdRef.current) {
-      await recordClassroomLeaveAction(participantLogIdRef.current)
+    try {
+      stopAllTracks(localStream)
+      stopAllTracks(screenStream)
+      setLocalStream(null)
+      setScreenStream(null)
+      peerPoolRef.current?.closeAll()
+      await signalingRef.current?.disconnect()
+    } catch (err) {
+      console.warn('Error during leave cleanup:', err)
     }
+
+    if (participantLogIdRef.current) {
+      recordClassroomLeaveAction(participantLogIdRef.current).catch(console.warn)
+    }
+
     if (status === 'completed') {
       setShowPostClassDialog(true)
     } else {

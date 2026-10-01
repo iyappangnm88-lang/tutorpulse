@@ -297,11 +297,14 @@ export class ClassroomSignalingChannel {
     }
 
     try {
-      await this.channel.send({
-        type: 'broadcast',
-        event: 'signal',
-        payload,
-      })
+      await Promise.race([
+        this.channel.send({
+          type: 'broadcast',
+          event: 'signal',
+          payload,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ])
     } catch (err) {
       console.error(`Failed to send signaling message (${type}):`, err)
     }
@@ -468,7 +471,10 @@ export class ClassroomSignalingChannel {
   async disconnect(): Promise<void> {
     if (this.channel) {
       try {
-        await this.channel.untrack()
+        await Promise.race([
+          this.channel.untrack(),
+          new Promise((resolve) => setTimeout(resolve, 600)),
+        ])
       } catch {}
       try {
         await this.supabase.removeChannel(this.channel)
