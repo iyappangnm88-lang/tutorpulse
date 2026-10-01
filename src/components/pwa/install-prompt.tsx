@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Download, X, Smartphone } from 'lucide-react'
+import { isCapacitorNative } from '@/lib/capacitor'
 
 // Interface for BeforeInstallPromptEvent
 interface BeforeInstallPromptEvent extends Event {
@@ -22,6 +23,13 @@ export function usePwaInstall() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    // If running in Capacitor native app or standalone PWA, mark as installed / suppress prompt
+    if (isCapacitorNative()) {
+      setIsInstalled(true)
+      setCanInstall(false)
+      return
+    }
 
     // Check if running in standalone mode (already installed)
     const isStandalone =

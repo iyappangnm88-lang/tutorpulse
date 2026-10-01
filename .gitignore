@@ -47,3 +47,13 @@ scratch/
 # supabase cli
 .supabase/
 supabase/.temp/
+
+# capacitor & android build artifacts
+/android/app/build/
+/android/.gradle/
+/android/build/
+/android/app/src/main/assets/public/
+*.apk
+*.aab
+local.properties
+

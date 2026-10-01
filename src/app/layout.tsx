@@ -6,6 +6,9 @@ import { ToastContainer } from '@/components/ui/toast'
 import { Analytics } from '@vercel/analytics/next'
 import { PwaRegister } from '@/components/pwa/pwa-register'
 import { InstallBanner } from '@/components/pwa/install-prompt'
+import { CapacitorBackButton } from '@/components/capacitor/capacitor-back-button'
+import { CapacitorKeyboard } from '@/components/capacitor/capacitor-keyboard'
+import { CapacitorAuthListener } from '@/components/capacitor/capacitor-auth-listener'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -63,9 +66,12 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <ToastProvider>
           {children}
           <ToastContainer />
+          <PwaRegister />
+          <InstallBanner />
+          <CapacitorBackButton />
+          <CapacitorKeyboard />
+          <CapacitorAuthListener />
         </ToastProvider>
-        <PwaRegister />
-        <InstallBanner />
         <Analytics />
       </body>
     </html>

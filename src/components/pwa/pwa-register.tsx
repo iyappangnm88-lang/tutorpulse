@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
+import { isCapacitorNative } from '@/lib/capacitor'
 
 export function PwaRegister() {
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    if (typeof window === 'undefined' || isCapacitorNative() || !('serviceWorker' in navigator)) {
       return
     }
 

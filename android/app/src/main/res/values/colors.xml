@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#55C832</color>
+    <color name="colorPrimaryDark">#318A25</color>
+    <color name="colorAccent">#FFC928</color>
+    <color name="nuzigo_primary">#55C832</color>
+    <color name="nuzigo_deep_green">#318A25</color>
+    <color name="nuzigo_navy">#172B4D</color>
+    <color name="nuzigo_cream">#FAFBEF</color>
+    <color name="nuzigo_white">#FFFFFF</color>
+    <color name="nuzigo_orange">#FF9F43</color>
+    <color name="nuzigo_red">#F05252</color>
+</resources>

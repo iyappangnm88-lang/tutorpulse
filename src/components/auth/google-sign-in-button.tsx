@@ -37,6 +37,7 @@ export function GoogleIcon({ className = 'h-5 w-5' }: { className?: string }) {
 }
 
 import { getOAuthRedirectUrl } from '@/lib/auth-url'
+import { isCapacitorNative } from '@/lib/capacitor'
 export { getOAuthRedirectUrl }
 
 export function GoogleSignInButton({
@@ -55,25 +56,68 @@ export function GoogleSignInButton({
     setLoading(true)
     try {
       const supabase = createClient()
-      const redirectTo = getOAuthRedirectUrl(undefined, { role, next })
+      const isNative = isCapacitorNative()
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+      if (isNative) {
+        // Native Android / Capacitor OAuth Flow via Chrome Custom Tabs
+        try {
+          localStorage.setItem(
+            'nuzigo_native_oauth_intent',
+            JSON.stringify({ role, next, timestamp: Date.now() })
+          )
+        } catch {
+          // ignore localStorage failure
+        }
+
+        const redirectTo = 'app.nuzigo.mobile://auth/callback'
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo,
+            skipBrowserRedirect: true,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
           },
-        },
-      })
+        })
 
-      if (error) {
-        console.error('Google OAuth initialization error:', error)
-        onError?.(error.message || 'Failed to initialize Google Sign-In.')
+        if (error) {
+          console.error('Google OAuth native initialization error:', error)
+          onError?.(error.message || 'Failed to initialize Google Sign-In.')
+          setLoading(false)
+          return
+        }
+
+        if (data?.url) {
+          const { Browser } = await import('@capacitor/browser')
+          await Browser.open({ url: data.url, windowName: '_self' })
+        } else {
+          onError?.('No authorization URL was returned by Google.')
+        }
         setLoading(false)
+      } else {
+        // Standard Web / PWA Flow
+        const redirectTo = getOAuthRedirectUrl(undefined, { role, next })
+
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        })
+
+        if (error) {
+          console.error('Google OAuth initialization error:', error)
+          onError?.(error.message || 'Failed to initialize Google Sign-In.')
+          setLoading(false)
+        }
+        // If successful, browser redirects automatically to Google
       }
-      // If successful, browser redirects automatically to Google
     } catch (err: any) {
       console.error('Google OAuth exception:', err)
       onError?.(err.message || 'An unexpected error occurred during Google Sign-In.')
