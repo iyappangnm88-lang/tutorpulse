@@ -365,9 +365,12 @@ export async function archiveBatchAction(id: string): Promise<ActionResult<Batch
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/marketplace')
     revalidatePath('/dashboard/batches')
     revalidatePath(`/dashboard/batches/${id}`)
     revalidatePath('/dashboard/attendance')
+    revalidatePath('/tutors')
     return { success: true, data: data as Batch }
   } catch (err: unknown) {
     console.error('archiveBatchAction exception:', err)

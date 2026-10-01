@@ -43,7 +43,7 @@ import { getActiveWorkspace } from '@/lib/workspace'
 import { formatCurrency } from '@/lib/fee-utils'
 import { InviteCodeBadge } from '@/components/dashboard/invite-code-badge'
 import { NextClassHero } from '@/components/dashboard/next-class-hero'
-import { getMarketplaceProfileCompleteness } from '@/lib/marketplace-utils'
+import { getMarketplaceStatus } from '@/lib/marketplace-utils'
 import type { Metadata } from 'next'
 import type { ClassSessionWithBatch } from '@/types'
 
@@ -341,16 +341,25 @@ export default async function DashboardPage() {
     day: 'numeric',
   })
 
-  // Fetch tutor profile completeness for the Adaptive Tutor Path & Public Profile Card
-  const { data: tutorProfile } = await supabase
-    .from('profiles')
-    .select(
-      'id, full_name, bio, subjects, profile_slug, is_public_marketplace, headline, primary_subjects, teaching_approach, avatar_url, pricing_rate, pricing_unit'
-    )
-    .eq('id', user?.id || '')
-    .maybeSingle()
+  // Fetch tutor profile and batches for single source of truth marketplace status
+  const [{ data: tutorProfile }, { data: allTutorBatches }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select(
+        'id, full_name, bio, subjects, profile_slug, is_public_marketplace, headline, primary_subjects, teaching_approach, avatar_url, pricing_rate, pricing_unit'
+      )
+      .eq('id', user?.id || '')
+      .maybeSingle(),
+    supabase
+      .from('batches')
+      .select(
+        'id, name, is_public, status, pricing_rate, pricing_unit, pricing_description, description, public_description'
+      )
+      .eq('tutor_id', user?.id || '')
+      .neq('status', 'archived'),
+  ])
 
-  const marketplaceStatus = getMarketplaceProfileCompleteness(tutorProfile, batchesRes.data || [])
+  const marketplaceStatus = getMarketplaceStatus(tutorProfile, allTutorBatches || [])
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -456,71 +465,55 @@ export default async function DashboardPage() {
               <span className="text-sm font-black text-[#172B4D]">
                 Marketplace Profile Discovery
               </span>
-              {tutorProfile?.is_public_marketplace ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
-                  <span className="h-2 w-2 rounded-full bg-[#55C832]" />
-                  Live on Nuzigo Marketplace
-                </span>
-              ) : marketplaceStatus.isComplete ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
-                  <span className="h-2 w-2 rounded-full bg-[#55C832]" />
-                  Profile Ready to Publish ({marketplaceStatus.percent}%)
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[11px] font-bold border border-amber-200">
-                  <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  Draft • {marketplaceStatus.percent}% Complete
-                </span>
-              )}
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                  marketplaceStatus.badge.variant === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                    : marketplaceStatus.badge.variant === 'info'
+                    ? 'bg-blue-50 text-blue-800 border-blue-200'
+                    : 'bg-amber-50 text-amber-800 border-amber-200'
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    marketplaceStatus.badge.variant === 'success'
+                      ? 'bg-[#55C832]'
+                      : marketplaceStatus.badge.variant === 'info'
+                      ? 'bg-blue-500'
+                      : 'bg-amber-500'
+                  }`}
+                />
+                {marketplaceStatus.badge.text}
+              </span>
             </div>
             <p className="text-xs text-slate-600 font-medium max-w-xl leading-relaxed">
-              {tutorProfile?.is_public_marketplace
-                ? 'Your teaching profile is live and discoverable by students searching for tutors on Nuzigo.'
-                : marketplaceStatus.isComplete
-                ? 'Your marketplace profile is 100% complete! Review and publish it to start receiving student join requests.'
-                : 'Your marketplace profile isn’t published yet. Complete your profile details and publish it so prospective students can discover your classes.'}
+              {marketplaceStatus.description}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          {tutorProfile?.profile_slug && tutorProfile?.is_public_marketplace ? (
+          {marketplaceStatus.secondaryAction && (
             <Link
-              href={`/tutors/${tutorProfile.profile_slug}`}
-              target="_blank"
+              href={marketplaceStatus.secondaryAction.href}
+              target={marketplaceStatus.secondaryAction.external ? '_blank' : undefined}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-[#55C832] text-xs font-bold text-slate-700 hover:text-[#318A25] transition-all bg-white shadow-2xs"
             >
-              <Eye className="h-4 w-4" />
-              <span>View Public Profile</span>
-              <ExternalLink className="h-3 w-3 text-slate-400" />
-            </Link>
-          ) : (
-            <Link
-              href="/dashboard/marketplace"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-[#55C832] text-xs font-bold text-slate-700 hover:text-[#318A25] transition-all bg-white shadow-2xs"
-            >
-              <Globe className="h-4 w-4" />
-              <span>Manage Profile</span>
+              {marketplaceStatus.secondaryAction.external ? <Eye className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+              <span>{marketplaceStatus.secondaryAction.label}</span>
+              {marketplaceStatus.secondaryAction.external && <ExternalLink className="h-3 w-3 text-slate-400" />}
             </Link>
           )}
 
           <Link
-            href="/dashboard/marketplace"
+            href={marketplaceStatus.primaryAction.href}
             className={
-              tutorProfile?.is_public_marketplace
+              marketplaceStatus.statusKey === 'live'
                 ? 'btn-nuzigo-secondary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1'
-                : marketplaceStatus.isComplete
-                ? 'btn-nuzigo-primary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm bg-[#55C832] text-white hover:bg-[#318A25]'
                 : 'btn-nuzigo-primary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm'
             }
           >
-            <span>
-              {tutorProfile?.is_public_marketplace
-                ? 'Manage Marketplace'
-                : marketplaceStatus.isComplete
-                ? 'Publish Profile'
-                : 'Complete Marketplace Profile'}
-            </span>
+            <span>{marketplaceStatus.primaryAction.label}</span>
           </Link>
         </div>
       </div>

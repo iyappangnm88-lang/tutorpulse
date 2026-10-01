@@ -145,6 +145,16 @@ export interface MarketplaceProfileCompleteness {
   checks: MarketplaceCompletionCheck[]
 }
 
+export function isBatchPublished(batch: {
+  is_public?: boolean | null
+  status?: string | null
+} | null | undefined): boolean {
+  if (!batch) return false
+  const isPublic = Boolean(batch.is_public)
+  const isActive = !batch.status || batch.status === 'active'
+  return isPublic && isActive
+}
+
 /**
  * Calculates marketplace profile completion checklist and readiness.
  * Synchronized across the Tutor Dashboard, Marketplace Profile management, and API actions.
@@ -160,9 +170,28 @@ export function getMarketplaceProfileCompleteness(
     pricing_rate?: number | null
     avatar_url?: string | null
   } | null | undefined,
-  batches?: Array<{ pricing_rate?: number | null }> | null
+  batches?: Array<{
+    pricing_rate?: number | null
+    description?: string | null
+    public_description?: string | null
+  }> | null
 ): MarketplaceProfileCompleteness {
-  const hasAnyBatchPricing = Array.isArray(batches) && batches.some((b) => b?.pricing_rate != null && Number(b.pricing_rate) > 0)
+  const hasAnyBatchPricing = Array.isArray(batches) && batches.some((b: any) => {
+    if (b?.pricing_rate != null && Number(b.pricing_rate) > 0) return true
+    const desc = `${b?.description || ''} ${b?.public_description || ''}`
+    if (desc.includes('NUZIGO_PRICING')) {
+      const match = desc.match(/<!-- NUZIGO_PRICING:(.*?) -->/)
+      if (match && match[1]) {
+        try {
+          const parsed = JSON.parse(match[1])
+          if (parsed?.rate != null && Number(parsed.rate) > 0) return true
+        } catch {
+          // ignore parsing error
+        }
+      }
+    }
+    return false
+  })
   const hasProfilePricing = profile?.pricing_rate != null && Number(profile.pricing_rate) > 0
 
   const checks: MarketplaceCompletionCheck[] = [
@@ -187,4 +216,193 @@ export function getMarketplaceProfileCompleteness(
     checks,
   }
 }
+
+export interface MarketplaceStatusResult extends MarketplaceProfileCompleteness {
+  publishedBatchesCount: number
+  totalBatchesCount: number
+  hasPublishedBatches: boolean
+  isMarketplaceLive: boolean
+  statusKey: 'live' | 'ready_to_publish' | 'needs_batch' | 'incomplete_with_batches' | 'incomplete'
+  badge: {
+    text: string
+    variant: 'success' | 'warning' | 'info'
+  }
+  description: string
+  primaryAction: {
+    label: string
+    href: string
+  }
+  secondaryAction?: {
+    label: string
+    href: string
+    external?: boolean
+  }
+}
+
+/**
+ * Single source of truth for Tutor Marketplace status across the entire platform.
+ * Evaluates profile completeness alongside active published batch offerings.
+ */
+export function getMarketplaceStatus(
+  profile: {
+    full_name?: string | null
+    headline?: string | null
+    bio?: string | null
+    teaching_approach?: string | null
+    primary_subjects?: string[] | null
+    subjects?: string[] | null
+    pricing_rate?: number | null
+    avatar_url?: string | null
+    is_public_marketplace?: boolean | null
+    profile_slug?: string | null
+    id?: string | null
+  } | null | undefined,
+  batches?: Array<{
+    is_public?: boolean | null
+    status?: string | null
+    pricing_rate?: number | null
+    description?: string | null
+    public_description?: string | null
+  }> | null
+): MarketplaceStatusResult {
+  const completeness = getMarketplaceProfileCompleteness(profile, batches)
+  const isProfileComplete = completeness.isComplete
+  const completionPercent = completeness.percent
+
+  const allBatches = Array.isArray(batches) ? batches : []
+  const publishedBatches = allBatches.filter(isBatchPublished)
+  const publishedBatchesCount = publishedBatches.length
+  const totalBatchesCount = allBatches.length
+  const hasPublishedBatches = publishedBatchesCount > 0
+
+  const isPublicMarketplace = Boolean(profile?.is_public_marketplace)
+  const profileSlug = profile?.profile_slug || profile?.id || ''
+
+  // Core 5-state marketplace readiness evaluation
+  let statusKey: 'live' | 'ready_to_publish' | 'needs_batch' | 'incomplete_with_batches' | 'incomplete'
+
+  if (isProfileComplete && hasPublishedBatches) {
+    statusKey = isPublicMarketplace ? 'live' : 'ready_to_publish'
+  } else if (isProfileComplete && !hasPublishedBatches) {
+    statusKey = 'needs_batch'
+  } else if (!isProfileComplete && hasPublishedBatches) {
+    statusKey = 'incomplete_with_batches'
+  } else {
+    statusKey = 'incomplete'
+  }
+
+  const isMarketplaceLive = statusKey === 'live'
+
+  // Contextual UI presentation
+  let badge: { text: string; variant: 'success' | 'warning' | 'info' }
+  let description: string
+  let primaryAction: { label: string; href: string }
+  let secondaryAction: { label: string; href: string; external?: boolean } | undefined
+
+  switch (statusKey) {
+    case 'live':
+      badge = {
+        text: 'Live on Nuzigo Marketplace',
+        variant: 'success',
+      }
+      description = `Your teaching profile and ${publishedBatchesCount} marketplace ${publishedBatchesCount === 1 ? 'batch' : 'batches'} are live and discoverable by students on Nuzigo.`
+      primaryAction = {
+        label: 'Manage Marketplace',
+        href: '/dashboard/marketplace',
+      }
+      if (profileSlug) {
+        secondaryAction = {
+          label: 'View Public Profile',
+          href: `/tutors/${profileSlug}`,
+          external: true,
+        }
+      } else {
+        secondaryAction = {
+          label: 'Manage Profile',
+          href: '/dashboard/marketplace',
+        }
+      }
+      break
+
+    case 'ready_to_publish':
+      badge = {
+        text: 'Marketplace Ready (100%)',
+        variant: 'success',
+      }
+      description = `Your profile and ${publishedBatchesCount} ${publishedBatchesCount === 1 ? 'batch are' : 'batches are'} fully configured. Turn on public visibility in marketplace management to start accepting prospective students.`
+      primaryAction = {
+        label: 'Publish Marketplace Profile',
+        href: '/dashboard/marketplace',
+      }
+      secondaryAction = {
+        label: 'Manage Profile',
+        href: '/dashboard/marketplace',
+      }
+      break
+
+    case 'needs_batch':
+      badge = {
+        text: isPublicMarketplace ? 'Profile Live • Add Batch' : 'Profile Complete (100%) • Add Batch',
+        variant: 'info',
+      }
+      description = 'Your tutor profile is 100% complete! Publish at least one teaching batch so prospective students can discover your schedule and request to join.'
+      primaryAction = {
+        label: '+ Create Marketplace Batch',
+        href: '/dashboard/marketplace/batches/new',
+      }
+      secondaryAction = {
+        label: 'Manage Marketplace',
+        href: '/dashboard/marketplace',
+      }
+      break
+
+    case 'incomplete_with_batches':
+      badge = {
+        text: `Batches Active • ${completionPercent}% Profile Complete`,
+        variant: 'warning',
+      }
+      description = `You have ${publishedBatchesCount} active marketplace ${publishedBatchesCount === 1 ? 'batch' : 'batches'}, but your tutor profile is only ${completionPercent}% complete. Finish your profile details to maximize student enrollment.`
+      primaryAction = {
+        label: 'Complete Profile Details',
+        href: '/dashboard/marketplace',
+      }
+      secondaryAction = {
+        label: 'Manage Batches',
+        href: '/dashboard/marketplace',
+      }
+      break
+
+    case 'incomplete':
+    default:
+      badge = {
+        text: `Draft • ${completionPercent}% Complete`,
+        variant: 'warning',
+      }
+      description = 'Your marketplace profile isn’t published yet. Complete your profile details and publish your classes so students and parents can discover you.'
+      primaryAction = {
+        label: 'Complete Marketplace Profile',
+        href: '/dashboard/marketplace',
+      }
+      secondaryAction = {
+        label: 'Explore Marketplace',
+        href: '/tutors',
+        external: true,
+      }
+      break
+  }
+
+  return {
+    ...completeness,
+    publishedBatchesCount,
+    totalBatchesCount,
+    hasPublishedBatches,
+    isMarketplaceLive,
+    statusKey,
+    badge,
+    description,
+    primaryAction,
+    secondaryAction,
+  }
+}
+
 

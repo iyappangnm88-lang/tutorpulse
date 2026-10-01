@@ -38,7 +38,7 @@ import {
 import { respondJoinRequestAction } from '@/app/tutors/actions'
 import { DAY_METADATA, formatTimeRange } from '@/lib/scheduling'
 import type { BatchWithCount } from '@/types'
-import { getMarketplaceProfileCompleteness, type JoinRequestWithDetails } from '@/lib/marketplace-utils'
+import { getMarketplaceProfileCompleteness, isBatchPublished, type JoinRequestWithDetails } from '@/lib/marketplace-utils'
 
 interface TutorMarketplaceClientProps {
   profile: any
@@ -169,8 +169,8 @@ export function TutorMarketplaceClient({
   }
 
   // Filter batches
-  const marketplaceBatches = batches.filter((b) => b.is_public)
-  const draftBatches = batches.filter((b) => !b.is_public)
+  const marketplaceBatches = batches.filter(isBatchPublished)
+  const draftBatches = batches.filter((b) => !isBatchPublished(b))
 
   const displayedBatches =
     batchTab === 'published'
