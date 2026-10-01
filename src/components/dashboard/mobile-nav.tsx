@@ -3,15 +3,15 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Layers, ClipboardCheck, CreditCard } from 'lucide-react'
+import { LayoutDashboard, Users, Layers, Compass, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const mobileNavItems = [
   { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Students', href: '/dashboard/students', icon: Users },
+  { label: 'Marketplace', href: '/dashboard/marketplace', icon: Compass },
   { label: 'Batches', href: '/dashboard/batches', icon: Layers },
-  { label: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
-  { label: 'Fees', href: '/dashboard/fees', icon: CreditCard },
+  { label: 'Students', href: '/dashboard/students', icon: Users },
+  { label: 'Messages', href: '/dashboard/communication', icon: MessageSquare },
 ]
 
 export function MobileNav() {

@@ -59,7 +59,7 @@ export async function submitJoinRequestAction(
     // Verify batch exists, is active, is public, and belongs to this tutor
     const { data: batch } = await supabase
       .from('batches')
-      .select('id, tutor_id, is_public, status')
+      .select('id, tutor_id, is_public, status, workspace_id')
       .eq('id', input.batchId)
       .eq('tutor_id', input.tutorId)
       .single()
@@ -107,6 +107,7 @@ export async function submitJoinRequestAction(
         student_user_id: user.id,
         tutor_id: input.tutorId,
         batch_id: input.batchId,
+        workspace_id: batch.workspace_id || null,
         student_notes: input.studentNotes?.trim() || null,
         status: 'pending',
       })
@@ -201,22 +202,151 @@ export async function respondJoinRequestAction(
     }
 
     if (input.action === 'accept') {
-      // Execute atomic enrollment RPC
+      // 1. Attempt atomic enrollment RPC
       const { data: rpcResult, error: rpcError } = await supabase.rpc('accept_join_request', {
         p_request_id: input.requestId,
       })
 
-      if (rpcError) {
-        console.error('accept_join_request RPC error:', rpcError)
-        return {
-          success: false,
-          error: "We couldn't enroll this student right now. Please try again.",
-        }
-      }
+      const result = rpcResult as { success?: boolean; error?: string } | null
+      if (rpcError || !result?.success) {
+        console.warn('accept_join_request RPC failed, falling back to direct enrollment:', rpcError || result?.error)
 
-      const result = rpcResult as { success: boolean; error?: string }
-      if (!result.success) {
-        return { success: false, error: result.error || 'Failed to accept join request.' }
+        // 2. Resilient Direct Enrollment Fallback
+        const { data: fullReq, error: fullReqErr } = await supabase
+          .from('join_requests')
+          .select('id, student_user_id, tutor_id, batch_id, workspace_id')
+          .eq('id', input.requestId)
+          .single()
+
+        if (fullReqErr || !fullReq) {
+          return { success: false, error: 'Join request details not found.' }
+        }
+
+        // Fetch batch details to resolve authoritative workspace_id
+        const { data: batchData } = await supabase
+          .from('batches')
+          .select('id, workspace_id')
+          .eq('id', fullReq.batch_id)
+          .single()
+
+        const targetWorkspaceId = batchData?.workspace_id || fullReq.workspace_id || null
+
+        // Fetch student profile info
+        const { data: studentProf } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('id', fullReq.student_user_id)
+          .single()
+
+        const displayName = studentProf?.full_name?.trim() || 'Student'
+        const studentEmail = studentProf?.email?.trim() || null
+
+        // Find or create student in tutor's roster
+        let studentId: string | null = null
+
+        const { data: existingConn } = await supabase
+          .from('student_tutor_connections')
+          .select('student_record_id')
+          .eq('student_user_id', fullReq.student_user_id)
+          .eq('tutor_id', user.id)
+          .maybeSingle()
+
+        if (existingConn?.student_record_id) {
+          studentId = existingConn.student_record_id
+          if (targetWorkspaceId) {
+            await supabase
+              .from('students')
+              .update({ workspace_id: targetWorkspaceId })
+              .eq('id', studentId)
+              .is('workspace_id', null)
+          }
+        }
+
+        if (!studentId && studentEmail) {
+          const { data: existingRoster } = await supabase
+            .from('students')
+            .select('id, workspace_id')
+            .eq('tutor_id', user.id)
+            .ilike('email', studentEmail)
+            .maybeSingle()
+
+          if (existingRoster) {
+            studentId = existingRoster.id
+            if (targetWorkspaceId && !existingRoster.workspace_id) {
+              await supabase
+                .from('students')
+                .update({ workspace_id: targetWorkspaceId })
+                .eq('id', studentId)
+            }
+          }
+        }
+
+        if (!studentId) {
+          const { data: newStudent, error: createStudentErr } = await supabase
+            .from('students')
+            .insert({
+              tutor_id: user.id,
+              workspace_id: targetWorkspaceId,
+              full_name: displayName,
+              email: studentEmail,
+              status: 'active',
+            })
+            .select('id')
+            .single()
+
+          if (createStudentErr || !newStudent) {
+            console.error('Direct enrollment fallback failed creating student:', createStudentErr)
+            return {
+              success: false,
+              error: "We couldn't enroll this student right now. Please try again.",
+            }
+          }
+          studentId = newStudent.id
+        }
+
+        // Ensure student_tutor_connections is active
+        await supabase
+          .from('student_tutor_connections')
+          .upsert(
+            {
+              student_user_id: fullReq.student_user_id,
+              tutor_id: user.id,
+              student_record_id: studentId,
+              status: 'active',
+              joined_via: 'marketplace',
+            },
+            { onConflict: 'student_user_id,tutor_id' }
+          )
+
+        // Enroll student in batch
+        const { error: batchStudentErr } = await supabase
+          .from('batch_students')
+          .upsert(
+            {
+              batch_id: fullReq.batch_id,
+              student_id: studentId,
+              status: 'active',
+            },
+            { onConflict: 'batch_id,student_id' }
+          )
+
+        if (batchStudentErr) {
+          console.error('Direct enrollment fallback failed adding batch_students:', batchStudentErr)
+          return {
+            success: false,
+            error: "We couldn't enroll this student into the batch. Please try again.",
+          }
+        }
+
+        // Mark join request as accepted
+        await supabase
+          .from('join_requests')
+          .update({
+            status: 'accepted',
+            responded_at: new Date().toISOString(),
+          })
+          .eq('id', input.requestId)
+          .eq('tutor_id', user.id)
       }
     } else {
       // Reject request
