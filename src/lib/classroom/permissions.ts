@@ -56,18 +56,7 @@ export async function requestMediaPermissions(options?: {
     } catch (err: any) {
       console.warn('Initial dual-media request failed, attempting single-device fallback:', err.name, err.message)
 
-      // If user explicitly denied permission, don't nag with secondary popups immediately
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        return {
-          stream: null,
-          audioAvailable: false,
-          videoAvailable: false,
-          error: 'Camera and microphone access was denied. You can still join and listen.',
-          errorCode: 'NotAllowedError',
-        }
-      }
-
-      // 2. Fallback: try audio-only (e.g. desktop PC without webcam)
+      // 2. Fallback: try audio-only (e.g. mic permitted or desktop PC without webcam)
       try {
         const audioStream = await navigator.mediaDevices.getUserMedia({
           audio: {
@@ -80,28 +69,32 @@ export async function requestMediaPermissions(options?: {
           stream: audioStream,
           audioAvailable: true,
           videoAvailable: false,
-          error: 'No camera found. Connected with microphone only.',
+          error: 'Camera not permitted or not available. Connected with microphone only.',
         }
       } catch (audioErr: any) {
-        // 3. Fallback: try video-only (e.g. camera without mic)
+        // 3. Fallback: try video-only (e.g. camera permitted or device without mic)
         try {
           const videoStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: {
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+              facingMode: 'user',
+            },
             audio: false,
           })
           return {
             stream: videoStream,
             audioAvailable: false,
             videoAvailable: true,
-            error: 'No microphone found. Connected with camera only.',
+            error: 'Microphone not permitted or not available. Connected with camera only.',
           }
         } catch {
           return {
             stream: null,
             audioAvailable: false,
             videoAvailable: false,
-            error: 'Unable to access camera or microphone. Joining in view-only mode.',
-            errorCode: (err.name as any) || 'NotFoundError',
+            error: 'Camera and microphone access was denied. You can still join and listen.',
+            errorCode: (err.name as any) || 'NotAllowedError',
           }
         }
       }
