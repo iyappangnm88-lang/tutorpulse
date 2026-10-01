@@ -35,19 +35,25 @@ export async function getOptionalUser(): Promise<{
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, onboarding_completed')
       .eq('id', user.id)
       .maybeSingle()
 
     const role = (profile?.role as 'tutor' | 'student' | 'parent') || null
-    const dashboardHref =
-      role === 'tutor'
-        ? '/dashboard'
-        : role === 'student'
-        ? '/student'
-        : role === 'parent'
-        ? '/parent'
-        : '/dashboard'
+    const isOnboardingCompleted = Boolean(profile?.onboarding_completed)
+
+    let dashboardHref = '/dashboard'
+    if (role === 'parent') {
+      dashboardHref = '/parent'
+    } else if (!isOnboardingCompleted) {
+      if (role === 'student') dashboardHref = '/onboarding/student'
+      else if (role === 'tutor') dashboardHref = '/onboarding/tutor'
+      else dashboardHref = '/onboarding/role'
+    } else if (role === 'student') {
+      dashboardHref = '/student'
+    } else if (role === 'tutor') {
+      dashboardHref = '/dashboard'
+    }
 
     return {
       user: { id: user.id, email: user.email },
