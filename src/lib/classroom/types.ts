@@ -47,6 +47,8 @@ export type SignalType =
   | 'hand:raise'
   | 'hand:lower'
   | 'hand:acknowledge'
+  | 'mute:student'
+  | 'mute:all'
   | 'reaction'
   | 'poll:started'
   | 'poll:response'

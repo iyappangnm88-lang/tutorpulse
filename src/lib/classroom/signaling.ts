@@ -20,6 +20,8 @@ export interface SignalingCallbacks {
   onHandRaised?: (participantId: string, name: string, timestamp: string) => void
   onHandLowered?: (participantId: string) => void
   onHandAcknowledged?: (participantId: string) => void
+  onMuteStudent?: (targetId: string) => void
+  onMuteAll?: () => void
   onPollEvent?: (event: { type: SignalType; pollId?: string; data?: any }) => void
   onQuestionEvent?: (event: { type: SignalType; questionId?: string; data?: any }) => void
   onClassStarted?: () => void
@@ -174,6 +176,20 @@ export class ClassroomSignalingChannel {
 
       if (msg.type === 'hand:acknowledge') {
         this.callbacks.onHandAcknowledged?.(msg.data?.participantId || msg.targetId || '')
+        return
+      }
+
+      if (msg.type === 'mute:student') {
+        if (msg.targetId === this.localMeta.id || msg.data?.targetId === this.localMeta.id) {
+          this.callbacks.onMuteStudent?.(this.localMeta.id)
+        }
+        return
+      }
+
+      if (msg.type === 'mute:all') {
+        if (this.localMeta.role === 'participant') {
+          this.callbacks.onMuteAll?.()
+        }
         return
       }
 
@@ -373,6 +389,20 @@ export class ClassroomSignalingChannel {
   async acknowledgeHand(participantId: string): Promise<void> {
     this.callbacks.onHandAcknowledged?.(participantId)
     await this.sendSignal('hand:acknowledge', { participantId }, participantId)
+  }
+
+  /**
+   * Tutor mutes a specific student's microphone.
+   */
+  async muteStudent(targetId: string): Promise<void> {
+    await this.sendSignal('mute:student', { targetId }, targetId)
+  }
+
+  /**
+   * Tutor mutes all participating students.
+   */
+  async muteAll(): Promise<void> {
+    await this.sendSignal('mute:all', {}, null)
   }
 
   /**
