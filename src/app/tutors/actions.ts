@@ -513,6 +513,8 @@ export async function updateTutorPublicProfileAction(
     }
 
     revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/marketplace')
+    revalidatePath('/dashboard')
     revalidatePath('/tutors')
     if (finalSlug) {
       revalidatePath(`/tutors/${finalSlug}`)
@@ -568,6 +570,8 @@ export async function updateProfileTemplateAction(
     }
 
     revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/marketplace')
+    revalidatePath('/dashboard')
     revalidatePath('/tutors')
 
     return { success: true, data: { template: normalized } }
@@ -649,6 +653,7 @@ export async function uploadAvatarAction(
     }
 
     revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/marketplace')
     revalidatePath('/dashboard')
     revalidatePath('/tutors')
 

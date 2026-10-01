@@ -43,6 +43,7 @@ import { getActiveWorkspace } from '@/lib/workspace'
 import { formatCurrency } from '@/lib/fee-utils'
 import { InviteCodeBadge } from '@/components/dashboard/invite-code-badge'
 import { NextClassHero } from '@/components/dashboard/next-class-hero'
+import { getMarketplaceProfileCompleteness } from '@/lib/marketplace-utils'
 import type { Metadata } from 'next'
 import type { ClassSessionWithBatch } from '@/types'
 
@@ -343,9 +344,13 @@ export default async function DashboardPage() {
   // Fetch tutor profile completeness for the Adaptive Tutor Path & Public Profile Card
   const { data: tutorProfile } = await supabase
     .from('profiles')
-    .select('full_name, bio, subjects, profile_slug, is_public_marketplace, headline, primary_subjects')
+    .select(
+      'id, full_name, bio, subjects, profile_slug, is_public_marketplace, headline, primary_subjects, teaching_approach, avatar_url, pricing_rate, pricing_unit'
+    )
     .eq('id', user?.id || '')
     .maybeSingle()
+
+  const marketplaceStatus = getMarketplaceProfileCompleteness(tutorProfile, batchesRes.data || [])
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -456,17 +461,24 @@ export default async function DashboardPage() {
                   <span className="h-2 w-2 rounded-full bg-[#55C832]" />
                   Live on Nuzigo Marketplace
                 </span>
+              ) : marketplaceStatus.isComplete ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                  <span className="h-2 w-2 rounded-full bg-[#55C832]" />
+                  Profile Ready to Publish ({marketplaceStatus.percent}%)
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[11px] font-bold border border-amber-200">
                   <span className="h-2 w-2 rounded-full bg-amber-500" />
-                  Draft / Not Visible to Students
+                  Draft • {marketplaceStatus.percent}% Complete
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-600 font-medium max-w-xl leading-relaxed">
               {tutorProfile?.is_public_marketplace
-                ? 'Your teaching profile is discoverable by students searching for tutors on Nuzigo.'
-                : 'Your marketplace profile isn’t published yet. Complete and publish it so students and parents searching for your subjects can discover your classes.'}
+                ? 'Your teaching profile is live and discoverable by students searching for tutors on Nuzigo.'
+                : marketplaceStatus.isComplete
+                ? 'Your marketplace profile is 100% complete! Review and publish it to start receiving student join requests.'
+                : 'Your marketplace profile isn’t published yet. Complete your profile details and publish it so prospective students can discover your classes.'}
             </p>
           </div>
         </div>
@@ -484,25 +496,31 @@ export default async function DashboardPage() {
             </Link>
           ) : (
             <Link
-              href="/tutors"
-              target="_blank"
+              href="/dashboard/marketplace"
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-[#55C832] text-xs font-bold text-slate-700 hover:text-[#318A25] transition-all bg-white shadow-2xs"
             >
               <Globe className="h-4 w-4" />
-              <span>Explore Marketplace</span>
-              <ExternalLink className="h-3 w-3 text-slate-400" />
+              <span>Manage Profile</span>
             </Link>
           )}
 
           <Link
-            href="/dashboard/settings"
+            href="/dashboard/marketplace"
             className={
               tutorProfile?.is_public_marketplace
                 ? 'btn-nuzigo-secondary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1'
+                : marketplaceStatus.isComplete
+                ? 'btn-nuzigo-primary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm bg-[#55C832] text-white hover:bg-[#318A25]'
                 : 'btn-nuzigo-primary text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm'
             }
           >
-            <span>{tutorProfile?.is_public_marketplace ? 'Edit Profile' : 'Complete Marketplace Profile'}</span>
+            <span>
+              {tutorProfile?.is_public_marketplace
+                ? 'Manage Marketplace'
+                : marketplaceStatus.isComplete
+                ? 'Publish Profile'
+                : 'Complete Marketplace Profile'}
+            </span>
           </Link>
         </div>
       </div>

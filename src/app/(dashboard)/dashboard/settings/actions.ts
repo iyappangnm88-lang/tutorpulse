@@ -49,6 +49,9 @@ export async function updateTutorProfileAction(input: {
     })
 
     revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/marketplace')
+    revalidatePath('/dashboard')
+    revalidatePath('/tutors')
     return { success: true }
   } catch (err: unknown) {
     console.error('updateTutorProfileAction exception:', err)

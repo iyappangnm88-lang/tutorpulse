@@ -38,7 +38,7 @@ import {
 import { respondJoinRequestAction } from '@/app/tutors/actions'
 import { DAY_METADATA, formatTimeRange } from '@/lib/scheduling'
 import type { BatchWithCount } from '@/types'
-import type { JoinRequestWithDetails } from '@/lib/marketplace-utils'
+import { getMarketplaceProfileCompleteness, type JoinRequestWithDetails } from '@/lib/marketplace-utils'
 
 interface TutorMarketplaceClientProps {
   profile: any
@@ -85,20 +85,13 @@ export function TutorMarketplaceClient({
   const publicSlug = profileData?.profile_slug || profileData?.id || ''
   const publicProfileUrl = `/tutors/${publicSlug}`
 
-  // Profile completion calculation: Teaching fee is marked done if profile pricing OR any batch pricing is set
-  const hasAnyBatchPricing = batches.some((b) => b.pricing_rate != null && Number(b.pricing_rate) > 0)
-  const hasProfilePricing = profileData?.pricing_rate != null && Number(profileData.pricing_rate) > 0
-
-  const completionChecks = [
-    { label: 'Full Name', done: Boolean(profileData?.full_name?.trim()) },
-    { label: 'Headline', done: Boolean(profileData?.headline?.trim()) },
-    { label: 'Bio / Teaching Approach', done: Boolean(profileData?.bio?.trim() || profileData?.teaching_approach?.trim()) },
-    { label: 'Subjects & Classes', done: (profileData?.primary_subjects?.length || 0) > 0 },
-    { label: 'Teaching Fee', done: hasProfilePricing || hasAnyBatchPricing },
-    { label: 'Profile Photo', done: Boolean(profileData?.avatar_url) },
-  ]
-  const completedCount = completionChecks.filter((c) => c.done).length
-  const completionPercent = Math.round((completedCount / completionChecks.length) * 100)
+  // Profile completion calculation synchronized via shared utility
+  const {
+    checks: completionChecks,
+    completedCount,
+    percent: completionPercent,
+    isComplete: isProfileComplete,
+  } = getMarketplaceProfileCompleteness(profileData, batches)
 
   // Save Pricing handler
   async function handleSavePricing() {

@@ -131,3 +131,60 @@ export function slugifyText(text: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
+
+export interface MarketplaceCompletionCheck {
+  label: string
+  done: boolean
+}
+
+export interface MarketplaceProfileCompleteness {
+  isComplete: boolean
+  percent: number
+  completedCount: number
+  totalCount: number
+  checks: MarketplaceCompletionCheck[]
+}
+
+/**
+ * Calculates marketplace profile completion checklist and readiness.
+ * Synchronized across the Tutor Dashboard, Marketplace Profile management, and API actions.
+ */
+export function getMarketplaceProfileCompleteness(
+  profile: {
+    full_name?: string | null
+    headline?: string | null
+    bio?: string | null
+    teaching_approach?: string | null
+    primary_subjects?: string[] | null
+    subjects?: string[] | null
+    pricing_rate?: number | null
+    avatar_url?: string | null
+  } | null | undefined,
+  batches?: Array<{ pricing_rate?: number | null }> | null
+): MarketplaceProfileCompleteness {
+  const hasAnyBatchPricing = Array.isArray(batches) && batches.some((b) => b?.pricing_rate != null && Number(b.pricing_rate) > 0)
+  const hasProfilePricing = profile?.pricing_rate != null && Number(profile.pricing_rate) > 0
+
+  const checks: MarketplaceCompletionCheck[] = [
+    { label: 'Full Name', done: Boolean(profile?.full_name?.trim()) },
+    { label: 'Headline', done: Boolean(profile?.headline?.trim()) },
+    { label: 'Bio / Teaching Approach', done: Boolean(profile?.bio?.trim() || profile?.teaching_approach?.trim()) },
+    { label: 'Subjects & Classes', done: Boolean((profile?.primary_subjects?.length || 0) > 0 || (profile?.subjects?.length || 0) > 0) },
+    { label: 'Teaching Fee', done: hasProfilePricing || hasAnyBatchPricing },
+    { label: 'Profile Photo', done: Boolean(profile?.avatar_url) },
+  ]
+
+  const completedCount = checks.filter((c) => c.done).length
+  const totalCount = checks.length
+  const percent = Math.round((completedCount / totalCount) * 100)
+  const isComplete = completedCount === totalCount
+
+  return {
+    isComplete,
+    percent,
+    completedCount,
+    totalCount,
+    checks,
+  }
+}
+
