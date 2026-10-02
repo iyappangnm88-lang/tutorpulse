@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { FocusSetupView } from '@/components/focus/focus-setup-view'
 import { ActiveFocusView } from '@/components/focus/active-focus-view'
 import {
   type FocusSessionState,
+  type FocusMode,
   loadFocusSession,
-  createFocusSession,
+  createMultiModeFocusSession,
   saveFocusSession,
 } from '@/lib/focus/focus-timer'
 import { startFocusSessionAction } from '@/app/student/actions'
@@ -43,42 +43,41 @@ export function StudentDashboardClient({
     setIsInitialized(true)
   }, [])
 
-  // 2. Real-time synchronization for live classes
-  useEffect(() => {
-    const supabase = createClient()
-    const channel = supabase
-      .channel('student_dashboard_class_sync')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'class_sessions',
-        },
-        () => {
-          router.refresh()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [router])
-
   // Handle starting a new focus session
-  const handleStartFocus = async (durationMinutes: number, subject: string) => {
-    const durationSec = durationMinutes * 60
+  const handleStartFocus = async (config: {
+    mode: FocusMode
+    focusDurationMin: number
+    breakCount: number
+    breakDurationMin: number
+    longBreakDurationMin: number
+    longBreakInterval: number
+    stopwatchTargetMin: number | null
+    subject: string
+    backgroundId: string
+  }) => {
+    const durationSec = config.focusDurationMin * 60
 
     let dbSessionId: string | null = null
     try {
-      const res = await startFocusSessionAction(durationSec, subject)
+      const res = await startFocusSessionAction(durationSec, config.subject)
       if (res.success && res.data?.sessionId) {
         dbSessionId = res.data.sessionId
       }
     } catch {}
 
-    const session = createFocusSession(durationSec, subject, 'pomodoro', dbSessionId)
+    const session = createMultiModeFocusSession({
+      mode: config.mode,
+      focusDurationMin: config.focusDurationMin,
+      breakCount: config.breakCount,
+      breakDurationMin: config.breakDurationMin,
+      longBreakDurationMin: config.longBreakDurationMin,
+      longBreakInterval: config.longBreakInterval,
+      stopwatchTargetMin: config.stopwatchTargetMin,
+      subject: config.subject,
+      backgroundId: config.backgroundId,
+      dbSessionId,
+    })
+
     setActiveSession(session)
   }
 
@@ -101,14 +100,11 @@ export function StudentDashboardClient({
     )
   }
 
-  // STATE A: FOCUS SETUP (Normal /student page before starting a session)
+  // STATE A: FOCUS SETUP (Pure Scenic Focus Environment)
   return (
     <FocusSetupView
-      data={data}
-      gamification={gamification}
-      streaks={streaks}
-      focusStats={data.focusStats}
       onStartFocus={handleStartFocus}
+      focusStats={data.focusStats}
     />
   )
 }

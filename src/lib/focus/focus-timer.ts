@@ -1,7 +1,9 @@
-export type { FocusSessionState, FocusSessionStatus, FocusStats, FocusBroadcastEvent } from './types'
-import type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent } from './types'
+import type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent, FocusMode, FocusPhase, FocusBackground } from './types'
+export type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent, FocusMode, FocusPhase, FocusBackground } from './types'
+export { FOCUS_BACKGROUNDS } from './types'
 
 const FOCUS_STORAGE_KEY = 'nuzigo_active_focus_session'
+const FOCUS_BG_STORAGE_KEY = 'nuzigo_focus_background_id'
 const FOCUS_CHANNEL_NAME = 'nuzigo_focus_broadcast_channel'
 
 let broadcastChannel: BroadcastChannel | null = null
@@ -38,8 +40,6 @@ export function subscribeFocusBroadcast(
           const session = loadFocusSession()
           if (session) {
             callback({ type: session.status === 'paused' ? 'SESSION_PAUSE' : 'SESSION_RESUME', session })
-          } else {
-            callback({ type: 'SESSION_END', session: { id: '', startTimestamp: 0, targetDurationSec: 0, pausedAtTimestamp: null, totalPausedDurationMs: 0, mode: 'pomodoro', status: 'idle', subject: '', completedAtTimestamp: null } })
           }
         }
       }
@@ -83,11 +83,30 @@ export function saveFocusSession(session: FocusSessionState | null): void {
   } catch {}
 }
 
-export function calculateRemainingSeconds(session: FocusSessionState): {
-  remainingSeconds: number
-  elapsedSeconds: number
-  isFinished: boolean
+export function loadSavedBackgroundId(): string {
+  if (typeof window === 'undefined') return 'mountain'
+  try {
+    return localStorage.getItem(FOCUS_BG_STORAGE_KEY) || 'mountain'
+  } catch {
+    return 'mountain'
+  }
+}
+
+export function saveSelectedBackgroundId(bgId: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(FOCUS_BG_STORAGE_KEY, bgId)
+  } catch {}
+}
+
+export function calculatePhaseProgress(session: FocusSessionState): {
+  displaySeconds: number
+  elapsedInPhase: number
+  remainingInPhase: number
+  totalElapsedFocusSec: number
   progressFraction: number
+  isPhaseFinished: boolean
+  isTargetReached: boolean
 } {
   const now = Date.now()
   let effectiveNow = now
@@ -97,43 +116,166 @@ export function calculateRemainingSeconds(session: FocusSessionState): {
   }
 
   const elapsedMs = Math.max(0, effectiveNow - session.startTimestamp - session.totalPausedDurationMs)
-  const elapsedSeconds = Math.floor(elapsedMs / 1000)
-  const remainingSeconds = Math.max(0, session.targetDurationSec - elapsedSeconds)
-  const isFinished = remainingSeconds === 0
-  const progressFraction = session.targetDurationSec > 0
-    ? Math.min(1, elapsedSeconds / session.targetDurationSec)
-    : 0
+  const elapsedInPhase = Math.floor(elapsedMs / 1000)
+
+  // Stopwatch Mode
+  if (session.mode === 'stopwatch') {
+    const totalElapsedFocus = session.completedFocusSec + (session.phase === 'focus' ? elapsedInPhase : 0)
+    const target = session.stopwatchTargetSec || 0
+    const isTargetReached = target > 0 && totalElapsedFocus >= target
+    const progressFraction = target > 0 ? Math.min(1, totalElapsedFocus / target) : 0
+    const displaySeconds = session.phase === 'focus' ? elapsedInPhase : Math.max(0, session.phaseDurationSec - elapsedInPhase)
+    const isPhaseFinished = session.phase !== 'focus' && displaySeconds === 0
+
+    return {
+      displaySeconds,
+      elapsedInPhase,
+      remainingInPhase: target > 0 ? Math.max(0, target - totalElapsedFocus) : 0,
+      totalElapsedFocusSec: totalElapsedFocus,
+      progressFraction,
+      isPhaseFinished,
+      isTargetReached,
+    }
+  }
+
+  // Timer & Pomodoro Modes
+  const phaseTarget = Math.max(1, session.phaseDurationSec)
+  const remainingInPhase = Math.max(0, phaseTarget - elapsedInPhase)
+  const isPhaseFinished = remainingInPhase === 0
+  const progressFraction = Math.min(1, elapsedInPhase / phaseTarget)
+  const totalElapsedFocus = session.completedFocusSec + (session.phase === 'focus' ? elapsedInPhase : 0)
 
   return {
-    remainingSeconds,
-    elapsedSeconds,
-    isFinished,
+    displaySeconds: remainingInPhase,
+    elapsedInPhase,
+    remainingInPhase,
+    totalElapsedFocusSec: totalElapsedFocus,
     progressFraction,
+    isPhaseFinished,
+    isTargetReached: isPhaseFinished && session.currentCycle >= session.totalCycles && session.phase === 'focus',
   }
 }
 
-export function createFocusSession(
-  targetDurationSec: number,
-  subject: string = 'General Focus',
-  mode: FocusSessionState['mode'] = 'pomodoro',
+export function createMultiModeFocusSession(params: {
+  mode: FocusMode
+  focusDurationMin: number
+  breakCount?: number
+  breakDurationMin?: number
+  longBreakDurationMin?: number
+  longBreakInterval?: number
+  stopwatchTargetMin?: number | null
+  subject?: string
+  backgroundId?: string
   dbSessionId?: string | null
-): FocusSessionState {
+}): FocusSessionState {
+  const mode = params.mode
+  const focusDurationSec = Math.max(60, params.focusDurationMin * 60)
+  const breakDurationSec = Math.max(0, (params.breakDurationMin || 5) * 60)
+  const longBreakDurationSec = Math.max(0, (params.longBreakDurationMin || 15) * 60)
+  const longBreakInterval = params.longBreakInterval || 4
+  const numBreaks = params.breakCount || 0
+  const totalCycles = mode === 'pomodoro' ? 8 : (1 + numBreaks)
+  const stopwatchTargetSec = params.stopwatchTargetMin ? params.stopwatchTargetMin * 60 : null
+
+  const initialPhaseDurationSec = mode === 'stopwatch' ? 0 : focusDurationSec
+
   const session: FocusSessionState = {
     id: 'focus_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-    dbSessionId: dbSessionId || null,
-    startTimestamp: Date.now(),
-    targetDurationSec,
-    pausedAtTimestamp: null,
-    totalPausedDurationMs: 0,
+    dbSessionId: params.dbSessionId || null,
     mode,
     status: 'running',
-    subject,
+    phase: 'focus',
+    subject: params.subject || 'General Focus',
+    backgroundId: params.backgroundId || loadSavedBackgroundId(),
+    currentCycle: 1,
+    totalCycles,
+    focusDurationSec,
+    breakDurationSec,
+    longBreakDurationSec,
+    longBreakInterval,
+    startTimestamp: Date.now(),
+    phaseDurationSec: initialPhaseDurationSec,
+    pausedAtTimestamp: null,
+    totalPausedDurationMs: 0,
+    completedFocusSec: 0,
+    stopwatchTargetSec,
     completedAtTimestamp: null,
   }
 
   saveFocusSession(session)
   broadcastSessionEvent({ type: 'SESSION_START', session })
   return session
+}
+
+export function advanceSessionPhase(session: FocusSessionState): {
+  session: FocusSessionState
+  isComplete: boolean
+} {
+  const now = Date.now()
+
+  if (session.phase === 'focus') {
+    const newCompletedFocusSec = session.completedFocusSec + session.focusDurationSec
+
+    if (session.currentCycle >= session.totalCycles) {
+      const completed: FocusSessionState = {
+        ...session,
+        status: 'completed',
+        completedFocusSec: newCompletedFocusSec,
+        completedAtTimestamp: now,
+      }
+      saveFocusSession(completed)
+      broadcastSessionEvent({ type: 'SESSION_COMPLETE', session: completed })
+      return { session: completed, isComplete: true }
+    }
+
+    const isLongBreak = session.mode === 'pomodoro' && (session.currentCycle % session.longBreakInterval === 0)
+    const nextPhase: FocusPhase = isLongBreak ? 'long_break' : 'break'
+    const nextPhaseDuration = isLongBreak ? session.longBreakDurationSec : session.breakDurationSec
+
+    if (nextPhaseDuration <= 0) {
+      const nextCycleSession: FocusSessionState = {
+        ...session,
+        currentCycle: session.currentCycle + 1,
+        phase: 'focus',
+        phaseDurationSec: session.focusDurationSec,
+        startTimestamp: now,
+        pausedAtTimestamp: null,
+        totalPausedDurationMs: 0,
+        completedFocusSec: newCompletedFocusSec,
+      }
+      saveFocusSession(nextCycleSession)
+      broadcastSessionEvent({ type: 'SESSION_PHASE_CHANGE', session: nextCycleSession })
+      return { session: nextCycleSession, isComplete: false }
+    }
+
+    const breakSession: FocusSessionState = {
+      ...session,
+      phase: nextPhase,
+      phaseDurationSec: nextPhaseDuration,
+      startTimestamp: now,
+      pausedAtTimestamp: null,
+      totalPausedDurationMs: 0,
+      completedFocusSec: newCompletedFocusSec,
+    }
+
+    saveFocusSession(breakSession)
+    broadcastSessionEvent({ type: 'SESSION_PHASE_CHANGE', session: breakSession })
+    return { session: breakSession, isComplete: false }
+  }
+
+  const nextFocusSession: FocusSessionState = {
+    ...session,
+    currentCycle: session.currentCycle + 1,
+    phase: 'focus',
+    phaseDurationSec: session.focusDurationSec,
+    startTimestamp: now,
+    pausedAtTimestamp: null,
+    totalPausedDurationMs: 0,
+  }
+
+  saveFocusSession(nextFocusSession)
+  broadcastSessionEvent({ type: 'SESSION_PHASE_CHANGE', session: nextFocusSession })
+  return { session: nextFocusSession, isComplete: false }
 }
 
 export function pauseFocusSession(session: FocusSessionState): FocusSessionState {
