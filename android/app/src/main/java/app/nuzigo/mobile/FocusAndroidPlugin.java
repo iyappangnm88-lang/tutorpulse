@@ -4,14 +4,22 @@ import android.Manifest;
 import android.app.AppOpsManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.usage.UsageEvents;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -20,6 +28,12 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 @CapacitorPlugin(
     name = "FocusAndroid",
@@ -34,10 +48,24 @@ public class FocusAndroidPlugin extends Plugin {
 
     public static final String FOCUS_NOTIFICATION_CHANNEL_ID = "nuzigo_focus_channel";
 
+    private final Set<String> blockedPackages = Collections.synchronizedSet(new HashSet<String>());
+    private volatile boolean isBlockingActive = false;
+    private Handler blockingHandler;
+    private Runnable blockingRunnable;
+
     @Override
     public void load() {
         super.load();
         createFocusNotificationChannel();
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        isBlockingActive = false;
+        if (blockingHandler != null && blockingRunnable != null) {
+            blockingHandler.removeCallbacks(blockingRunnable);
+        }
+        super.handleOnDestroy();
     }
 
     private void createFocusNotificationChannel() {
@@ -91,7 +119,6 @@ public class FocusAndroidPlugin extends Plugin {
                     call.resolve(ret);
                     return;
                 } catch (Exception e) {
-                    // Fallback to generic settings if package uri fails on certain OEM ROMs
                     try {
                         Intent fallbackIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
                         fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -238,4 +265,181 @@ public class FocusAndroidPlugin extends Plugin {
         ret.put("needsRuntimeNotificationPermission", Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU);
         call.resolve(ret);
     }
+
+    /**
+     * Retrieves launchable non-system & user apps installed on this Android device.
+     */
+    @PluginMethod
+    public void getInstalledApps(PluginCall call) {
+        try {
+            PackageManager pm = getContext().getPackageManager();
+            Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            List<ResolveInfo> pkgAppsList = pm.queryIntentActivities(mainIntent, 0);
+
+            JSArray appsArray = new JSArray();
+            String myPackage = getContext().getPackageName();
+            Set<String> seen = new HashSet<String>();
+
+            for (ResolveInfo info : pkgAppsList) {
+                if (info.activityInfo == null || info.activityInfo.packageName == null) continue;
+                String pkg = info.activityInfo.packageName;
+                if (pkg.equals(myPackage) || seen.contains(pkg)) continue;
+                seen.add(pkg);
+
+                String label = "";
+                try {
+                    CharSequence cs = info.loadLabel(pm);
+                    if (cs != null) label = cs.toString();
+                } catch (Exception e) {
+                    label = pkg;
+                }
+                if (label.isEmpty()) label = pkg;
+
+                boolean isSystem = (info.activityInfo.applicationInfo != null) &&
+                    ((info.activityInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
+
+                JSObject appObj = new JSObject();
+                appObj.put("packageName", pkg);
+                appObj.put("appName", label);
+                appObj.put("isSystem", isSystem);
+                appsArray.put(appObj);
+            }
+
+            JSObject ret = new JSObject();
+            ret.put("apps", appsArray);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Failed to get installed apps: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Starts monitoring and blocking selected packages during an active Focus session.
+     */
+    @PluginMethod
+    public void startAppBlocking(PluginCall call) {
+        JSArray packages = call.getArray("packages");
+        blockedPackages.clear();
+        if (packages != null) {
+            for (int i = 0; i < packages.length(); i++) {
+                try {
+                    String pkg = packages.getString(i);
+                    if (pkg != null && !pkg.trim().isEmpty() && !pkg.equals(getContext().getPackageName())) {
+                        blockedPackages.add(pkg.trim());
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
+        isBlockingActive = true;
+
+        if (blockingHandler == null) {
+            blockingHandler = new Handler(Looper.getMainLooper());
+        }
+        if (blockingRunnable != null) {
+            blockingHandler.removeCallbacks(blockingRunnable);
+        }
+
+        blockingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isBlockingActive) return;
+                try {
+                    checkForegroundAndEnforce();
+                } catch (Exception ignored) {}
+                if (isBlockingActive) {
+                    blockingHandler.postDelayed(this, 750);
+                }
+            }
+        };
+
+        blockingHandler.post(blockingRunnable);
+
+        JSObject ret = new JSObject();
+        ret.put("success", true);
+        ret.put("count", blockedPackages.size());
+        call.resolve(ret);
+    }
+
+    /**
+     * Stops active app blocking.
+     */
+    @PluginMethod
+    public void stopAppBlocking(PluginCall call) {
+        isBlockingActive = false;
+        blockedPackages.clear();
+        if (blockingHandler != null && blockingRunnable != null) {
+            blockingHandler.removeCallbacks(blockingRunnable);
+        }
+        JSObject ret = new JSObject();
+        ret.put("success", true);
+        call.resolve(ret);
+    }
+
+    /**
+     * Returns whether app blocking is currently running.
+     */
+    @PluginMethod
+    public void isAppBlockingActive(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("active", isBlockingActive);
+        ret.put("count", blockedPackages.size());
+        call.resolve(ret);
+    }
+
+    private void checkForegroundAndEnforce() {
+        if (!isBlockingActive || blockedPackages.isEmpty()) return;
+        String currentForegroundPkg = getForegroundPackage();
+        if (currentForegroundPkg != null && blockedPackages.contains(currentForegroundPkg)) {
+            // Distracting app detected in foreground during active focus session!
+            // 1. Bring NUZIGO back to foreground
+            try {
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                getContext().startActivity(intent);
+            } catch (Exception ignored) {}
+
+            // 2. Notify JS listeners
+            JSObject event = new JSObject();
+            event.put("blockedPackage", currentForegroundPkg);
+            event.put("timestamp", System.currentTimeMillis());
+            notifyListeners("appBlocked", event);
+        }
+    }
+
+    private String getForegroundPackage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            try {
+                UsageStatsManager usm = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
+                if (usm == null) return null;
+                long time = System.currentTimeMillis();
+                UsageEvents events = usm.queryEvents(time - 10000, time);
+                UsageEvents.Event event = new UsageEvents.Event();
+                String lastForeground = null;
+                while (events != null && events.hasNextEvent()) {
+                    events.getNextEvent(event);
+                    if (event.getEventType() == UsageEvents.Event.ACTIVITY_RESUMED ||
+                        event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
+                        lastForeground = event.getPackageName();
+                    }
+                }
+                if (lastForeground != null) {
+                    return lastForeground;
+                }
+                List<UsageStats> appList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 10000, time);
+                if (appList != null && !appList.isEmpty()) {
+                    SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
+                    for (UsageStats usageStats : appList) {
+                        mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                    }
+                    if (!mySortedMap.isEmpty()) {
+                        return mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
 }
+

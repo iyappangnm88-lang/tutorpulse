@@ -12,10 +12,12 @@ import {
   Palette,
   Headphones,
   Music,
+  ShieldAlert,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FOCUS_BACKGROUNDS, type FocusMode, type FocusStats } from '@/lib/focus/types'
 import { loadSavedBackgroundId, saveSelectedBackgroundId } from '@/lib/focus/focus-timer'
+import { loadAppBlockerConfig } from '@/lib/focus/app-blocker-config'
 import { useFocusMusic } from '@/contexts/focus-music-context'
 
 const FocusModeModal = dynamic(
@@ -28,6 +30,10 @@ const FocusBackgroundSelector = dynamic(
 )
 const FocusMusicModal = dynamic(
   () => import('./focus-music-modal').then((m) => m.FocusMusicModal),
+  { ssr: false }
+)
+const AppBlockerModal = dynamic(
+  () => import('./app-blocker-modal').then((m) => m.AppBlockerModal),
   { ssr: false }
 )
 
@@ -71,6 +77,8 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
   const [isModeModalOpen, setIsModeModalOpen] = useState(false)
   const [isBgSelectorOpen, setIsBgSelectorOpen] = useState(false)
   const [isMusicModalOpen, setIsMusicModalOpen] = useState(false)
+  const [isBlockerModalOpen, setIsBlockerModalOpen] = useState(false)
+  const [blockerConfig, setBlockerConfig] = useState(loadAppBlockerConfig)
 
   const { isPlaying: isMusicPlaying, currentTrack } = useFocusMusic()
 
@@ -125,8 +133,26 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
           <span>Focus Environment</span>
         </div>
 
-        {/* Top Control Chips: Music & Theme */}
+        {/* Top Control Chips: App Blocker, Music & Theme */}
         <div className="flex items-center gap-2">
+          {/* App Blocker Button */}
+          <button
+            onClick={() => setIsBlockerModalOpen(true)}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full backdrop-blur-md border text-xs font-semibold transition-all cursor-pointer shadow-lg group ${
+              blockerConfig.enabled
+                ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white shadow-[0_0_15px_rgba(107,234,69,0.25)]'
+                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white/80 hover:border-white/40'
+            }`}
+            title="Configure Distraction App Blocker"
+          >
+            <ShieldAlert className={`w-3.5 h-3.5 ${blockerConfig.enabled ? 'text-[#6BEA45]' : 'text-white/60 group-hover:text-white'}`} />
+            <span>
+              {blockerConfig.enabled
+                ? `Shield: ${blockerConfig.selectedPackages.length} Apps`
+                : 'App Blocker'}
+            </span>
+          </button>
+
           {/* Music Button */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
@@ -269,6 +295,13 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
         onClose={() => setIsBgSelectorOpen(false)}
         currentBackgroundId={backgroundId}
         onSelectBackground={(id) => setBackgroundId(id)}
+      />
+
+      {/* Distraction App Blocker Modal */}
+      <AppBlockerModal
+        isOpen={isBlockerModalOpen}
+        onClose={() => setIsBlockerModalOpen(false)}
+        onConfigChange={(cfg) => setBlockerConfig(cfg)}
       />
     </div>
   )

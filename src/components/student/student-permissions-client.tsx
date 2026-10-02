@@ -29,6 +29,7 @@ import {
   checkOverlayPermission,
   requestOverlayPermission,
 } from '@/lib/focus/android-capabilities'
+import { AppBlockerModal } from '@/components/focus/app-blocker-modal'
 
 interface PermissionItemState {
   appBlocking: { granted: boolean; checked: boolean }
@@ -41,6 +42,7 @@ export function StudentPermissionsClient() {
   const [isAndroid, setIsAndroid] = useState(false)
   const [loading, setLoading] = useState(true)
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
+  const [isBlockerModalOpen, setIsBlockerModalOpen] = useState(false)
 
   const [permissions, setPermissions] = useState<PermissionItemState>({
     appBlocking: { granted: false, checked: false },
@@ -223,8 +225,18 @@ export function StudentPermissionsClient() {
               </div>
             </div>
 
-            {isAndroid && (
-              <div className="shrink-0 sm:self-center pt-2 sm:pt-0">
+            <div className="flex items-center gap-2 shrink-0 sm:self-center pt-2 sm:pt-0 flex-wrap">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsBlockerModalOpen(true)}
+                className="text-xs font-semibold h-9 px-3 gap-1.5"
+              >
+                <Shield className="h-3.5 w-3.5" />
+                <span>Configure Apps</span>
+              </Button>
+
+              {isAndroid && (
                 <Button
                   size="sm"
                   variant={permissions.appBlocking.granted ? 'outline' : 'primary'}
@@ -235,8 +247,8 @@ export function StudentPermissionsClient() {
                   <ExternalLink className="h-3.5 w-3.5" />
                   <span>{permissions.appBlocking.granted ? 'Open Settings' : 'Enable'}</span>
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
           <p className="text-[11px] text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-[#202920] pt-2">
             {isAndroid
@@ -403,6 +415,15 @@ export function StudentPermissionsClient() {
           </p>
         </div>
       </div>
+
+      {/* App Blocker Configuration Modal */}
+      <AppBlockerModal
+        isOpen={isBlockerModalOpen}
+        onClose={() => {
+          setIsBlockerModalOpen(false)
+          refreshPermissions()
+        }}
+      />
     </div>
   )
 }

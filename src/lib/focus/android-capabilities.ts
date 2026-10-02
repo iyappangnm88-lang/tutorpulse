@@ -1,5 +1,6 @@
-import { Capacitor, registerPlugin } from '@capacitor/core'
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { FocusCapabilities, PermissionStatus, PermissionRequestResult } from './types'
+import { PRESET_DISTRACTING_APPS, type BlockedApp } from './app-blocker-config'
 
 interface FocusAndroidNativePlugin {
   isOverlayPermissionGranted(): Promise<{ granted: boolean; supported: boolean }>
@@ -15,6 +16,14 @@ interface FocusAndroidNativePlugin {
     canUsageStats: boolean
     needsRuntimeNotificationPermission: boolean
   }>
+  getInstalledApps(): Promise<{ apps: Array<{ packageName: string; appName: string; isSystem: boolean }> }>
+  startAppBlocking(options: { packages: string[] }): Promise<{ success: boolean; count: number }>
+  stopAppBlocking(): Promise<{ success: boolean }>
+  isAppBlockingActive(): Promise<{ active: boolean; count: number }>
+  addListener(
+    eventName: 'appBlocked',
+    listenerFunc: (event: { blockedPackage: string; timestamp: number }) => void
+  ): Promise<PluginListenerHandle>
 }
 
 const FocusAndroid = registerPlugin<FocusAndroidNativePlugin>('FocusAndroid')
@@ -238,4 +247,111 @@ export async function requestAppBlockingPermission(): Promise<PermissionRequestR
 
   return { opened: false, alreadyGranted: true }
 }
+
+/**
+ * Retrieves the list of apps installed on the device (or curated presets on Web).
+ */
+export async function getInstalledApps(): Promise<BlockedApp[]> {
+  if (!isAndroidNative()) {
+    return PRESET_DISTRACTING_APPS
+  }
+
+  try {
+    const res = await FocusAndroid.getInstalledApps()
+    if (res && Array.isArray(res.apps) && res.apps.length > 0) {
+      const presetMap = new Map(PRESET_DISTRACTING_APPS.map((a) => [a.packageName, a]))
+      
+      return res.apps.map((app) => {
+        const preset = presetMap.get(app.packageName)
+        return {
+          packageName: app.packageName,
+          appName: app.appName || preset?.appName || app.packageName,
+          isSystem: app.isSystem,
+          category: preset?.category || (app.isSystem ? 'other' : 'social'),
+          iconEmoji: preset?.iconEmoji,
+        }
+      })
+    }
+  } catch (err) {
+    console.warn('[FocusAndroid] getInstalledApps error, falling back to presets:', err)
+  }
+
+  return PRESET_DISTRACTING_APPS
+}
+
+/**
+ * Starts native app blocking for the specified package names.
+ */
+export async function startNativeAppBlocking(packages: string[]): Promise<{ success: boolean; count: number }> {
+  if (!isAndroidNative() || packages.length === 0) {
+    return { success: false, count: 0 }
+  }
+
+  try {
+    const res = await FocusAndroid.startAppBlocking({ packages })
+    return { success: Boolean(res.success), count: res.count || packages.length }
+  } catch (err) {
+    console.warn('[FocusAndroid] startAppBlocking error:', err)
+    return { success: false, count: 0 }
+  }
+}
+
+/**
+ * Stops active native app blocking.
+ */
+export async function stopNativeAppBlocking(): Promise<{ success: boolean }> {
+  if (!isAndroidNative()) {
+    return { success: false }
+  }
+
+  try {
+    const res = await FocusAndroid.stopAppBlocking()
+    return { success: Boolean(res.success) }
+  } catch (err) {
+    console.warn('[FocusAndroid] stopAppBlocking error:', err)
+    return { success: false }
+  }
+}
+
+/**
+ * Checks whether native app blocking is actively running.
+ */
+export async function isNativeAppBlockingActive(): Promise<{ active: boolean; count: number }> {
+  if (!isAndroidNative()) {
+    return { active: false, count: 0 }
+  }
+
+  try {
+    const res = await FocusAndroid.isAppBlockingActive()
+    return { active: Boolean(res.active), count: res.count || 0 }
+  } catch (err) {
+    console.warn('[FocusAndroid] isAppBlockingActive error:', err)
+    return { active: false, count: 0 }
+  }
+}
+
+/**
+ * Subscribes to native appBlocked events.
+ */
+export function onAppBlocked(callback: (event: { blockedPackage: string; timestamp: number }) => void): () => void {
+  if (!isAndroidNative()) {
+    return () => {}
+  }
+
+  let handle: PluginListenerHandle | null = null
+  FocusAndroid.addListener('appBlocked', callback)
+    .then((h) => {
+      handle = h
+    })
+    .catch((err) => {
+      console.warn('[FocusAndroid] Failed to add appBlocked listener:', err)
+    })
+
+  return () => {
+    if (handle) {
+      handle.remove().catch(() => {})
+    }
+  }
+}
+
 

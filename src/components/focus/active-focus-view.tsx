@@ -23,6 +23,7 @@ import {
   Unlock,
   Square,
   WifiOff,
+  ShieldAlert,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,6 +40,15 @@ import {
   syncPendingFocusSessions,
 } from '@/lib/focus/focus-timer'
 import {
+  loadAppBlockerConfig,
+  type AppBlockerConfig,
+} from '@/lib/focus/app-blocker-config'
+import {
+  startNativeAppBlocking,
+  stopNativeAppBlocking,
+  onAppBlocked,
+} from '@/lib/focus/android-capabilities'
+import {
   pauseFocusSessionAction,
   resumeFocusSessionAction,
   completeFocusSessionAction,
@@ -53,6 +63,10 @@ const FocusBackgroundSelector = dynamic(
 )
 const FocusMusicModal = dynamic(
   () => import('./focus-music-modal').then((m) => m.FocusMusicModal),
+  { ssr: false }
+)
+const AppBlockerModal = dynamic(
+  () => import('./app-blocker-modal').then((m) => m.AppBlockerModal),
   { ssr: false }
 )
 
@@ -83,6 +97,9 @@ export function ActiveFocusView({
   const [isProcessing, setIsProcessing] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isOfflineSavedNotice, setIsOfflineSavedNotice] = useState(false)
+  const [isBlockerModalOpen, setIsBlockerModalOpen] = useState(false)
+  const [blockerConfig, setBlockerConfig] = useState<AppBlockerConfig>(loadAppBlockerConfig)
+  const [blockedNotice, setBlockedNotice] = useState<string | null>(null)
 
   // Deliberate "Stop Focusing" right-to-left protective animation state
   const [unlockProgress, setUnlockProgress] = useState(0) // 0 to 100
@@ -94,6 +111,26 @@ export function ActiveFocusView({
   isCompletedRef.current = isCompletedState
 
   const currentBg = FOCUS_BACKGROUNDS.find((b) => b.id === currentSession.backgroundId) || FOCUS_BACKGROUNDS[0]
+
+  // Native App Blocker Lifecycle during Focus Session
+  useEffect(() => {
+    if (isCompletedRef.current) return
+    const cfg = loadAppBlockerConfig()
+    setBlockerConfig(cfg)
+    if (cfg.enabled && cfg.selectedPackages.length > 0) {
+      startNativeAppBlocking(cfg.selectedPackages)
+    }
+
+    const unsubBlock = onAppBlocked(() => {
+      setBlockedNotice('Distracting app blocked! Great job staying focused.')
+      setTimeout(() => setBlockedNotice(null), 4000)
+    })
+
+    return () => {
+      stopNativeAppBlocking()
+      unsubBlock()
+    }
+  }, [])
 
   // Right-to-left protective cover animation loop when confirmation dialog opens
   useEffect(() => {
@@ -201,6 +238,7 @@ export function ActiveFocusView({
     const coins = finalFocusSec >= 1500 ? 5 : (finalFocusSec >= 600 ? 2 : 1)
 
     // 1. Instant local rewards & state update
+    stopNativeAppBlocking().catch(() => {})
     setCompletionRewards({ xp, coins })
     const completed = endFocusSession(currentSession, true, xp, coins)
     setCurrentSession(completed)
@@ -276,7 +314,8 @@ export function ActiveFocusView({
     const minutes = Math.floor(totalFocus / 60)
     const partialXp = totalFocus >= 300 ? minutes : 0
 
-    // 1. Instant local completion
+    // 1. Instant local completion & stop blocker
+    stopNativeAppBlocking().catch(() => {})
     endFocusSession(currentSession, false, partialXp, 0)
     if (totalFocus > 0) {
       updateLocalFocusStatsOptimistic(totalFocus, currentSession.subject)
@@ -449,6 +488,22 @@ export function ActiveFocusView({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* App Blocker Shield Chip in Active Mode */}
+          <button
+            onClick={() => setIsBlockerModalOpen(true)}
+            className={`h-9 px-3 rounded-xl backdrop-blur-md border flex items-center gap-1.5 transition-all cursor-pointer text-xs font-bold ${
+              blockerConfig.enabled
+                ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white shadow-[0_0_15px_rgba(107,234,69,0.25)]'
+                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white/70'
+            }`}
+            title="App Blocker Shield"
+          >
+            <ShieldAlert className={`w-3.5 h-3.5 ${blockerConfig.enabled ? 'text-[#6BEA45]' : 'text-white/60'}`} />
+            <span className="hidden sm:inline">
+              {blockerConfig.enabled ? `Shield: ${blockerConfig.selectedPackages.length}` : 'Shield'}
+            </span>
+          </button>
+
           {/* Music Player Button in Active Mode */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
@@ -501,6 +556,16 @@ export function ActiveFocusView({
           </button>
         </div>
       </div>
+
+      {/* Blocked App Intercept Banner */}
+      {blockedNotice && (
+        <div className="relative z-20 mx-auto -mt-2 mb-2 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/90 text-[#0B0F0C] font-bold text-xs shadow-2xl backdrop-blur-md border border-amber-300/40">
+            <ShieldAlert className="h-4 w-4 shrink-0" />
+            <span>{blockedNotice}</span>
+          </div>
+        </div>
+      )}
 
       {/* 3. Center Dominant Countdown / Countup Circle */}
       <div className="relative z-10 flex flex-col items-center justify-center my-auto">
@@ -613,6 +678,20 @@ export function ActiveFocusView({
           const updated = { ...currentSession, backgroundId: newBgId }
           setCurrentSession(updated)
           onUpdateSession(updated)
+        }}
+      />
+
+      {/* App Blocker Config Modal in Active Mode */}
+      <AppBlockerModal
+        isOpen={isBlockerModalOpen}
+        onClose={() => setIsBlockerModalOpen(false)}
+        onConfigChange={(cfg) => {
+          setBlockerConfig(cfg)
+          if (cfg.enabled && cfg.selectedPackages.length > 0) {
+            startNativeAppBlocking(cfg.selectedPackages)
+          } else {
+            stopNativeAppBlocking()
+          }
         }}
       />
 
