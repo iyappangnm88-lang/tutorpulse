@@ -99,7 +99,7 @@ export function StudyGroupClient({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 pb-16 lg:pb-0 animate-in fade-in duration-300">
       {/* Back Button */}
       <div>
         <Link

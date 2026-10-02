@@ -72,9 +72,9 @@ export function GroupChat({
   }
 
   return (
-    <div className="flex flex-col h-[520px] rounded-2xl bg-white dark:bg-[#161D16] border border-gray-200/80 dark:border-[#293329] shadow-2xs overflow-hidden">
+    <div className="flex flex-col h-[480px] sm:h-[520px] rounded-2xl bg-white dark:bg-[#161D16] border border-gray-200/80 dark:border-[#293329] shadow-2xs overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-[#293329] bg-gray-50/50 dark:bg-[#111711]/60">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-[#293329] bg-gray-50/50 dark:bg-[#111711]/60 shrink-0">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-[#55C832] dark:text-[#6BEA45]" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-[#172B4D] dark:text-[#F4F7F2]">
@@ -157,7 +157,7 @@ export function GroupChat({
 
       {/* Limit Banner if reached */}
       {isLimitReached && isMember && (
-        <div className="px-4 py-2.5 bg-amber-50 dark:bg-amber-950/30 border-t border-amber-200/80 dark:border-amber-800/40 flex items-center justify-between text-xs">
+        <div className="px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border-t border-amber-200/80 dark:border-amber-800/40 flex items-center justify-between text-xs shrink-0">
           <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
             <Sparkles className="h-3.5 w-3.5 text-amber-500" />
             <span>Daily free limit reached (20/20).</span>
@@ -174,7 +174,7 @@ export function GroupChat({
 
       {/* Error alert */}
       {errorMsg && (
-        <div className="px-4 py-1.5 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-[11px] flex items-center gap-1.5 border-t border-red-100 dark:border-red-900/30">
+        <div className="px-4 py-1.5 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-[11px] flex items-center gap-1.5 border-t border-red-100 dark:border-red-900/30 shrink-0">
           <AlertCircle className="h-3 w-3 shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -183,7 +183,7 @@ export function GroupChat({
       {/* Input Form */}
       <form
         onSubmit={handleSendMessage}
-        className="p-2.5 border-t border-gray-100 dark:border-[#293329] bg-white dark:bg-[#161D16] flex items-center gap-2"
+        className="p-3 sm:p-2.5 border-t border-gray-100 dark:border-[#293329] bg-white dark:bg-[#161D16] flex items-center gap-2 shrink-0"
       >
         <input
           type="text"
@@ -197,14 +197,14 @@ export function GroupChat({
           }
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          className="flex-1 bg-gray-50 dark:bg-[#111711] border border-gray-200 dark:border-[#293329] rounded-xl px-3 py-2 text-xs text-[#172B4D] dark:text-[#F4F7F2] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#55C832] disabled:opacity-60"
+          className="flex-1 bg-gray-50 dark:bg-[#111711] border border-gray-200 dark:border-[#293329] rounded-xl px-3.5 py-2.5 sm:py-2 text-[13px] sm:text-xs text-[#172B4D] dark:text-[#F4F7F2] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#55C832] disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={!inputValue.trim() || !isMember || isLimitReached || isSending}
-          className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#55C832] hover:bg-[#318A25] text-white shadow-2xs transition-all disabled:opacity-40 cursor-pointer"
+          className="h-9 w-9 sm:h-8 sm:w-8 flex items-center justify-center rounded-xl bg-[#55C832] hover:bg-[#318A25] text-white shadow-2xs transition-all disabled:opacity-40 cursor-pointer shrink-0"
         >
-          <Send className="h-3.5 w-3.5" />
+          <Send className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
         </button>
       </form>
     </div>
