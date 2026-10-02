@@ -89,10 +89,13 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
 
   return (
     <div className="relative min-h-[calc(100vh-8rem)] w-full rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between p-6 sm:p-10 select-none">
-      {/* 1. Scenic Cover Background Asset */}
+      {/* 1. Scenic Cover Background Asset (Unscaled, Crisp High-Resolution) */}
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-105"
-        style={{ backgroundImage: 'url(' + currentBg.src + ')' }}
+        className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-700"
+        style={{
+          backgroundImage: 'url(' + currentBg.src + ')',
+          backgroundPosition: currentBg.position || 'center',
+        }}
       />
 
       {/* Subtle Readability Vignette */}

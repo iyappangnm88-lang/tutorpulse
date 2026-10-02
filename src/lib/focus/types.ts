@@ -41,6 +41,7 @@ export interface FocusBackground {
   category: 'Nature' | string
   src: string
   thumbnail: string
+  position?: string
   isDefault?: boolean
 }
 
@@ -54,39 +55,44 @@ export const FOCUS_BACKGROUNDS: FocusBackground[] = [
     category: 'Nature',
     src: '/backgrounds/focus/mountain-sky.jpg',
     thumbnail: '/backgrounds/focus/mountain-sky.jpg',
+    position: 'center 40%',
     isDefault: true,
-  },
-  {
-    id: 'wildflowers',
-    name: 'Sunny Wildflowers',
-    subtitle: 'Warm sunlight & blooming daisies',
-    category: 'Nature',
-    src: '/backgrounds/focus/nature-wildflowers.jpg',
-    thumbnail: '/backgrounds/focus/nature-wildflowers.jpg',
-  },
-  {
-    id: 'sunset',
-    name: 'Twilight Meadow',
-    subtitle: 'Gentle dusk & violet blooms',
-    category: 'Nature',
-    src: '/backgrounds/focus/nature-twilight-meadow.jpg',
-    thumbnail: '/backgrounds/focus/nature-twilight-meadow.jpg',
   },
   {
     id: 'waterfall',
     name: 'Golden Waterfall',
     subtitle: 'Autumn canopy & turquoise cascade',
     category: 'Nature',
-    src: '/backgrounds/focus/nature-golden-waterfall.jpg',
-    thumbnail: '/backgrounds/focus/nature-golden-waterfall.jpg',
+    src: '/backgrounds/focus/autumn-waterfall.jpg',
+    thumbnail: '/backgrounds/focus/autumn-waterfall.jpg',
+    position: 'center 35%',
   },
   {
     id: 'snow',
     name: 'Snowy Peaks',
     subtitle: 'Crisp Himalayan peaks & winter valley',
     category: 'Nature',
-    src: '/backgrounds/focus/nature-snowy-peaks.jpg',
-    thumbnail: '/backgrounds/focus/nature-snowy-peaks.jpg',
+    src: '/backgrounds/focus/snowy-peaks.jpg',
+    thumbnail: '/backgrounds/focus/snowy-peaks.jpg',
+    position: 'center 25%',
+  },
+  {
+    id: 'sunset',
+    name: 'Twilight Meadow',
+    subtitle: 'Gentle dusk & violet blooms',
+    category: 'Nature',
+    src: '/backgrounds/focus/purple-sunset.png',
+    thumbnail: '/backgrounds/focus/purple-sunset.png',
+    position: 'center',
+  },
+  {
+    id: 'wildflowers',
+    name: 'Sunny Wildflowers',
+    subtitle: 'Warm sunlight & blooming daisies',
+    category: 'Nature',
+    src: '/backgrounds/focus/wildflowers.png',
+    thumbnail: '/backgrounds/focus/wildflowers.png',
+    position: 'center 60%',
   },
   {
     id: 'starry',
@@ -95,6 +101,7 @@ export const FOCUS_BACKGROUNDS: FocusBackground[] = [
     category: 'Nature',
     src: '/backgrounds/focus/nature-starry-forest.jpg',
     thumbnail: '/backgrounds/focus/nature-starry-forest.jpg',
+    position: 'center 25%',
   },
 ]
 

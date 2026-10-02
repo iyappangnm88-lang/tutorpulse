@@ -99,8 +99,11 @@ export function FocusBackgroundSelector({
               >
                 {/* Background Image Preview */}
                 <div
-                  className="h-32 w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105 relative"
-                  style={{ backgroundImage: `url(${bg.src})` }}
+                  className="h-32 w-full bg-cover bg-no-repeat transition-transform duration-300 group-hover:scale-105 relative"
+                  style={{
+                    backgroundImage: `url(${bg.src})`,
+                    backgroundPosition: bg.position || 'center',
+                  }}
                 >
                   {/* Subtle Gradient in Card */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />

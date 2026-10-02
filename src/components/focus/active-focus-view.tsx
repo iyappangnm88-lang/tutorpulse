@@ -217,8 +217,11 @@ export function ActiveFocusView({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-6 select-none animate-in fade-in duration-300">
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(' + currentBg.src + ')' }}
+          className="absolute inset-0 bg-cover bg-no-repeat"
+          style={{
+            backgroundImage: 'url(' + currentBg.src + ')',
+            backgroundPosition: currentBg.position || 'center',
+          }}
         />
         <div className="absolute inset-0 bg-black/75 backdrop-blur-md" />
 
@@ -273,13 +276,16 @@ export function ActiveFocusView({
     <div className="fixed inset-0 z-50 flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden text-white">
       {/* 1. Immersive Fullscreen Background Scenery */}
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-105"
-        style={{ backgroundImage: 'url(' + currentBg.src + ')' }}
+        className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-700"
+        style={{
+          backgroundImage: 'url(' + currentBg.src + ')',
+          backgroundPosition: currentBg.position || 'center',
+        }}
       />
 
       {/* Vignette Overlay for Crisp Readability */}
       <div className={'absolute inset-0 pointer-events-none transition-colors duration-500 ' + (
-        isBreak ? 'bg-amber-950/40 backdrop-blur-xs' : 'bg-black/40'
+        isBreak ? 'bg-amber-950/40' : 'bg-black/35'
       )} />
 
       {/* 2. Top Header Status Bar */}
