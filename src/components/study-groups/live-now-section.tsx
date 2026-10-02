@@ -59,7 +59,8 @@ export function LiveNowSection({ liveUsers, onStartFocus }: LiveNowSectionProps)
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {activeUsers.map((liveUser) => {
-            const initial = (liveUser.user.full_name || 'U').charAt(0).toUpperCase()
+            const name = liveUser.user?.full_name || 'Student'
+            const initial = name.charAt(0).toUpperCase()
             return (
               <div
                 key={liveUser.id}
@@ -75,7 +76,7 @@ export function LiveNowSection({ liveUsers, onStartFocus }: LiveNowSectionProps)
 
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-[#172B4D] dark:text-[#F4F7F2] truncate">
-                      {liveUser.user.full_name}
+                      {name}
                     </p>
                     <p className="text-[10px] text-gray-500 dark:text-[#A8B3A5] truncate">
                       {liveUser.subject || 'General Focus'}

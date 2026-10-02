@@ -63,7 +63,9 @@ export function GroupLeaderboard({ tiers, rankedMembers, currentUserId }: GroupL
               <div className="space-y-1.5">
                 {tierGroup.members.map((member) => {
                   const isMe = member.user_id === currentUserId
-                  const initial = (member.user.full_name || 'M').charAt(0).toUpperCase()
+                  const rawName = member.user?.full_name || (isMe ? 'You' : 'Student')
+                  const displayName = rawName === 'You' ? (isMe ? 'You' : 'Member') : `${rawName}${isMe ? ' (You)' : ''}`
+                  const initial = (rawName || 'S').charAt(0).toUpperCase()
 
                   return (
                     <div
@@ -84,7 +86,7 @@ export function GroupLeaderboard({ tiers, rankedMembers, currentUserId }: GroupL
                         </div>
 
                         <span className="text-gray-800 dark:text-[#F4F7F2] truncate font-medium">
-                          {member.user.full_name} {isMe && '(You)'}
+                          {displayName}
                         </span>
 
                         {member.role === 'owner' && (

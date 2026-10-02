@@ -349,3 +349,78 @@ CREATE POLICY "study_group_join_requests_update_policy"
     TO authenticated
     USING (public.is_study_group_admin(group_id, auth.uid()))
     WITH CHECK (public.is_study_group_admin(group_id, auth.uid()));
+
+-- ==============================================================================
+-- 10. Participant Identity Resolution RPC & Profile Policies
+-- ==============================================================================
+
+CREATE OR REPLACE FUNCTION public.get_study_group_user_profiles(p_user_ids UUID[])
+RETURNS TABLE (
+    id UUID,
+    full_name TEXT,
+    avatar_url TEXT,
+    grade_level TEXT
+)
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+    WITH all_profiles AS (
+        SELECT 
+            p.id,
+            COALESCE(NULLIF(TRIM(p.full_name), ''), NULLIF(TRIM(sp.full_name), ''), 'Study Partner') AS full_name,
+            COALESCE(p.avatar_url, sp.avatar_url) AS avatar_url,
+            sp.grade_level
+        FROM public.profiles p
+        LEFT JOIN public.student_profiles sp ON sp.id = p.id
+        WHERE p.id = ANY(p_user_ids)
+        
+        UNION ALL
+        
+        SELECT
+            sp.id,
+            COALESCE(NULLIF(TRIM(sp.full_name), ''), 'Study Partner') AS full_name,
+            sp.avatar_url,
+            sp.grade_level
+        FROM public.student_profiles sp
+        WHERE sp.id = ANY(p_user_ids)
+          AND NOT EXISTS (SELECT 1 FROM public.profiles p2 WHERE p2.id = sp.id)
+    )
+    SELECT DISTINCT ON (id) id, full_name, avatar_url, grade_level
+    FROM all_profiles;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_study_group_user_profiles(UUID[]) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_study_group_user_profiles(UUID[]) TO anon;
+
+DROP POLICY IF EXISTS "Users can view study group member profiles" ON public.profiles;
+CREATE POLICY "Users can view study group member profiles"
+    ON public.profiles FOR SELECT
+    TO authenticated
+    USING (
+        auth.uid() = id
+        OR is_public_marketplace = TRUE
+        OR EXISTS (
+            SELECT 1 FROM public.student_tutor_connections
+            WHERE (student_user_id = auth.uid() AND tutor_id = profiles.id)
+               OR (tutor_id = auth.uid() AND student_user_id = profiles.id)
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.study_group_members m1
+            JOIN public.study_group_members m2 ON m1.group_id = m2.group_id
+            WHERE m1.user_id = auth.uid() AND m2.user_id = profiles.id
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.study_groups g
+            WHERE (g.visibility = 'public' OR g.created_by = auth.uid() OR public.is_study_group_member(g.id, auth.uid()))
+              AND (
+                g.created_by = profiles.id
+                OR EXISTS (SELECT 1 FROM public.study_group_members gm WHERE gm.group_id = g.id AND gm.user_id = profiles.id)
+                OR EXISTS (SELECT 1 FROM public.study_group_live_focus gl WHERE gl.group_id = g.id AND gl.user_id = profiles.id)
+                OR EXISTS (SELECT 1 FROM public.study_group_messages gmsg WHERE gmsg.group_id = g.id AND gmsg.user_id = profiles.id)
+                OR EXISTS (SELECT 1 FROM public.study_group_join_requests gjr WHERE gjr.group_id = g.id AND gjr.user_id = profiles.id)
+              )
+        )
+    );
+

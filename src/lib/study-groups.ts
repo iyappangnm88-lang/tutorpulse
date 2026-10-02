@@ -215,6 +215,102 @@ export async function getDiscoverStudyGroups(
 /**
  * Fetches complete details of a single study group.
  */
+interface ResolvedProfile {
+  id: string
+  full_name: string
+  avatar_url: string | null
+  grade_level?: string | null
+}
+
+/**
+ * Resolves full names and avatars across profiles, student_profiles, and auth metadata.
+ */
+async function resolveUserProfiles(
+  supabase: any,
+  userIds: string[],
+  currentUserId?: string
+): Promise<Map<string, ResolvedProfile>> {
+  const profileMap = new Map<string, ResolvedProfile>()
+  const cleanIds = Array.from(new Set((userIds || []).filter(Boolean)))
+  if (cleanIds.length === 0) return profileMap
+
+  // 1. Attempt secure RPC batch resolution
+  try {
+    const { data: rpcProfiles, error: rpcError } = await supabase.rpc('get_study_group_user_profiles', {
+      p_user_ids: cleanIds,
+    })
+
+    if (!rpcError && Array.isArray(rpcProfiles)) {
+      for (const p of rpcProfiles) {
+        if (p?.id && p?.full_name && p.full_name !== 'Study Partner') {
+          profileMap.set(p.id, {
+            id: p.id,
+            full_name: p.full_name,
+            avatar_url: p.avatar_url || null,
+            grade_level: p.grade_level || null,
+          })
+        }
+      }
+    }
+  } catch {
+    // RPC may not be migrated yet or unavailable in some environments
+  }
+
+  // 2. Query profiles and student_profiles for any unresolved user IDs
+  const missingIds = cleanIds.filter((id) => !profileMap.has(id))
+  if (missingIds.length > 0) {
+    try {
+      const [pRes, spRes] = await Promise.all([
+        supabase.from('profiles').select('id, full_name, avatar_url').in('id', missingIds),
+        supabase.from('student_profiles').select('id, full_name, avatar_url, grade_level').in('id', missingIds),
+      ])
+
+      const pData: Array<{ id: string; full_name?: string | null; avatar_url?: string | null }> = pRes.data || []
+      const spData: Array<{ id: string; full_name?: string | null; avatar_url?: string | null; grade_level?: string | null }> = spRes.data || []
+
+      const pLookup = new Map(pData.map((p) => [p.id, p]))
+      const spLookup = new Map(spData.map((sp) => [sp.id, sp]))
+
+      for (const id of missingIds) {
+        const p = pLookup.get(id)
+        const sp = spLookup.get(id)
+
+        const rawName = p?.full_name?.trim() || sp?.full_name?.trim()
+        const avatarUrl = p?.avatar_url || sp?.avatar_url || null
+        const gradeLevel = sp?.grade_level || null
+
+        if (rawName) {
+          profileMap.set(id, {
+            id,
+            full_name: rawName,
+            avatar_url: avatarUrl,
+            grade_level: gradeLevel,
+          })
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching fallback profiles:', err)
+    }
+  }
+
+  // 3. Fallback for any still-unresolved IDs
+  for (const id of cleanIds) {
+    if (!profileMap.has(id)) {
+      const isCurrent = id === currentUserId
+      profileMap.set(id, {
+        id,
+        full_name: isCurrent ? 'You' : 'Student',
+        avatar_url: null,
+      })
+    }
+  }
+
+  return profileMap
+}
+
+/**
+ * Fetches complete details of a single study group.
+ */
 export async function getStudyGroupDetails(
   groupId: string,
   userId: string
@@ -271,22 +367,71 @@ export async function getStudyGroupDetails(
       .eq('group_id', groupId)
 
     const rawMembers = membersRaw || []
-    const memberUserIds = rawMembers.map((m) => m.user_id)
 
-    // Fetch member profiles
-    let profilesMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>()
-    if (memberUserIds.length > 0) {
-      const { data: profs } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', memberUserIds)
+    // 3. Determine my role & request status
+    const myRawMember = rawMembers.find((m) => m.user_id === userId)
+    const myRole = (myRawMember?.role as 'owner' | 'admin' | 'member') || (groupData.created_by === userId ? 'owner' : null)
 
-      ;(profs || []).forEach((p) => {
-        profilesMap.set(p.id, p)
-      })
+    let myRequestStatus: 'pending' | 'approved' | 'rejected' | null = null
+    if (!myRawMember) {
+      const { data: req } = await supabase
+        .from('study_group_join_requests')
+        .select('status')
+        .eq('group_id', groupId)
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (req) {
+        myRequestStatus = req.status as 'pending' | 'approved' | 'rejected'
+      }
     }
 
-    // 3. Fetch weekly focus stats per user in this group
+    // 4. Fetch Live Users
+    const activeHeartbeatThreshold = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+    const { data: liveRaw } = await supabase
+      .from('study_group_live_focus')
+      .select('id, group_id, user_id, session_id, subject, started_at, last_heartbeat, is_paused')
+      .eq('group_id', groupId)
+      .eq('is_paused', false)
+      .gte('last_heartbeat', activeHeartbeatThreshold)
+
+    const rawLive = liveRaw || []
+
+    // 5. Fetch Messages (last 50)
+    const { data: msgsRaw } = await supabase
+      .from('study_group_messages')
+      .select('id, group_id, user_id, content, created_at')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true })
+      .limit(50)
+
+    const rawMsgs = msgsRaw || []
+
+    // 6. Fetch pending requests if owner or admin
+    let rawReqs: Array<{ id: string; group_id: string; user_id: string; status: string; created_at: string }> = []
+    if (myRole === 'owner' || myRole === 'admin') {
+      const { data: reqsData } = await supabase
+        .from('study_group_join_requests')
+        .select('id, group_id, user_id, status, created_at')
+        .eq('group_id', groupId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true })
+
+      rawReqs = reqsData || []
+    }
+
+    // 7. Collect all unique user IDs for complete batch identity resolution
+    const allUserIds = [
+      groupData.created_by,
+      userId,
+      ...rawMembers.map((m) => m.user_id),
+      ...rawLive.map((l) => l.user_id),
+      ...rawMsgs.map((m) => m.user_id),
+      ...rawReqs.map((r) => r.user_id),
+    ]
+
+    const profilesMap = await resolveUserProfiles(supabase, allUserIds, userId)
+
+    // 8. Fetch weekly focus stats per user in this group
     const { data: weeklyFocusData } = await supabase
       .from('focus_sessions')
       .select('student_user_id, actual_duration_sec')
@@ -301,7 +446,7 @@ export async function getStudyGroupDetails(
       userFocusMap.set(row.student_user_id, (userFocusMap.get(row.student_user_id) || 0) + sec)
     })
 
-    // Format members
+    // 9. Format members
     const members: StudyGroupMember[] = rawMembers.map((m) => {
       const p = profilesMap.get(m.user_id)
       return {
@@ -312,7 +457,7 @@ export async function getStudyGroupDetails(
         joined_at: m.joined_at,
         user: {
           id: m.user_id,
-          full_name: p?.full_name || 'Member',
+          full_name: p?.full_name || (m.user_id === userId ? 'You' : 'Student'),
           avatar_url: p?.avatar_url || null,
         },
         weekly_focus_seconds: userFocusMap.get(m.user_id) || 0,
@@ -320,45 +465,9 @@ export async function getStudyGroupDetails(
     })
 
     const { rankedMembers, tiers } = calculateLeaderboardTiers(members)
-
     const myMemberRecord = rankedMembers.find((m) => m.user_id === userId) || null
-    const myRole = myMemberRecord?.role || (groupData.created_by === userId ? 'owner' : null)
 
-    // 4. Fetch my join request if not a member
-    let myRequestStatus: 'pending' | 'approved' | 'rejected' | null = null
-    if (!myMemberRecord) {
-      const { data: req } = await supabase
-        .from('study_group_join_requests')
-        .select('status')
-        .eq('group_id', groupId)
-        .eq('user_id', userId)
-        .maybeSingle()
-      if (req) {
-        myRequestStatus = req.status as 'pending' | 'approved' | 'rejected'
-      }
-    }
-
-    // 5. Fetch Live Users
-    const activeHeartbeatThreshold = new Date(Date.now() - 2 * 60 * 1000).toISOString()
-    const { data: liveRaw } = await supabase
-      .from('study_group_live_focus')
-      .select('id, group_id, user_id, session_id, subject, started_at, last_heartbeat, is_paused')
-      .eq('group_id', groupId)
-      .eq('is_paused', false)
-      .gte('last_heartbeat', activeHeartbeatThreshold)
-
-    const rawLive = liveRaw || []
-    const liveUserIds = rawLive.map((l) => l.user_id).filter((uid) => !profilesMap.has(uid))
-    if (liveUserIds.length > 0) {
-      const { data: liveProfs } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', liveUserIds)
-      ;(liveProfs || []).forEach((p) => {
-        profilesMap.set(p.id, p)
-      })
-    }
-
+    // 10. Format live users
     const liveUsers: StudyGroupLiveUser[] = rawLive.map((l) => {
       const p = profilesMap.get(l.user_id)
       const start = new Date(l.started_at).getTime()
@@ -376,32 +485,13 @@ export async function getStudyGroupDetails(
         duration_seconds: dur,
         user: {
           id: l.user_id,
-          full_name: p?.full_name || 'Student',
+          full_name: p?.full_name || (l.user_id === userId ? 'You' : 'Student'),
           avatar_url: p?.avatar_url || null,
         },
       }
     })
 
-    // 6. Fetch Messages (last 50)
-    const { data: msgsRaw } = await supabase
-      .from('study_group_messages')
-      .select('id, group_id, user_id, content, created_at')
-      .eq('group_id', groupId)
-      .order('created_at', { ascending: true })
-      .limit(50)
-
-    const rawMsgs = msgsRaw || []
-    const msgUserIds = rawMsgs.map((m) => m.user_id).filter((uid) => !profilesMap.has(uid))
-    if (msgUserIds.length > 0) {
-      const { data: msgProfs } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', msgUserIds)
-      ;(msgProfs || []).forEach((p) => {
-        profilesMap.set(p.id, p)
-      })
-    }
-
+    // 11. Format messages
     const messages: StudyGroupMessage[] = rawMsgs.map((msg) => {
       const p = profilesMap.get(msg.user_id)
       return {
@@ -413,13 +503,13 @@ export async function getStudyGroupDetails(
         is_me: msg.user_id === userId,
         user: {
           id: msg.user_id,
-          full_name: p?.full_name || 'Member',
+          full_name: msg.user_id === userId ? 'You' : p?.full_name || 'Study Partner',
           avatar_url: p?.avatar_url || null,
         },
       }
     })
 
-    // 7. Count messages sent by user today for 20 limit
+    // 12. Count messages sent by user today for 20 limit
     const { count: msgCount } = await supabase
       .from('study_group_messages')
       .select('id', { count: 'exact', head: true })
@@ -427,47 +517,23 @@ export async function getStudyGroupDetails(
       .eq('user_id', userId)
       .gte('created_at', startOfDayIso)
 
-    // 8. Fetch pending requests if owner or admin
-    let joinRequests: StudyGroupJoinRequest[] = []
-    if (myRole === 'owner' || myRole === 'admin') {
-      const { data: reqsRaw } = await supabase
-        .from('study_group_join_requests')
-        .select('id, group_id, user_id, status, created_at')
-        .eq('group_id', groupId)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true })
-
-      const rawReqs = reqsRaw || []
-      const reqUserIds = rawReqs.map((r) => r.user_id)
-      let studentProfsMap = new Map<string, string | null>()
-
-      if (reqUserIds.length > 0) {
-        const [pRes, spRes] = await Promise.all([
-          supabase.from('profiles').select('id, full_name, avatar_url').in('id', reqUserIds),
-          supabase.from('student_profiles').select('user_id, grade_level').in('user_id', reqUserIds),
-        ])
-
-        ;(pRes.data || []).forEach((p) => profilesMap.set(p.id, p))
-        ;(spRes.data || []).forEach((sp: any) => studentProfsMap.set(sp.user_id, sp.grade_level || null))
+    // 13. Format join requests
+    const joinRequests: StudyGroupJoinRequest[] = rawReqs.map((r) => {
+      const p = profilesMap.get(r.user_id)
+      return {
+        id: r.id,
+        group_id: r.group_id,
+        user_id: r.user_id,
+        status: r.status as 'pending' | 'approved' | 'rejected',
+        created_at: r.created_at,
+        user: {
+          id: r.user_id,
+          full_name: p?.full_name || 'Applicant',
+          avatar_url: p?.avatar_url || null,
+          grade_level: p?.grade_level || null,
+        },
       }
-
-      joinRequests = rawReqs.map((r) => {
-        const p = profilesMap.get(r.user_id)
-        return {
-          id: r.id,
-          group_id: r.group_id,
-          user_id: r.user_id,
-          status: r.status as 'pending' | 'approved' | 'rejected',
-          created_at: r.created_at,
-          user: {
-            id: r.user_id,
-            full_name: p?.full_name || 'Applicant',
-            avatar_url: p?.avatar_url || null,
-            grade_level: studentProfsMap.get(r.user_id) || null,
-          },
-        }
-      })
-    }
+    })
 
     const group: StudyGroup = {
       ...groupData,
@@ -497,3 +563,4 @@ export async function getStudyGroupDetails(
     return emptyResult
   }
 }
+

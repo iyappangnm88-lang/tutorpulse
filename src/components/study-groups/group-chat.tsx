@@ -116,7 +116,7 @@ export function GroupChat({
               hour: '2-digit',
               minute: '2-digit',
             })
-            const initial = (msg.user.full_name || 'M').charAt(0).toUpperCase()
+            const initial = (msg.user?.full_name || 'S').charAt(0).toUpperCase()
 
             return (
               <div

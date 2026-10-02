@@ -224,7 +224,9 @@ export function GroupSettingsModal({
             <div className="space-y-3">
               {members.map((member) => {
                 const isMe = member.user_id === currentUserId
-                const initial = (member.user?.full_name || 'M').charAt(0).toUpperCase()
+                const rawName = member.user?.full_name || (isMe ? 'You' : 'Student')
+                const displayName = rawName === 'You' ? (isMe ? 'You' : 'Member') : `${rawName}${isMe ? ' (You)' : ''}`
+                const initial = (rawName || 'S').charAt(0).toUpperCase()
 
                 return (
                   <div
@@ -237,7 +239,7 @@ export function GroupSettingsModal({
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#172B4D] dark:text-[#F4F7F2] truncate">
-                          {member.user?.full_name || 'Member'} {isMe && '(You)'}
+                          {displayName}
                         </p>
                         <span className="text-[10px] font-semibold text-gray-500 capitalize">
                           {member.role}
