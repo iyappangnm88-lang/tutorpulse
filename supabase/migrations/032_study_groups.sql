@@ -1,7 +1,50 @@
 -- ==============================================================================
--- Migration: 032_study_groups.sql
--- Description: Nuzigo Study Groups Compartment Schema
+-- Migration: 032_study_groups.sql (Self-contained)
+-- Description: Nuzigo Focus Sessions & Study Groups Compartment Schema
 -- ==============================================================================
+
+-- 0. Ensure Focus Sessions Table Exists
+CREATE TABLE IF NOT EXISTS public.focus_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    subject TEXT NOT NULL DEFAULT 'General Focus',
+    planned_duration_sec INT NOT NULL DEFAULT 1500,
+    actual_duration_sec INT NOT NULL DEFAULT 0,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ended_at TIMESTAMPTZ,
+    status TEXT NOT NULL DEFAULT 'running' 
+        CHECK (status IN ('running', 'paused', 'completed', 'ended')),
+    xp_awarded INT NOT NULL DEFAULT 0,
+    coins_awarded INT NOT NULL DEFAULT 0,
+    metadata JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_focus_sessions_user ON public.focus_sessions(student_user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_focus_sessions_status ON public.focus_sessions(student_user_id, status);
+CREATE INDEX IF NOT EXISTS idx_focus_sessions_date ON public.focus_sessions(student_user_id, started_at DESC);
+
+ALTER TABLE public.focus_sessions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Students can view their own focus sessions" ON public.focus_sessions;
+CREATE POLICY "Students can view their own focus sessions"
+    ON public.focus_sessions FOR SELECT
+    TO authenticated
+    USING (auth.uid() = student_user_id);
+
+DROP POLICY IF EXISTS "Students can insert their own focus sessions" ON public.focus_sessions;
+CREATE POLICY "Students can insert their own focus sessions"
+    ON public.focus_sessions FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = student_user_id);
+
+DROP POLICY IF EXISTS "Students can update their own focus sessions" ON public.focus_sessions;
+CREATE POLICY "Students can update their own focus sessions"
+    ON public.focus_sessions FOR UPDATE
+    TO authenticated
+    USING (auth.uid() = student_user_id)
+    WITH CHECK (auth.uid() = student_user_id);
 
 -- 1. Study Groups Table
 CREATE TABLE IF NOT EXISTS public.study_groups (
@@ -77,7 +120,7 @@ CREATE TABLE IF NOT EXISTS public.study_group_live_focus (
 
 CREATE INDEX IF NOT EXISTS idx_study_group_live_group ON public.study_group_live_focus(group_id, is_paused);
 
--- 6. Add group_id to focus_sessions
+-- 6. Add group_id column to focus_sessions
 ALTER TABLE public.focus_sessions 
     ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES public.study_groups(id) ON DELETE SET NULL;
 
@@ -91,8 +134,8 @@ ALTER TABLE public.study_group_join_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_group_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_group_live_focus ENABLE ROW LEVEL SECURITY;
 
--- 8. RLS Policies
--- study_groups: Anyone authenticated can view public groups or groups they are members of
+-- 8. Row Level Security Policies
+-- study_groups
 DROP POLICY IF EXISTS "Anyone authenticated can view groups" ON public.study_groups;
 CREATE POLICY "Anyone authenticated can view groups"
     ON public.study_groups FOR SELECT
