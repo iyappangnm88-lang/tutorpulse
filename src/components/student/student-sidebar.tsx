@@ -87,6 +87,7 @@ export function StudentSidebar({
       <Link
         key={item.href}
         href={item.href}
+        prefetch={true}
         onClick={mobile ? handleClose : undefined}
         className={cn(
           'group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[42px]',
@@ -190,6 +191,7 @@ export function StudentSidebar({
       <div className="border-t border-gray-100 dark:border-[#202920] p-4 space-y-2">
         <Link
           href="/student/profile"
+          prefetch={true}
           className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#1C261C] transition-colors group cursor-pointer"
           title="Open Profile"
         >

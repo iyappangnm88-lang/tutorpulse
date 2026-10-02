@@ -89,10 +89,12 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // D. Static Assets: Next.js static files & icons
+  // D. Static Assets: Next.js static files, icons, scenic backgrounds, and audio tracks
   // Stale-While-Revalidate / Cache-First for static immutable files
   if (
     url.pathname.startsWith('/icons/') ||
+    url.pathname.startsWith('/backgrounds/') ||
+    url.pathname.startsWith('/audio/') ||
     url.pathname === '/favicon.ico' ||
     url.pathname === '/manifest.json'
   ) {

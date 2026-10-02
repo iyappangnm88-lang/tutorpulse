@@ -1,11 +1,16 @@
 'use client'
 
 import React from 'react'
+import dynamic from 'next/dynamic'
 import { StudentNavProvider, useStudentNav } from '@/contexts/student-nav-context'
 import { StudentSidebar } from './student-sidebar'
 import { StudentMobileNav } from './student-mobile-nav'
 import { StudentHeader } from './student-header'
-import { JoinTutorModal } from './join-tutor-modal'
+
+const JoinTutorModal = dynamic(
+  () => import('./join-tutor-modal').then((m) => m.JoinTutorModal),
+  { ssr: false }
+)
 
 interface StudentLayoutClientProps {
   displayName: string

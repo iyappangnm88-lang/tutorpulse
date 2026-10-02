@@ -71,6 +71,7 @@ export function StudentMobileNav() {
           <Link
             key={tab.label}
             href={tab.href}
+            prefetch={true}
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-1.5 px-1.5 text-center min-w-[56px] min-h-[48px] transition-colors select-none',
               isCurrent ? 'text-[#318A25] dark:text-[#6BEA45] font-bold' : 'text-gray-500 dark:text-[#A8B3A5] hover:text-gray-900 dark:hover:text-white'

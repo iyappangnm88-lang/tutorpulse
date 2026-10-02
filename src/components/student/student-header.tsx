@@ -82,6 +82,7 @@ export function StudentHeader({
         {/* Compact Account/Profile Avatar Entry Point */}
         <Link
           href="/student/profile"
+          prefetch={true}
           aria-label="Open your profile and personal hub"
           className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-2 ring-[#55C832]/30 hover:ring-[#55C832] dark:hover:ring-[#6BEA45] transition-all overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832]"
         >

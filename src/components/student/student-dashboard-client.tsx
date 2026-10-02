@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { FocusSetupView } from '@/components/focus/focus-setup-view'
 import { ActiveFocusView } from '@/components/focus/active-focus-view'
@@ -8,48 +8,61 @@ import { FocusMusicProvider } from '@/contexts/focus-music-context'
 import {
   type FocusSessionState,
   type FocusMode,
+  type FocusStats,
   loadFocusSession,
   createMultiModeFocusSession,
   saveFocusSession,
+  loadCachedFocusStats,
+  saveCachedFocusStats,
+  initFocusSyncListener,
 } from '@/lib/focus/focus-timer'
 import { startFocusSessionAction } from '@/app/student/actions'
-import type { StudentDashboardData } from '@/lib/student-portal'
-import type { StudentGamificationOverview } from '@/lib/gamification'
-import type { StudentWeeklyStreaks } from '@/lib/streaks'
-import type { StudentJourneyData } from '@/lib/student-journey'
 
 interface StudentDashboardClientProps {
-  data: StudentDashboardData
-  gamification?: StudentGamificationOverview
-  streaks?: StudentWeeklyStreaks
-  journey?: StudentJourneyData
+  focusStats?: FocusStats
+  data?: { focusStats?: FocusStats }
 }
 
 export function StudentDashboardClient({
+  focusStats,
   data,
-  gamification,
-  streaks,
-  journey,
 }: StudentDashboardClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const queryGroupId = searchParams.get('groupId')
   const queryGroupName = searchParams.get('groupName')
 
+  const initialServerStats = focusStats || data?.focusStats
+  const [stats, setStats] = useState<FocusStats | undefined>(() => {
+    return initialServerStats || (typeof window !== 'undefined' ? (loadCachedFocusStats() || undefined) : undefined)
+  })
+
   const [activeSession, setActiveSession] = useState<FocusSessionState | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // 1. Restore active focus session from storage on page load
+  // 1. Sync server stats to local cache when available
+  useEffect(() => {
+    if (initialServerStats) {
+      setStats(initialServerStats)
+      saveCachedFocusStats(initialServerStats)
+    }
+  }, [initialServerStats])
+
+  // 2. Restore active focus session from storage on page load & init sync listener
   useEffect(() => {
     const existing = loadFocusSession()
     if (existing && (existing.status === 'running' || existing.status === 'paused' || existing.status === 'completed')) {
       setActiveSession(existing)
     }
     setIsInitialized(true)
+
+    // Register auto-sync listener for offline -> online recovery
+    const unsubSync = initFocusSyncListener()
+    return unsubSync
   }, [])
 
-  // Handle starting a new focus session
-  const handleStartFocus = async (config: {
+  // Handle starting a new focus session instantly (zero network blocking)
+  const handleStartFocus = useCallback((config: {
     mode: FocusMode
     focusDurationMin: number
     breakCount: number
@@ -62,14 +75,7 @@ export function StudentDashboardClient({
   }) => {
     const durationSec = config.focusDurationMin * 60
 
-    let dbSessionId: string | null = null
-    try {
-      const res = await startFocusSessionAction(durationSec, config.subject, queryGroupId)
-      if (res.success && res.data?.sessionId) {
-        dbSessionId = res.data.sessionId
-      }
-    } catch {}
-
+    // 1. Instantiate session locally immediately
     const session = createMultiModeFocusSession({
       mode: config.mode,
       focusDurationMin: config.focusDurationMin,
@@ -80,20 +86,36 @@ export function StudentDashboardClient({
       stopwatchTargetMin: config.stopwatchTargetMin,
       subject: config.subject,
       backgroundId: config.backgroundId,
-      dbSessionId,
+      dbSessionId: null,
       groupId: queryGroupId,
       groupName: queryGroupName,
     })
 
     setActiveSession(session)
-  }
+
+    // 2. Fire database session creation in background without blocking UI
+    startFocusSessionAction(durationSec, config.subject, queryGroupId)
+      .then((res) => {
+        if (res.success && res.data?.sessionId) {
+          const updatedSession: FocusSessionState = {
+            ...session,
+            dbSessionId: res.data.sessionId,
+          }
+          saveFocusSession(updatedSession)
+          setActiveSession((curr) => (curr && curr.id === session.id ? updatedSession : curr))
+        }
+      })
+      .catch(() => {
+        // Ignored; local session will sync upon completion
+      })
+  }, [queryGroupId, queryGroupName])
 
   // Handle session complete or exit
-  const handleExitFocusMode = () => {
+  const handleExitFocusMode = useCallback(() => {
     setActiveSession(null)
     saveFocusSession(null)
     router.refresh()
-  }
+  }, [router])
 
   return (
     <FocusMusicProvider>
@@ -107,7 +129,7 @@ export function StudentDashboardClient({
       ) : (
         <FocusSetupView
           onStartFocus={handleStartFocus}
-          focusStats={data.focusStats}
+          focusStats={stats}
         />
       )}
     </FocusMusicProvider>

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import dynamic from 'next/dynamic'
 import {
   Flame,
   Clock,
@@ -13,12 +14,22 @@ import {
   Music,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FocusModeModal } from './focus-mode-modal'
-import { FocusBackgroundSelector } from './focus-background-selector'
-import { FocusMusicModal } from './focus-music-modal'
 import { FOCUS_BACKGROUNDS, type FocusMode, type FocusStats } from '@/lib/focus/types'
-import { loadSavedBackgroundId } from '@/lib/focus/focus-timer'
+import { loadSavedBackgroundId, saveSelectedBackgroundId } from '@/lib/focus/focus-timer'
 import { useFocusMusic } from '@/contexts/focus-music-context'
+
+const FocusModeModal = dynamic(
+  () => import('./focus-mode-modal').then((m) => m.FocusModeModal),
+  { ssr: false }
+)
+const FocusBackgroundSelector = dynamic(
+  () => import('./focus-background-selector').then((m) => m.FocusBackgroundSelector),
+  { ssr: false }
+)
+const FocusMusicModal = dynamic(
+  () => import('./focus-music-modal').then((m) => m.FocusMusicModal),
+  { ssr: false }
+)
 
 const SUBJECTS = [
   'General Focus',

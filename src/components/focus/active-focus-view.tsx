@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import {
   Play,
   Pause,
@@ -21,6 +22,7 @@ import {
   Lock,
   Unlock,
   Square,
+  WifiOff,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,6 +34,9 @@ import {
   endFocusSession,
   subscribeFocusBroadcast,
   FOCUS_BACKGROUNDS,
+  queuePendingFocusSession,
+  updateLocalFocusStatsOptimistic,
+  syncPendingFocusSessions,
 } from '@/lib/focus/focus-timer'
 import {
   pauseFocusSessionAction,
@@ -40,9 +45,16 @@ import {
   endFocusSessionAction,
 } from '@/app/student/actions'
 import { heartbeatStudyGroupLiveFocusAction } from '@/app/student/study-groups/actions'
-import { FocusBackgroundSelector } from './focus-background-selector'
-import { FocusMusicModal } from './focus-music-modal'
 import { useFocusMusic } from '@/contexts/focus-music-context'
+
+const FocusBackgroundSelector = dynamic(
+  () => import('./focus-background-selector').then((m) => m.FocusBackgroundSelector),
+  { ssr: false }
+)
+const FocusMusicModal = dynamic(
+  () => import('./focus-music-modal').then((m) => m.FocusMusicModal),
+  { ssr: false }
+)
 
 interface ActiveFocusViewProps {
   session: FocusSessionState
@@ -70,6 +82,7 @@ export function ActiveFocusView({
   )
   const [isProcessing, setIsProcessing] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isOfflineSavedNotice, setIsOfflineSavedNotice] = useState(false)
 
   // Deliberate "Stop Focusing" right-to-left protective animation state
   const [unlockProgress, setUnlockProgress] = useState(0) // 0 to 100
@@ -110,17 +123,24 @@ export function ActiveFocusView({
     return () => clearInterval(interval)
   }, [isEndingConfirmOpen])
 
-  // Authoritative Timing Loop (Ticks continuously, computes authoritative remaining/elapsed seconds)
+  // High-performance timestamp-based timing loop (throttled updates to avoid 60fps rerenders)
   useEffect(() => {
-    let animId: number
+    if (isCompletedRef.current) return
+
+    let lastDisplaySec = -1
 
     const tick = () => {
       if (isCompletedRef.current) return
 
       const calc = calculatePhaseProgress(currentSession)
-      setDisplaySeconds(calc.displaySeconds)
-      setElapsedInPhase(calc.elapsedInPhase)
-      setProgressFraction(calc.progressFraction)
+
+      // Only trigger React state updates when the whole second changes
+      if (calc.displaySeconds !== lastDisplaySec) {
+        lastDisplaySec = calc.displaySeconds
+        setDisplaySeconds(calc.displaySeconds)
+        setElapsedInPhase(calc.elapsedInPhase)
+        setProgressFraction(calc.progressFraction)
+      }
 
       // Automatic Phase Advancement or Completion
       if (calc.isPhaseFinished && currentSession.status === 'running' && !isCompletedRef.current) {
@@ -134,13 +154,12 @@ export function ActiveFocusView({
             handleTriggerCompletion(calc.totalElapsedFocusSec)
           }
         }
-      } else {
-        animId = requestAnimationFrame(tick)
       }
     }
 
-    animId = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(animId)
+    tick()
+    const timer = setInterval(tick, 250) // 250ms polling for exact boundary precision without frame jitter
+    return () => clearInterval(timer)
   }, [currentSession])
 
   // Cross-Tab Broadcast Sync
@@ -170,13 +189,39 @@ export function ActiveFocusView({
     return () => clearInterval(interval)
   }, [currentSession.groupId, currentSession.status, currentSession.subject])
 
-  // Trigger Completion
+  // Trigger Completion (Local-First with Resilient Offline Sync)
   const handleTriggerCompletion = useCallback(async (actualFocusSec: number) => {
     if (isCompletedRef.current) return
     setIsCompletedState(true)
     setIsProcessing(true)
 
     const finalFocusSec = Math.max(60, actualFocusSec)
+    const minutes = Math.floor(finalFocusSec / 60)
+    const xp = Math.max(10, minutes + 10)
+    const coins = finalFocusSec >= 1500 ? 5 : (finalFocusSec >= 600 ? 2 : 1)
+
+    // 1. Instant local rewards & state update
+    setCompletionRewards({ xp, coins })
+    const completed = endFocusSession(currentSession, true, xp, coins)
+    setCurrentSession(completed)
+    onUpdateSession(completed)
+
+    // 2. Optimistically update local statistics in cache
+    updateLocalFocusStatsOptimistic(finalFocusSec, currentSession.subject)
+
+    // 3. Queue in pending offline queue
+    queuePendingFocusSession({
+      clientSessionId: currentSession.id,
+      dbSessionId: currentSession.dbSessionId,
+      groupId: currentSession.groupId,
+      subject: currentSession.subject,
+      plannedDurationSec: currentSession.focusDurationSec,
+      actualDurationSec: finalFocusSec,
+      status: 'completed',
+      timestamp: Date.now(),
+    })
+
+    // 4. Fire background sync
     try {
       const res = await completeFocusSessionAction({
         sessionId: currentSession.dbSessionId,
@@ -186,17 +231,18 @@ export function ActiveFocusView({
         actualDurationSec: finalFocusSec,
       })
 
-      const xp = res.data?.xpEarned || Math.max(10, Math.floor(finalFocusSec / 60) + 10)
-      const coins = res.data?.coinsEarned || (finalFocusSec >= 1500 ? 5 : 2)
-      setCompletionRewards({ xp, coins })
-
-      const completed = endFocusSession(currentSession, true, xp, coins)
-      setCurrentSession(completed)
-      onUpdateSession(completed)
-      onCompleteSession?.({ xpEarned: xp, coinsEarned: coins, actualDurationSec: finalFocusSec })
+      if (res.success && res.data) {
+        setCompletionRewards({ xp: res.data.xpEarned, coins: res.data.coinsEarned })
+        onCompleteSession?.({
+          xpEarned: res.data.xpEarned,
+          coinsEarned: res.data.coinsEarned,
+          actualDurationSec: finalFocusSec,
+        })
+      } else {
+        setIsOfflineSavedNotice(true)
+      }
     } catch {
-      const fallbackXp = Math.max(10, Math.floor(finalFocusSec / 60) + 10)
-      setCompletionRewards({ xp: fallbackXp, coins: 2 })
+      setIsOfflineSavedNotice(true)
     } finally {
       setIsProcessing(false)
     }
@@ -221,32 +267,47 @@ export function ActiveFocusView({
     }
   }
 
-  // End Session Handler with Deliberate Confirmation
+  // End Session Handler with Deliberate Confirmation (Local-First Resilient)
   const handleConfirmEnd = async () => {
     if (!isStopUnlocked || isProcessing) return
 
     setIsProcessing(true)
     const totalFocus = currentSession.completedFocusSec + (currentSession.phase === 'focus' ? elapsedInPhase : 0)
-    try {
-      const res = await endFocusSessionAction({
-        sessionId: currentSession.dbSessionId,
-        groupId: currentSession.groupId,
-        subject: currentSession.subject,
-        plannedDurationSec: currentSession.focusDurationSec,
-        actualDurationSec: totalFocus,
-      })
-      endFocusSession(currentSession, false, res.data?.xpEarned || 0, 0)
-      stopMusic()
-      onUpdateSession(null)
-      onExitFocusMode()
-    } catch {
-      stopMusic()
-      onUpdateSession(null)
-      onExitFocusMode()
-    } finally {
-      setIsProcessing(false)
-      setIsEndingConfirmOpen(false)
+    const minutes = Math.floor(totalFocus / 60)
+    const partialXp = totalFocus >= 300 ? minutes : 0
+
+    // 1. Instant local completion
+    endFocusSession(currentSession, false, partialXp, 0)
+    if (totalFocus > 0) {
+      updateLocalFocusStatsOptimistic(totalFocus, currentSession.subject)
     }
+    stopMusic()
+
+    // 2. Queue in pending offline queue
+    queuePendingFocusSession({
+      clientSessionId: currentSession.id,
+      dbSessionId: currentSession.dbSessionId,
+      groupId: currentSession.groupId,
+      subject: currentSession.subject,
+      plannedDurationSec: currentSession.focusDurationSec,
+      actualDurationSec: totalFocus,
+      status: 'ended',
+      timestamp: Date.now(),
+    })
+
+    // 3. Fire server action in background
+    endFocusSessionAction({
+      sessionId: currentSession.dbSessionId,
+      groupId: currentSession.groupId,
+      subject: currentSession.subject,
+      plannedDurationSec: currentSession.focusDurationSec,
+      actualDurationSec: totalFocus,
+    }).catch(() => {})
+
+    onUpdateSession(null)
+    onExitFocusMode()
+    setIsProcessing(false)
+    setIsEndingConfirmOpen(false)
   }
 
   // Fullscreen Handler
@@ -292,6 +353,12 @@ export function ActiveFocusView({
             <p className="text-xs sm:text-sm text-[#A8B3A5]">
               Outstanding dedication! You completed your {currentSession.mode.toUpperCase()} session in <span className="font-bold text-[#6BEA45]">{currentSession.subject}</span>.
             </p>
+            {isOfflineSavedNotice && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium">
+                <WifiOff className="h-3.5 w-3.5" />
+                <span>Saved locally — auto-syncing when back online</span>
+              </div>
+            )}
           </div>
 
           {/* Rewards Card */}

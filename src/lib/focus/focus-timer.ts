@@ -1,6 +1,18 @@
-import type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent, FocusMode, FocusPhase, FocusBackground } from './types'
-export type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent, FocusMode, FocusPhase, FocusBackground } from './types'
+import type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent, FocusMode, FocusPhase, FocusBackground, FocusStats } from './types'
+export type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent, FocusMode, FocusPhase, FocusBackground, FocusStats } from './types'
 export { FOCUS_BACKGROUNDS } from './types'
+export {
+  loadPendingFocusSessions,
+  savePendingFocusSessions,
+  queuePendingFocusSession,
+  removePendingFocusSession,
+  loadCachedFocusStats,
+  saveCachedFocusStats,
+  updateLocalFocusStatsOptimistic,
+  syncPendingFocusSessions,
+  initFocusSyncListener,
+} from './focus-sync'
+export type { PendingFocusSession } from './focus-sync'
 
 const FOCUS_STORAGE_KEY = 'nuzigo_active_focus_session'
 const FOCUS_BG_STORAGE_KEY = 'nuzigo_focus_background_id'

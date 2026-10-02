@@ -30,8 +30,8 @@ export default async function StudentProfilePage() {
     redirect('/login')
   }
 
-  // 1. Fetch profile and student_profile
-  const [profileRes, studentProfile, gamificationOverview] = await Promise.all([
+  // 1. Parallel fetch of profile, student_profile, gamification, and focus sessions
+  const [profileRes, studentProfile, gamificationOverview, sessionsRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, full_name, email, avatar_url')
@@ -39,6 +39,10 @@ export default async function StudentProfilePage() {
       .maybeSingle(),
     getStudentProfile(user.id),
     getStudentGamificationOverview(user.id).catch(() => null),
+    supabase
+      .from('focus_sessions')
+      .select('id, actual_duration_sec, started_at, status')
+      .eq('student_user_id', user.id),
   ])
 
   const userProfile = profileRes.data
@@ -48,13 +52,7 @@ export default async function StudentProfilePage() {
   const gradeLevel = studentProfile?.grade_level || null
   const schoolName = studentProfile?.school_name || null
 
-  // 2. Fetch all completed/recorded focus sessions for authoritative Total Time Focused
-  const { data: allSessions } = await supabase
-    .from('focus_sessions')
-    .select('id, actual_duration_sec, started_at, status')
-    .eq('student_user_id', user.id)
-
-  const sessions = allSessions || []
+  const sessions = sessionsRes.data || []
 
   let totalFocusedSeconds = 0
   for (const s of sessions) {
