@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FocusSetupView } from '@/components/focus/focus-setup-view'
 import { ActiveFocusView } from '@/components/focus/active-focus-view'
+import { FocusMusicProvider } from '@/contexts/focus-music-context'
 import {
   type FocusSessionState,
   type FocusMode,
@@ -88,23 +89,21 @@ export function StudentDashboardClient({
     router.refresh()
   }
 
-  // STATE B: ACTIVE FOCUS MODE (Fullscreen fixed overlay hiding all dashboard & navigation)
-  if (activeSession && (activeSession.status === 'running' || activeSession.status === 'paused' || activeSession.status === 'completed')) {
-    return (
-      <ActiveFocusView
-        session={activeSession}
-        onUpdateSession={(updated) => setActiveSession(updated)}
-        onCompleteSession={() => router.refresh()}
-        onExitFocusMode={handleExitFocusMode}
-      />
-    )
-  }
-
-  // STATE A: FOCUS SETUP (Pure Scenic Focus Environment)
   return (
-    <FocusSetupView
-      onStartFocus={handleStartFocus}
-      focusStats={data.focusStats}
-    />
+    <FocusMusicProvider>
+      {activeSession && (activeSession.status === 'running' || activeSession.status === 'paused' || activeSession.status === 'completed') ? (
+        <ActiveFocusView
+          session={activeSession}
+          onUpdateSession={(updated) => setActiveSession(updated)}
+          onCompleteSession={() => router.refresh()}
+          onExitFocusMode={handleExitFocusMode}
+        />
+      ) : (
+        <FocusSetupView
+          onStartFocus={handleStartFocus}
+          focusStats={data.focusStats}
+        />
+      )}
+    </FocusMusicProvider>
   )
 }

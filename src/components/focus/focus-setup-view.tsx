@@ -6,16 +6,19 @@ import {
   Clock,
   Sparkles,
   Settings2,
-  Image as ImageIcon,
   ChevronRight,
   BookOpen,
   Palette,
+  Headphones,
+  Music,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FocusModeModal } from './focus-mode-modal'
 import { FocusBackgroundSelector } from './focus-background-selector'
+import { FocusMusicModal } from './focus-music-modal'
 import { FOCUS_BACKGROUNDS, type FocusMode, type FocusStats } from '@/lib/focus/types'
 import { loadSavedBackgroundId } from '@/lib/focus/focus-timer'
+import { useFocusMusic } from '@/contexts/focus-music-context'
 
 const SUBJECTS = [
   'General Focus',
@@ -56,6 +59,9 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
 
   const [isModeModalOpen, setIsModeModalOpen] = useState(false)
   const [isBgSelectorOpen, setIsBgSelectorOpen] = useState(false)
+  const [isMusicModalOpen, setIsMusicModalOpen] = useState(false)
+
+  const { isPlaying: isMusicPlaying, currentTrack } = useFocusMusic()
 
   const currentBg = FOCUS_BACKGROUNDS.find((b) => b.id === backgroundId) || FOCUS_BACKGROUNDS[0]
 
@@ -93,7 +99,7 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
       <div
         className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-700"
         style={{
-          backgroundImage: 'url(' + currentBg.src + ')',
+          backgroundImage: `url(${currentBg.src})`,
           backgroundPosition: currentBg.position || 'center',
         }}
       />
@@ -102,21 +108,45 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/70 pointer-events-none" />
 
       {/* 2. Top Minimal Bar */}
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="relative z-10 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-lg">
           <Flame className="w-4 h-4 text-[#6BEA45] fill-current animate-pulse" />
           <span>Focus Environment</span>
         </div>
 
-        {/* Quick Theme Switcher Button */}
-        <button
-          onClick={() => setIsBgSelectorOpen(true)}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer shadow-lg hover:border-[#6BEA45]/50 group"
-          title="Customize Theme"
-        >
-          <Palette className="w-3.5 h-3.5 text-[#6BEA45] group-hover:rotate-12 transition-transform" />
-          <span>Theme: {currentBg.name}</span>
-        </button>
+        {/* Top Control Chips: Music & Theme */}
+        <div className="flex items-center gap-2">
+          {/* Music Button */}
+          <button
+            onClick={() => setIsMusicModalOpen(true)}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full backdrop-blur-md border text-xs font-semibold transition-all cursor-pointer shadow-lg group ${
+              isMusicPlaying
+                ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white'
+                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white hover:border-[#6BEA45]/50'
+            }`}
+            title="Focus Music Player"
+          >
+            <Headphones className={`w-3.5 h-3.5 ${isMusicPlaying ? 'text-[#6BEA45] animate-pulse' : 'text-[#6BEA45]'}`} />
+            <span>{isMusicPlaying && currentTrack ? currentTrack.title : 'Music'}</span>
+            {isMusicPlaying && (
+              <span className="flex items-end gap-0.5 h-2.5">
+                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce [animation-delay:-0.3s] h-2" />
+                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce [animation-delay:-0.15s] h-2.5" />
+                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce h-1.5" />
+              </span>
+            )}
+          </button>
+
+          {/* Theme Button */}
+          <button
+            onClick={() => setIsBgSelectorOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer shadow-lg hover:border-[#6BEA45]/50 group"
+            title="Customize Theme"
+          >
+            <Palette className="w-3.5 h-3.5 text-[#6BEA45] group-hover:rotate-12 transition-transform" />
+            <span>Theme: {currentBg.name}</span>
+          </button>
+        </div>
       </div>
 
       {/* 3. Central Dominant Focus Circle & Primary Triggers */}
@@ -214,6 +244,12 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
           setLongInterval(cfg.longBreakInterval)
           setSwTargetMin(cfg.stopwatchTargetMin)
         }}
+      />
+
+      {/* Music Selector Modal */}
+      <FocusMusicModal
+        isOpen={isMusicModalOpen}
+        onClose={() => setIsMusicModalOpen(false)}
       />
 
       {/* Theme Selector Modal */}

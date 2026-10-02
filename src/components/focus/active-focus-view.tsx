@@ -16,6 +16,8 @@ import {
   ArrowRight,
   CheckCircle2,
   Palette,
+  Headphones,
+  Music,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +37,8 @@ import {
   endFocusSessionAction,
 } from '@/app/student/actions'
 import { FocusBackgroundSelector } from './focus-background-selector'
+import { FocusMusicModal } from './focus-music-modal'
+import { useFocusMusic } from '@/contexts/focus-music-context'
 
 interface ActiveFocusViewProps {
   session: FocusSessionState
@@ -55,13 +59,15 @@ export function ActiveFocusView({
   const [progressFraction, setProgressFraction] = useState<number>(0)
   const [isEndingConfirmOpen, setIsEndingConfirmOpen] = useState(false)
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false)
+  const [isMusicModalOpen, setIsMusicModalOpen] = useState(false)
   const [isCompletedState, setIsCompletedState] = useState(session.status === 'completed')
   const [completionRewards, setCompletionRewards] = useState<{ xp: number; coins: number } | null>(
     session.xpAwarded !== undefined ? { xp: session.xpAwarded || 0, coins: session.coinsAwarded || 0 } : null
   )
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const { isPlaying: isMusicPlaying, currentTrack, toggleMute, isMuted } = useFocusMusic()
 
   const isCompletedRef = useRef(isCompletedState)
   isCompletedRef.current = isCompletedState
@@ -217,9 +223,9 @@ export function ActiveFocusView({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-6 select-none animate-in fade-in duration-300">
         <div
-          className="absolute inset-0 bg-cover bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-700"
           style={{
-            backgroundImage: 'url(' + currentBg.src + ')',
+            backgroundImage: `url(${currentBg.src})`,
             backgroundPosition: currentBg.position || 'center',
           }}
         />
@@ -278,29 +284,29 @@ export function ActiveFocusView({
       <div
         className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-700"
         style={{
-          backgroundImage: 'url(' + currentBg.src + ')',
+          backgroundImage: `url(${currentBg.src})`,
           backgroundPosition: currentBg.position || 'center',
         }}
       />
 
-      {/* Vignette Overlay for Crisp Readability */}
-      <div className={'absolute inset-0 pointer-events-none transition-colors duration-500 ' + (
+      {/* Subtle Vignette Overlay for Crisp Typography & Contrast */}
+      <div className={`absolute inset-0 pointer-events-none transition-colors duration-500 ${
         isBreak ? 'bg-amber-950/40' : 'bg-black/35'
-      )} />
+      }`} />
 
       {/* 2. Top Header Status Bar */}
       <div className="relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={'w-9 h-9 rounded-xl flex items-center justify-center ' + (
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
             isBreak ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40'
-          )}>
+          }`}>
             {isBreak ? <Coffee className="w-5 h-5 animate-pulse" /> : <Flame className="w-5 h-5 animate-pulse fill-current" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className={'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ' + (
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                 isBreak ? 'bg-amber-500 text-[#0B0F0C]' : 'bg-[#6BEA45] text-[#0B0F0C]'
-              )}>
+              }`}>
                 {isBreak ? (currentSession.phase === 'long_break' ? 'LONG BREAK' : 'BREAK') : 'FOCUS'}
               </span>
               <span className="text-xs font-semibold text-white/90">
@@ -318,6 +324,29 @@ export function ActiveFocusView({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Music Player Button in Active Mode */}
+          <button
+            onClick={() => setIsMusicModalOpen(true)}
+            className={`h-9 px-3 rounded-xl backdrop-blur-md border flex items-center gap-1.5 transition-all cursor-pointer text-xs font-bold ${
+              isMusicPlaying
+                ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white shadow-[0_0_15px_rgba(107,234,69,0.3)]'
+                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white'
+            }`}
+            title="Focus Music Player"
+          >
+            <Headphones className={`w-3.5 h-3.5 ${isMusicPlaying ? 'text-[#6BEA45] animate-pulse' : 'text-[#6BEA45]'}`} />
+            <span className="hidden sm:inline">
+              {isMusicPlaying && currentTrack ? currentTrack.title : 'Music'}
+            </span>
+            {isMusicPlaying && (
+              <span className="flex items-end gap-0.5 h-3">
+                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce [animation-delay:-0.3s] h-2" />
+                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce [animation-delay:-0.15s] h-3" />
+                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce h-1.5" />
+              </span>
+            )}
+          </button>
+
           {/* Theme Selector Button in Active Mode */}
           <button
             onClick={() => setIsThemeModalOpen(true)}
@@ -328,13 +357,13 @@ export function ActiveFocusView({
             <span className="hidden sm:inline">Theme</span>
           </button>
 
-          {/* Mute Button */}
+          {/* Mute Audio Button */}
           <button
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={toggleMute}
             className="h-9 w-9 rounded-xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
-            title={isMuted ? 'Unmute Ambient' : 'Mute Ambient'}
+            title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
           >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {isMuted ? <VolumeX className="w-4 h-4 text-red-300" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
           {/* Fullscreen Button */}
@@ -378,7 +407,7 @@ export function ActiveFocusView({
               cx="50"
               cy="50"
               r="46"
-              className={'fill-none transition-all duration-300 ' + (isBreak ? 'stroke-amber-400' : 'stroke-[#6BEA45]')}
+              className={`fill-none transition-all duration-300 ${isBreak ? 'stroke-amber-400' : 'stroke-[#6BEA45]'}`}
               strokeWidth="3.5"
               strokeDasharray="289"
               strokeDashoffset={289 - (289 * progressFraction)}
@@ -391,9 +420,9 @@ export function ActiveFocusView({
             <span className="text-5xl sm:text-6xl font-black tracking-tighter font-mono drop-shadow-md">
               {formattedTime}
             </span>
-            <span className={'text-xs uppercase tracking-widest font-black mt-2 drop-shadow-xs ' + (
+            <span className={`text-xs uppercase tracking-widest font-black mt-2 drop-shadow-xs ${
               isBreak ? 'text-amber-300' : 'text-[#6BEA45]'
-            )}>
+            }`}>
               {isPaused ? 'PAUSED' : isBreak ? 'BREAK IN PROGRESS' : 'FOCUSING'}
             </span>
           </div>
@@ -404,11 +433,11 @@ export function ActiveFocusView({
           <Button
             size="lg"
             onClick={handleTogglePause}
-            className={'h-14 px-9 rounded-2xl font-black text-base transition-all transform hover:scale-105 active:scale-95 cursor-pointer ' + (
+            className={`h-14 px-9 rounded-2xl font-black text-base transition-all transform hover:scale-105 active:scale-95 cursor-pointer ${
               isPaused
                 ? 'bg-amber-400 hover:bg-amber-500 text-[#0B0F0C] shadow-[0_0_35px_rgba(251,191,36,0.4)]'
                 : 'bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] shadow-[0_0_35px_rgba(107,234,69,0.45)]'
-            )}
+            }`}
           >
             {isPaused ? (
               <>
@@ -426,7 +455,7 @@ export function ActiveFocusView({
       {/* 4. Bottom Status Quote Bar */}
       <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/20 text-xs text-white/80">
         <div className="flex items-center gap-2">
-          <span className={'w-2 h-2 rounded-full ' + (isPaused ? 'bg-amber-400' : 'bg-[#6BEA45] animate-ping')} />
+          <span className={`w-2 h-2 rounded-full ${isPaused ? 'bg-amber-400' : 'bg-[#6BEA45] animate-ping'}`} />
           <span>
             {isPaused
               ? 'Session Paused • Press Resume to continue studying'
@@ -440,6 +469,12 @@ export function ActiveFocusView({
           “Deep work produces rare and irreplaceable value.”
         </div>
       </div>
+
+      {/* Music Selector Modal */}
+      <FocusMusicModal
+        isOpen={isMusicModalOpen}
+        onClose={() => setIsMusicModalOpen(false)}
+      />
 
       {/* Theme Selector Modal in Active Mode */}
       <FocusBackgroundSelector
