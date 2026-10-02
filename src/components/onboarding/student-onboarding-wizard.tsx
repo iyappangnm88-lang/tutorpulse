@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/contexts/toast-context'
 import { completeStudentOnboardingAction } from '@/app/onboarding/actions'
+import { FocusAppBlockingStep } from './focus-app-blocking-step'
 
 const COMMON_STUDENT_GRADES = [
   'Class 6',
@@ -47,7 +48,7 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
   const router = useRouter()
   const { toast } = useToast()
 
-  // Steps (1 to 3)
+  // Steps (1 to 4)
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -84,6 +85,8 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
       setStep(2)
     } else if (step === 2) {
       setStep(3)
+    } else if (step === 3) {
+      setStep(4)
     }
   }
 
@@ -127,17 +130,18 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
       {/* Progress Indicators */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
-          <span>Step {step} of 3</span>
-          <span className="text-violet-600 font-bold">
+          <span>Step {step} of 4</span>
+          <span className="text-[#318A25] font-bold">
             {step === 1 && 'About You'}
             {step === 2 && 'Subjects & Interests'}
-            {step === 3 && 'Tutor Connection'}
+            {step === 3 && 'Block Distracting Apps'}
+            {step === 4 && 'Tutor Connection'}
           </span>
         </div>
         <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
           <div
-            className="h-full bg-violet-600 transition-all duration-300 rounded-full"
-            style={{ width: `${(step / 3) * 100}%` }}
+            className="h-full bg-[#55C832] transition-all duration-300 rounded-full"
+            style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
       </div>
@@ -256,8 +260,16 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
         </div>
       )}
 
-      {/* STEP 3: Invitation Choice */}
+      {/* STEP 3: Focus & App Blocking */}
       {step === 3 && (
+        <FocusAppBlockingStep
+          onContinue={() => setStep(4)}
+          onSkip={() => setStep(4)}
+        />
+      )}
+
+      {/* STEP 4: Invitation Choice */}
+      {step === 4 && (
         <div className="space-y-6">
           <div className="space-y-2 text-center sm:text-left">
             <div className="h-12 w-12 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl mb-3 mx-auto sm:mx-0 shadow-xs">
@@ -335,44 +347,46 @@ export function StudentOnboardingWizard({ initialName = '' }: { initialName?: st
         </div>
       )}
 
-      {/* Navigation Footer */}
-      <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-200/80">
-        {step > 1 ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setStep(step - 1)}
-            disabled={isSubmitting}
-            className="rounded-xl text-xs font-semibold"
-          >
-            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-            Back
-          </Button>
-        ) : (
-          <div />
-        )}
+      {/* Navigation Footer (Steps 1, 2, and 4) */}
+      {step !== 3 && (
+        <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-200/80">
+          {step > 1 ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setStep(step === 4 ? 3 : step - 1)}
+              disabled={isSubmitting}
+              className="rounded-xl text-xs font-semibold"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+              Back
+            </Button>
+          ) : (
+            <div />
+          )}
 
-        {step < 3 ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-            className="px-6 h-11 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-1.5"
-          >
-            <span>Next</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={() => handleComplete()}
-            loading={isSubmitting}
-            className="px-6 h-11 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs shadow-md shadow-violet-500/20 flex items-center gap-1.5"
-          >
-            <span>{inviteChoice === 'has_code' && inviteCode ? 'Join & Go to Dashboard' : 'Enter Student Dashboard'}</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
-        )}
-      </div>
+          {step < 4 ? (
+            <Button
+              type="button"
+              onClick={handleNext}
+              className="px-6 h-11 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-1.5"
+            >
+              <span>Next</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => handleComplete()}
+              loading={isSubmitting}
+              className="px-6 h-11 bg-[#55C832] hover:bg-[#4eb52c] text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1.5"
+            >
+              <span>{inviteChoice === 'has_code' && inviteCode ? 'Join & Go to Dashboard' : 'Enter Student Dashboard'}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

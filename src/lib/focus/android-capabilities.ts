@@ -185,3 +185,57 @@ export async function requestNotificationPermission(): Promise<PermissionRequest
 
   return { opened: false, error: 'Notifications not supported in this environment.' }
 }
+
+/**
+ * Checks overall status for Focus App Blocking on Android.
+ */
+export async function checkAppBlockingPermission(): Promise<{
+  granted: boolean
+  usageGranted: boolean
+  overlayGranted: boolean
+  isAndroid: boolean
+}> {
+  if (!isAndroidNative()) {
+    return {
+      granted: false,
+      usageGranted: false,
+      overlayGranted: false,
+      isAndroid: false,
+    }
+  }
+
+  const [usage, overlay] = await Promise.all([
+    checkUsageAccessPermission(),
+    checkOverlayPermission(),
+  ])
+
+  return {
+    granted: usage.granted,
+    usageGranted: usage.granted,
+    overlayGranted: overlay.granted,
+    isAndroid: true,
+  }
+}
+
+/**
+ * Requests the system permission for App Blocking.
+ * Opens Usage Access settings first, or Overlay settings if usage is already granted.
+ */
+export async function requestAppBlockingPermission(): Promise<PermissionRequestResult> {
+  if (!isAndroidNative()) {
+    return { opened: false, error: 'App blocking is only available on Android native devices.' }
+  }
+
+  const usage = await checkUsageAccessPermission()
+  if (!usage.granted) {
+    return requestUsageAccessPermission()
+  }
+
+  const overlay = await checkOverlayPermission()
+  if (!overlay.granted) {
+    return requestOverlayPermission()
+  }
+
+  return { opened: false, alreadyGranted: true }
+}
+
