@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { LogOut, Menu, X, Settings, HelpCircle } from 'lucide-react'
 import { NotificationBell } from '@/components/communication/notification-bell'
 import { GlobalHelpButton } from '@/components/help/global-help-button'
+import { ThemeToggleButton } from '@/components/theme/theme-toggle-button'
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
@@ -49,11 +50,11 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center border-b border-gray-200/70 bg-white/80 backdrop-blur-md px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center border-b border-gray-200/70 dark:border-[#293329] bg-white/80 dark:bg-[#111711]/80 backdrop-blur-md px-4 sm:px-6">
       {/* Mobile menu toggle */}
       <button
         id="mobile-menu-toggle"
-        className="lg:hidden mr-3 flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#55C832]"
+        className="lg:hidden mr-3 flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 dark:text-[#A8B3A5] hover:bg-gray-100 dark:hover:bg-[#1C261C] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#55C832]"
         onClick={onMenuToggle}
         aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={mobileMenuOpen}
@@ -73,7 +74,8 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
       {/* Right actions */}
       <div className="flex items-center gap-2.5">
         {/* Global In-App Help Button */}
-        <GlobalHelpButton />
+        <ThemeToggleButton />
+          <GlobalHelpButton />
 
         {/* Notifications Bell */}
         <NotificationBell />
@@ -100,7 +102,7 @@ export function Header({ onMenuToggle, mobileMenuOpen }: HeaderProps) {
               {/* Dropdown */}
               <div className="absolute right-0 top-full mt-2 z-20 w-56 rounded-2xl border border-gray-100 bg-white py-1.5 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150">
                 <div className="border-b border-gray-100 px-4 py-3">
-                  <p className="text-xs font-bold text-gray-900 truncate">{displayName}</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-[#F4F7F2] truncate">{displayName}</p>
                   <p className="text-[11px] text-gray-500 truncate mt-0.5">{user?.email}</p>
                 </div>
                 <Link

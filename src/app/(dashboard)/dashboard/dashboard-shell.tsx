@@ -11,7 +11,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F0C] text-[#172B4D] dark:text-[#F4F7F2]">
       {/* Desktop Sidebar (visible on lg screens, hidden on mobile) */}
       <Sidebar />
 

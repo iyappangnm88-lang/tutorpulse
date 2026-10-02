@@ -286,10 +286,10 @@ export function StudentTutorsClient({
   return (
     <div className="space-y-5">
       {/* 1. TOP HEADER & GLOBAL ACTIONS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-gray-200/80 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white dark:bg-[#161D16] rounded-2xl border border-gray-200/80 dark:border-[#293329] shadow-2xs transition-colors">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-black text-[#172B4D] tracking-tight flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-black text-[#172B4D] dark:text-[#F4F7F2] tracking-tight flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-[#55C832]" />
               <span>Your Tutor</span>
             </h1>
@@ -430,8 +430,8 @@ export function StudentTutorsClient({
                 onClick={() => setSelectedTutorId('all')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   selectedTutorId === 'all'
-                    ? 'bg-[#172B4D] text-white shadow-xs'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    ? 'bg-[#172B4D] dark:bg-[#6BEA45] text-white dark:text-[#0B0F0C] shadow-xs'
+                    : 'bg-white dark:bg-[#161D16] border border-gray-200 dark:border-[#293329] text-gray-600 dark:text-[#A8B3A5] hover:bg-gray-50 dark:hover:bg-[#1C261C]'
                 }`}
               >
                 All Tutors ({tutors.length})
@@ -457,7 +457,7 @@ export function StudentTutorsClient({
           )}
 
           {/* Active Tutor Header Info Card */}
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 shadow-2xs">
+          <div className="rounded-2xl border border-gray-200/80 dark:border-[#293329] bg-white dark:bg-[#161D16] p-4 sm:p-5 shadow-2xs transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3.5">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#55C832]/20 text-[#318A25] font-black text-lg shadow-2xs">
@@ -465,7 +465,7 @@ export function StudentTutorsClient({
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base font-bold text-gray-900">
+                    <h2 className="text-base font-bold text-gray-900 dark:text-[#F4F7F2]">
                       {selectedTutorId === 'all'
                         ? tutors.map((t) => t.fullName).join(', ')
                         : filteredTutors[0]?.fullName}
@@ -504,7 +504,7 @@ export function StudentTutorsClient({
           </div>
 
           {/* Navigation Tabs Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-gray-200 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-gray-200 dark:border-[#293329] no-scrollbar">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3, count: null },
               {

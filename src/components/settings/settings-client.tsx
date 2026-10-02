@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import {
   User,
+  Moon,
   Building,
   Shield,
   KeyRound,
@@ -26,6 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { ThemeSelector } from '@/components/theme/theme-selector'
 import { useToast } from '@/contexts/toast-context'
 import {
   updateTutorProfileAction,
@@ -848,6 +850,23 @@ export function SettingsClient({ initialProfile, userMetadata }: SettingsClientP
         </CardBody>
       </Card>
 
+      
+      {/* 3.5 Global Appearance & Theme */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Moon className="h-4 w-4 text-[#318A25] dark:text-[#6BEA45]" />
+            <h2 className="text-base font-semibold text-gray-900 dark:text-[#F4F7F2]">Appearance & Global Theme</h2>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-[#A8B3A5] mt-0.5">
+            Switch between Light Mode, Obsidian Electric Green Dark Mode, or match your device system settings.
+          </p>
+        </CardHeader>
+        <CardBody className="space-y-4">
+          <ThemeSelector />
+        </CardBody>
+      </Card>
+  
       {/* 4. Security & Account Actions */}
       <Card>
         <CardHeader>

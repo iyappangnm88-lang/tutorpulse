@@ -20,7 +20,7 @@ function StudentLayoutInner({ displayName, gradeLevel, children }: StudentLayout
   const { isMobileMenuOpen, closeMobileMenu, isJoinModalOpen, closeJoinModal } = useStudentNav()
 
   return (
-    <div className="min-h-screen bg-[#FAFBEF] flex flex-col">
+    <div className="min-h-screen bg-[#FAFBEF] dark:bg-[#0B0F0C] text-[#172B4D] dark:text-[#F4F7F2] flex flex-col">
       {/* Desktop Sidebar (Fixed left) */}
       <StudentSidebar studentName={displayName} />
 

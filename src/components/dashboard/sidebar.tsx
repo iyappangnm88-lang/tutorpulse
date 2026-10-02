@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { SidebarInstallButton } from '@/components/pwa/install-prompt'
 import { TUTOR_NAV_ITEMS, getTutorNavGroups, NavItem } from '@/lib/navigation'
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
+import { ThemeToggleButton } from '@/components/theme/theme-toggle-button'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/contexts/toast-context'
@@ -46,15 +47,15 @@ function NavLink({
       className={cn(
         'group flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[40px]',
         isActive
-          ? 'bg-[#55C832]/12 text-[#318A25] font-bold shadow-2xs border border-[#55C832]/25'
-          : 'text-gray-600 hover:bg-gray-100/70 hover:text-[#172B4D]'
+          ? 'bg-[#55C832]/12 dark:bg-[#6BEA45]/15 text-[#318A25] dark:text-[#6BEA45] font-bold shadow-2xs border border-[#55C832]/25 dark:border-[#6BEA45]/30'
+          : 'text-gray-600 dark:text-[#A8B3A5] hover:bg-gray-100/70 dark:hover:bg-[#1C261C] hover:text-[#172B4D] dark:hover:text-[#F4F7F2]'
       )}
       aria-current={isActive ? 'page' : undefined}
     >
       <item.icon
         className={cn(
           'h-4 w-4 flex-shrink-0 transition-colors',
-          isActive ? 'text-[#55C832]' : 'text-gray-400 group-hover:text-gray-600'
+          isActive ? 'text-[#55C832] dark:text-[#6BEA45]' : 'text-gray-400 dark:text-[#6C7A6A] group-hover:text-gray-600 dark:group-hover:text-[#A8B3A5]'
         )}
         aria-hidden="true"
       />
@@ -120,7 +121,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
                 Pro
               </span>
             </span>
-            <span className="text-[10px] text-gray-500 font-medium">Learning that feels alive</span>
+            <span className="text-[10px] text-gray-500 dark:text-[#A8B3A5] font-medium">Learning that feels alive</span>
           </div>
         </Link>
 

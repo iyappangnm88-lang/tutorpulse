@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Menu, UserPlus, Compass, Clock } from 'lucide-react'
 import { useStudentNav } from '@/contexts/student-nav-context'
 import { Button } from '@/components/ui/button'
+import { ThemeToggleButton } from '@/components/theme/theme-toggle-button'
 
 interface StudentHeaderProps {
   studentName: string
@@ -18,12 +19,12 @@ export function StudentHeader({
   const { openMobileMenu, openJoinModal, isEnrolled, pendingCount } = useStudentNav()
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200/70 bg-white/80 backdrop-blur-md px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200/70 dark:border-[#293329] bg-white/80 dark:bg-[#111711]/80 backdrop-blur-md px-4 sm:px-6">
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Mobile menu hamburger toggle */}
         <button
           type="button"
-          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832]"
+          className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl text-gray-600 dark:text-[#A8B3A5] hover:bg-gray-100 dark:hover:bg-[#1C261C] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55C832]"
           onClick={openMobileMenu}
           aria-label="Open student navigation menu"
         >
@@ -31,14 +32,15 @@ export function StudentHeader({
         </button>
 
         <div>
-          <p className="text-xs font-bold text-[#172B4D]">Hello, {studentName} 🎓</p>
-          <p className="text-[11px] text-gray-500">
+          <p className="text-xs font-bold text-[#172B4D] dark:text-[#F4F7F2]">Hello, {studentName} 🎓</p>
+          <p className="text-[11px] text-gray-500 dark:text-[#A8B3A5]">
             {gradeLevel ? 'Class ' + gradeLevel + ' · Student Portal' : 'Student Learning Portal'}
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2.5">
+        <ThemeToggleButton />
         {isEnrolled ? (
           <div className="flex items-center gap-2">
             <button

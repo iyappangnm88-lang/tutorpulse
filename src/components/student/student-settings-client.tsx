@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react'
+import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle, Sparkles, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ThemeSelector } from '@/components/theme/theme-selector'
 import { updateStudentProfileAction } from '@/app/student/actions'
 
 interface StudentSettingsClientProps {
@@ -65,43 +66,60 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Student Profile & Settings</h1>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Manage your personal details, academic grade, and study interests
+        <h1 className="text-xl font-bold text-gray-900 dark:text-[#F4F7F2]">Student Profile & Settings</h1>
+        <p className="text-xs text-gray-500 dark:text-[#A8B3A5] mt-0.5">
+          Manage your personal details, academic grade, study interests, and app theme
         </p>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700 flex items-center gap-2">
+        <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-4 text-xs text-red-700 dark:text-red-400 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-700 flex items-center gap-2">
+        <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-4 text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
           <span>Profile updated successfully!</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-2xs">
+      {/* Global Theme Selector Section */}
+      <div className="rounded-2xl border border-gray-100 dark:border-[#293329] bg-white dark:bg-[#161D16] p-6 shadow-2xs space-y-4">
+        <div className="flex items-center gap-2">
+          <Moon className="h-4 w-4 text-[#55C832] dark:text-[#6BEA45]" />
+          <h2 className="text-sm font-bold text-gray-900 dark:text-[#F4F7F2]">Appearance & Theme</h2>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-[#A8B3A5]">
+          Customize your Nuzigo interface appearance across Light, Obsidian Electric Green Dark Mode, or match your device system settings.
+        </p>
+        <ThemeSelector />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-gray-100 dark:border-[#293329] bg-white dark:bg-[#161D16] p-6 shadow-2xs">
+        <div className="flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-[#293329]">
+          <User className="h-4 w-4 text-[#55C832] dark:text-[#6BEA45]" />
+          <h2 className="text-sm font-bold text-gray-900 dark:text-[#F4F7F2]">Academic Profile</h2>
+        </div>
+
         {/* Account Info (Read-only) */}
         <div>
-          <Label className="text-xs font-semibold text-gray-700">Email Address</Label>
+          <Label className="text-xs font-semibold text-gray-700 dark:text-[#A8B3A5]">Email Address</Label>
           <Input
             value={initialData.email}
             disabled
-            className="mt-1 bg-gray-50 text-gray-500 text-xs font-medium cursor-not-allowed"
+            className="mt-1 bg-gray-50 dark:bg-[#111711] text-gray-500 dark:text-[#A8B3A5] text-xs font-medium cursor-not-allowed border-gray-200 dark:border-[#293329]"
           />
-          <p className="text-[11px] text-gray-400 mt-1">
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
             Linked to your primary authentication identity.
           </p>
         </div>
 
         {/* Full Name */}
         <div>
-          <Label htmlFor="fullName" className="text-xs font-semibold text-gray-700" required>
+          <Label htmlFor="fullName" className="text-xs font-semibold text-gray-700 dark:text-[#A8B3A5]" required>
             Full Name
           </Label>
           <Input
@@ -116,7 +134,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
 
         {/* Grade / Class */}
         <div>
-          <Label htmlFor="gradeLevel" className="text-xs font-semibold text-gray-700">
+          <Label htmlFor="gradeLevel" className="text-xs font-semibold text-gray-700 dark:text-[#A8B3A5]">
             Class / Grade Level
           </Label>
           <Input
@@ -130,7 +148,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
 
         {/* School Name */}
         <div>
-          <Label htmlFor="schoolName" className="text-xs font-semibold text-gray-700">
+          <Label htmlFor="schoolName" className="text-xs font-semibold text-gray-700 dark:text-[#A8B3A5]">
             School or College (Optional)
           </Label>
           <Input
@@ -144,7 +162,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
 
         {/* Academic Interests / Subjects */}
         <div>
-          <Label htmlFor="interests" className="text-xs font-semibold text-gray-700">
+          <Label htmlFor="interests" className="text-xs font-semibold text-gray-700 dark:text-[#A8B3A5]">
             Academic Subjects & Interests
           </Label>
           <Input
@@ -154,7 +172,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
             className="mt-1 text-xs"
             placeholder="e.g. Mathematics, Physics, Computer Science, Biology"
           />
-          <p className="text-[11px] text-gray-400 mt-1">
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
             Separate subjects with commas.
           </p>
         </div>
@@ -163,7 +181,7 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
           <Button
             type="submit"
             disabled={loading}
-            className="text-xs bg-[#55C832] hover:bg-[#318A25] font-semibold"
+            className="text-xs font-semibold"
           >
             {loading ? (
               <>
@@ -179,4 +197,3 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
     </div>
   )
 }
-

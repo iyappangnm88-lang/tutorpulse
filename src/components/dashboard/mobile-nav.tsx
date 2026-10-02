@@ -19,7 +19,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 border-t border-gray-200/80 bg-white/95 backdrop-blur-md lg:hidden shadow-lg"
+      className="fixed bottom-0 left-0 right-0 z-30 border-t border-gray-200/80 dark:border-[#293329] bg-white/95 dark:bg-[#111711]/95 backdrop-blur-md lg:hidden shadow-lg"
       aria-label="Mobile navigation"
     >
       <ul className="flex h-16 items-center justify-around px-2">
@@ -37,8 +37,8 @@ export function MobileNav() {
                   'flex flex-col items-center justify-center gap-1 w-full py-1 rounded-xl transition-all',
                   'min-h-[44px]',
                   isActive
-                    ? 'text-[#318A25] font-bold'
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'text-[#318A25] dark:text-[#6BEA45] font-bold'
+                    : 'text-gray-400 dark:text-[#A8B3A5] hover:text-gray-600 dark:hover:text-white'
                 )}
                 aria-current={isActive ? 'page' : undefined}
               >

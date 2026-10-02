@@ -51,7 +51,7 @@ export function MobileDrawer({ isOpen, onClose, children }: MobileDrawerProps) {
         aria-modal="true"
         aria-label="Mobile Navigation Menu"
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col',
+          'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-[#111711] border-r border-transparent dark:border-[#293329] shadow-2xl flex flex-col',
           'animate-in slide-in-from-left duration-200 ease-out pb-safe'
         )}
       >

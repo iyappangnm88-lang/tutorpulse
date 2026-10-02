@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { STUDENT_NAV_ITEMS, type NavItem } from '@/lib/navigation'
 import { useStudentNav } from '@/contexts/student-nav-context'
+import { ThemeToggleButton } from '@/components/theme/theme-toggle-button'
 
 export interface StudentSidebarProps {
   studentName: string
@@ -88,15 +89,15 @@ export function StudentSidebar({
         className={cn(
           'group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[42px]',
           isActive
-            ? 'bg-[#55C832]/12 text-[#318A25] font-bold shadow-2xs border border-[#55C832]/25'
-            : 'text-gray-600 hover:bg-gray-100/70 hover:text-[#172B4D]'
+            ? 'bg-[#55C832]/12 dark:bg-[#6BEA45]/15 text-[#318A25] dark:text-[#6BEA45] font-bold shadow-2xs border border-[#55C832]/25 dark:border-[#6BEA45]/30'
+            : 'text-gray-600 dark:text-[#A8B3A5] hover:bg-gray-100/70 dark:hover:bg-[#1C261C] hover:text-[#172B4D] dark:hover:text-[#F4F7F2]'
         )}
         aria-current={isActive ? 'page' : undefined}
       >
         <item.icon
           className={cn(
             'h-4.5 w-4.5 shrink-0 transition-colors duration-150',
-            isActive ? 'text-[#55C832]' : 'text-gray-400 group-hover:text-gray-600'
+            isActive ? 'text-[#55C832] dark:text-[#6BEA45]' : 'text-gray-400 dark:text-[#6C7A6A] group-hover:text-gray-600 dark:group-hover:text-[#A8B3A5]'
           )}
           aria-hidden="true"
         />

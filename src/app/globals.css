@@ -1,38 +1,86 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
-  --color-brand-primary: #55C832;
-  --color-brand-primary-hover: #318A25;
-  --color-brand-primary-light: #FAFBEF;
-  --color-brand-primary-foreground: #FFFFFF;
-  --color-brand-navy: #172B4D;
-  --color-brand-cream: #FAFBEF;
-  --color-brand-yellow: #FFC928;
-  --color-brand-orange: #FF9F43;
-  --color-brand-red: #F05252;
-  --color-nuzigo-green: #55C832;
-  --color-nuzigo-deep-green: #318A25;
-  --color-nuzigo-navy: #172B4D;
-  --color-nuzigo-cream: #FAFBEF;
-  --color-nuzigo-yellow: #FFC928;
-  --color-nuzigo-orange: #FF9F43;
-  --color-nuzigo-red: #F05252;
+
+  /* Semantic Brand Colors */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-primary-active: var(--brand-primary-active);
+  --color-brand-primary-light: var(--brand-primary-light);
+  --color-brand-primary-foreground: var(--brand-primary-foreground);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-red: var(--brand-red);
+
+  /* Nuzigo Core Tokens */
+  --color-nuzigo-green: var(--brand-primary);
+  --color-nuzigo-deep-green: var(--brand-primary-active);
+  --color-nuzigo-navy: var(--brand-navy);
+  --color-nuzigo-cream: var(--brand-cream);
+  --color-nuzigo-yellow: var(--brand-yellow);
+  --color-nuzigo-orange: var(--brand-orange);
+  --color-nuzigo-red: var(--brand-red);
   --color-nuzigo-white: #FFFFFF;
 
-  /* Backward compatibility aliases */
-  --color-nuzilo-green: #55C832;
-  --color-nuzilo-deep-green: #318A25;
-  --color-nuzilo-navy: #172B4D;
-  --color-nuzilo-cream: #FAFBEF;
-  --color-nuzilo-yellow: #FFC928;
-  --color-nuzilo-orange: #FF9F43;
-  --color-nuzilo-red: #F05252;
+  /* Surface & Background */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-hover: var(--bg-hover);
+  --color-bg-active: var(--bg-active);
+
+  /* Typography */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  /* Borders */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  /* Status */
+  --color-reward: var(--color-reward);
+  --color-accent: var(--color-accent);
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+
+  /* Backward Compatibility Aliases */
+  --color-nuzilo-green: var(--brand-primary);
+  --color-nuzilo-deep-green: var(--brand-primary-active);
+  --color-nuzilo-navy: var(--brand-navy);
+  --color-nuzilo-cream: var(--brand-cream);
+  --color-nuzilo-yellow: var(--brand-yellow);
+  --color-nuzilo-orange: var(--brand-orange);
+  --color-nuzilo-red: var(--brand-red);
 }
 
 :root {
+  /* LIGHT MODE (Nuzigo Emerald & Navy) */
+  --bg-primary: #FAFAFA;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #F1F5F9;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F8FAFC;
+  --bg-active: #F1F5F9;
+
+  --text-primary: #172B4D;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --text-inverse: #FFFFFF;
+
   --brand-primary: #55C832;
-  --brand-primary-hover: #318A25;
+  --brand-primary-hover: #4EB52C;
+  --brand-primary-active: #318A25;
   --brand-primary-light: #FAFBEF;
   --brand-primary-foreground: #FFFFFF;
   --brand-navy: #172B4D;
@@ -40,39 +88,82 @@
   --brand-yellow: #FFC928;
   --brand-orange: #FF9F43;
   --brand-red: #F05252;
-  --nuzigo-green: #55C832;
-  --nuzigo-deep-green: #318A25;
-  --nuzigo-navy: #172B4D;
-  --nuzigo-cream: #FAFBEF;
-  --nuzigo-yellow: #FFC928;
-  --nuzigo-orange: #FF9F43;
-  --nuzigo-red: #F05252;
-  --nuzigo-white: #FFFFFF;
 
-  /* Backward compatibility aliases */
-  --nuzigo-green: #55C832;
-  --nuzigo-deep-green: #318A25;
-  --nuzigo-navy: #172B4D;
-  --nuzigo-cream: #FAFBEF;
-  --nuzigo-yellow: #FFC928;
-  --nuzigo-orange: #FF9F43;
-  --nuzigo-red: #F05252;
+  --border-subtle: #F1F5F9;
+  --border-default: #E2E8F0;
+  --border-strong: #CBD5E1;
+
+  --color-reward: #FFC928;
+  --color-accent: #FF9F43;
+  --color-error: #F05252;
+  --color-success: #55C832;
+
+  --input-bg: #FFFFFF;
+  --input-border: #E2E8F0;
+  --input-focus-border: #55C832;
+
+  --sidebar-bg: #FFFFFF;
+  --sidebar-border: #E2E8F0;
+}
+
+.dark,
+[data-theme='dark'] {
+  /* DARK MODE (Nuzigo Obsidian + Electric Green) */
+  --bg-primary: #0B0F0C;
+  --bg-secondary: #111711;
+  --bg-tertiary: #161D16;
+  --bg-card: #161D16;
+  --bg-elevated: #1C261C;
+  --bg-hover: #1C261C;
+  --bg-active: #232F23;
+
+  --text-primary: #F4F7F2;
+  --text-secondary: #A8B3A5;
+  --text-muted: #6C7A6A;
+  --text-inverse: #0B0F0C;
+
+  --brand-primary: #6BEA45;
+  --brand-primary-hover: #5DD838;
+  --brand-primary-active: #3FB82F;
+  --brand-primary-light: #162414;
+  --brand-primary-foreground: #0B0F0C;
+  --brand-navy: #F4F7F2;
+  --brand-cream: #111711;
+  --brand-yellow: #FFD84A;
+  --brand-orange: #FF9F43;
+  --brand-red: #F05252;
+
+  --border-subtle: #1C261C;
+  --border-default: #293329;
+  --border-strong: #384638;
+
+  --color-reward: #FFD84A;
+  --color-accent: #FF9F43;
+  --color-error: #F05252;
+  --color-success: #6BEA45;
+
+  --input-bg: #111711;
+  --input-border: #293329;
+  --input-focus-border: #6BEA45;
+
+  --sidebar-bg: #111711;
+  --sidebar-border: #293329;
 }
 
 /* Nuzigo Tactical & Playful Buttons & Cards */
 .btn-nuzigo-primary,
 .btn-nuzilo-primary {
-  background-color: #55C832;
-  color: #ffffff;
-  border-bottom: 4px solid #318A25;
+  background-color: var(--brand-primary);
+  color: var(--brand-primary-foreground);
+  border-bottom: 4px solid var(--brand-primary-active);
   border-radius: 14px;
   font-weight: 700;
   min-height: 48px;
-  transition: transform 0.1s ease, border-bottom 0.1s ease;
+  transition: transform 0.1s ease, border-bottom 0.1s ease, background-color 0.15s ease;
 }
 .btn-nuzigo-primary:hover,
 .btn-nuzilo-primary:hover {
-  background-color: #4eb52c;
+  background-color: var(--brand-primary-hover);
 }
 .btn-nuzigo-primary:active,
 .btn-nuzilo-primary:active {
@@ -82,14 +173,14 @@
 
 .btn-nuzigo-secondary,
 .btn-nuzilo-secondary {
-  background-color: #ffffff;
-  color: #172B4D;
-  border: 2px solid #e2e8f0;
-  border-bottom: 4px solid #cbd5e1;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 2px solid var(--border-default);
+  border-bottom: 4px solid var(--border-strong);
   border-radius: 14px;
   font-weight: 700;
   min-height: 48px;
-  transition: transform 0.1s ease, border-bottom 0.1s ease;
+  transition: transform 0.1s ease, border-bottom 0.1s ease, background-color 0.15s ease;
 }
 .btn-nuzigo-secondary:active,
 .btn-nuzilo-secondary:active {
@@ -99,7 +190,7 @@
 
 .btn-nuzigo-reward,
 .btn-nuzilo-reward {
-  background-color: #FFC928;
+  background-color: var(--color-reward);
   color: #172B4D;
   border-bottom: 4px solid #d9a30f;
   border-radius: 14px;
@@ -119,15 +210,17 @@
 
 .card-nuzigo,
 .card-nuzilo {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 20px;
-  border: 1px solid #eef2f6;
-  box-shadow: 0 4px 12px -2px rgba(23, 43, 77, 0.04);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* Typography base */
@@ -135,30 +228,31 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #0f172a;
-  background-color: #fafafa;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Focus ring consistency */
 :focus-visible {
-  outline: 2px solid #55C832;
+  outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
 
 /* Minimal sleek scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: var(--border-default);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+  background: var(--border-strong);
 }
 
 /* Subtle background mesh & dot grid pattern */
@@ -168,9 +262,17 @@ body {
     linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
 }
+.dark .bg-grid-subtle {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
 
 .bg-radial-gradient {
-  background: radial-gradient(circle at 50% 0%, rgba(85, 200, 50, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(85, 200, 50, 0.06) 0%, transparent 70%);
+}
+.dark .bg-radial-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(107, 234, 69, 0.08) 0%, transparent 70%);
 }
 
 /* Animations */

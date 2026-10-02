@@ -26,6 +26,8 @@ import { createClient } from '@/lib/supabase/client'
 import { formatFriendlyDate } from '@/lib/calendar-utils'
 import { formatTimeRange } from '@/lib/scheduling'
 import { JoinTutorModal } from './join-tutor-modal'
+import { FocusModeView } from '@/components/focus/focus-mode-view'
+import { Flame } from 'lucide-react'
 import type { StudentDashboardData } from '@/lib/student-portal'
 import type { StudentGamificationOverview } from '@/lib/gamification'
 import type { StudentWeeklyStreaks } from '@/lib/streaks'
@@ -46,6 +48,7 @@ export function StudentDashboardClient({
 }: StudentDashboardClientProps) {
   const router = useRouter()
   const [joinModalOpen, setJoinModalOpen] = useState(false)
+  const [focusOpen, setFocusOpen] = useState(false)
 
   // Real-time synchronization for live classes
   useEffect(() => {
@@ -103,16 +106,16 @@ export function StudentDashboardClient({
   return (
     <div className="space-y-6">
       {/* 1. CONSOLIDATED GAMIFICATION & BRAND BAR */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 bg-white rounded-2xl border border-gray-200/80 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 bg-white dark:bg-[#161D16] rounded-2xl border border-gray-200/80 dark:border-[#293329] shadow-2xs transition-colors">
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-xl bg-[#55C832] flex items-center justify-center text-white font-black text-sm shadow-2xs">
             N
           </div>
           <div>
-            <div className="text-xs font-bold tracking-tight text-[#172B4D]">
+            <div className="text-xs font-bold tracking-tight text-[#172B4D] dark:text-[#F4F7F2]">
               Nuzigo Learning
             </div>
-            <div className="text-[11px] text-gray-500 font-medium">
+            <div className="text-[11px] text-gray-500 dark:text-[#A8B3A5] font-medium">
               {profile.gradeLevel ? `Class ${profile.gradeLevel}` : 'Student Portal'}
             </div>
           </div>
@@ -122,7 +125,7 @@ export function StudentDashboardClient({
         <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Streak */}
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-50 border border-orange-200/80 text-orange-700 font-bold text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200/80 dark:border-orange-900/40 text-orange-700 dark:text-orange-300 font-bold text-xs"
             title="Active learning streak"
           >
             <span className="text-sm leading-none">🔥</span>
@@ -135,7 +138,7 @@ export function StudentDashboardClient({
 
           {/* Gold Coins */}
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 font-bold text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-amber-700 dark:text-amber-300 font-bold text-xs"
             title="Earned gold coins"
           >
             <span className="text-sm leading-none">🪙</span>
@@ -144,7 +147,7 @@ export function StudentDashboardClient({
 
           {/* XP */}
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-violet-50 border border-violet-200/80 text-violet-700 font-bold text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-900/40 text-violet-700 dark:text-violet-300 font-bold text-xs"
             title="Experience points"
           >
             <span className="text-sm leading-none">⚡</span>
@@ -191,6 +194,14 @@ export function StudentDashboardClient({
           <div className="mt-5 flex flex-wrap items-center gap-2.5">
             {isEnrolled ? (
               <>
+                <button
+                  type="button"
+                  onClick={() => setFocusOpen(true)}
+                  className="bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] text-xs font-bold shadow-sm rounded-xl h-9 px-4 flex items-center gap-1.5 transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <Flame className="h-3.5 w-3.5 fill-current" />
+                  <span>Start Focus Session</span>
+                </button>
                 <Link href="/student/classes">
                   <Button className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold shadow-sm rounded-xl h-9 px-4">
                     <Video className="mr-1.5 h-3.5 w-3.5" />
@@ -291,7 +302,7 @@ export function StudentDashboardClient({
 
       {/* 4. IMMEDIATE NEXT ACTION: LIVE OR UPCOMING CLASS */}
       {nextClass && (
-        <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-2xs transition-all hover:border-[#55C832]/40">
+        <div className="rounded-2xl border border-gray-200/90 dark:border-[#293329] bg-white dark:bg-[#161D16] p-5 shadow-2xs transition-all hover:border-[#55C832]/40 dark:hover:border-[#6BEA45]/40">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
               <div
@@ -330,7 +341,7 @@ export function StudentDashboardClient({
                   <span className="text-xs text-gray-500 font-medium">{nextClass.batch_name}</span>
                 </div>
 
-                <h3 className="text-sm sm:text-base font-bold text-gray-900 mt-1">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-[#F4F7F2] mt-1">
                   {nextClass.notes || nextClass.batch_name || 'Class Session'}
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-1.5">
@@ -588,6 +599,11 @@ export function StudentDashboardClient({
       )}
 
       {/* Join Tutor Modal */}
+      <FocusModeView
+        isOpen={focusOpen}
+        onClose={() => setFocusOpen(false)}
+        initialTask="Deep Learning Session"
+      />
       <JoinTutorModal isOpen={joinModalOpen} onClose={() => setJoinModalOpen(false)} />
     </div>
   )

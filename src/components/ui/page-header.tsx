@@ -15,25 +15,14 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between',
-        className
-      )}
-    >
+    <div className={cn('flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/80 dark:border-[#293329]', className)}>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-          {title}
-        </h1>
+        <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-[#F4F7F2] tracking-tight">{title}</h1>
         {description && (
-          <p className="mt-1 text-sm text-gray-500">{description}</p>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-[#A8B3A5] mt-1">{description}</p>
         )}
       </div>
-      {children && (
-        <div className="flex items-center gap-3 self-start sm:self-auto">
-          {children}
-        </div>
-      )}
+      {children && <div className="flex items-center gap-2.5 shrink-0">{children}</div>}
     </div>
   )
 }
