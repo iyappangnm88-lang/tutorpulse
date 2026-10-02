@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { getStudentNavGroups, type NavItem } from '@/lib/navigation'
+import { STUDENT_NAV_ITEMS, type NavItem } from '@/lib/navigation'
 import { useStudentNav } from '@/contexts/student-nav-context'
 
 export interface StudentSidebarProps {
@@ -48,7 +48,7 @@ export function StudentSidebar({
   }
 
   const isEnrolled = navContext?.isEnrolled ?? false
-  const groups = getStudentNavGroups(isEnrolled)
+  const pendingCount = navContext?.pendingCount ?? 0
 
   const handleClose = onClose || (navContext ? navContext.closeMobileMenu : undefined)
   const handleOpenJoin = onOpenJoinModal || (navContext ? navContext.openJoinModal : undefined)
@@ -65,8 +65,17 @@ export function StudentSidebar({
     let isActive = false
     if (item.href === '/student') {
       isActive = pathname === '/student'
-    } else if (item.href === '/student/classes') {
-      isActive = pathname.startsWith('/student/classes') || pathname.startsWith('/student/classroom')
+    } else if (item.href === '/student/tutors') {
+      isActive =
+        pathname.startsWith('/student/tutors') ||
+        pathname.startsWith('/student/classroom') ||
+        pathname.startsWith('/student/classes') ||
+        pathname.startsWith('/student/homework') ||
+        pathname.startsWith('/student/tests') ||
+        pathname.startsWith('/student/progress') ||
+        pathname.startsWith('/student/messages')
+    } else if (item.href === '/student/marketplace') {
+      isActive = pathname.startsWith('/student/marketplace') || pathname.startsWith('/tutors')
     } else {
       isActive = pathname.startsWith(item.href)
     }
@@ -77,7 +86,7 @@ export function StudentSidebar({
         href={item.href}
         onClick={mobile ? handleClose : undefined}
         className={cn(
-          'group flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[38px]',
+          'group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[42px]',
           isActive
             ? 'bg-[#55C832]/12 text-[#318A25] font-bold shadow-2xs border border-[#55C832]/25'
             : 'text-gray-600 hover:bg-gray-100/70 hover:text-[#172B4D]'
@@ -86,13 +95,21 @@ export function StudentSidebar({
       >
         <item.icon
           className={cn(
-            'h-4 w-4 shrink-0 transition-colors duration-150',
+            'h-4.5 w-4.5 shrink-0 transition-colors duration-150',
             isActive ? 'text-[#55C832]' : 'text-gray-400 group-hover:text-gray-600'
           )}
           aria-hidden="true"
         />
         <span className="flex-1 truncate">{item.label}</span>
-        {isActive && (
+        {item.href === '/student/tutors' && isEnrolled && (
+          <span className="h-2 w-2 rounded-full bg-emerald-500" title="Connected" />
+        )}
+        {item.href === '/student/tutors' && !isEnrolled && pendingCount > 0 && (
+          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
+            Pending
+          </span>
+        )}
+        {isActive && !isEnrolled && (
           <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" aria-hidden="true" />
         )}
       </Link>
@@ -134,7 +151,7 @@ export function StudentSidebar({
             type="button"
             onClick={handleClose}
             aria-label="Close navigation menu"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -143,57 +160,21 @@ export function StudentSidebar({
 
       {/* Nav items */}
       <nav
-        className="flex-1 overflow-y-auto py-3 space-y-4 overscroll-contain"
+        className="flex-1 overflow-y-auto py-4 space-y-1.5 overscroll-contain"
         aria-label="Student navigation links"
       >
-        {/* 1. Core / Home */}
-        <div className="space-y-0.5">
-          {groups.core.map(renderNavLink)}
-        </div>
-
-        {/* 2. Your Tutor Section */}
-        <div className="space-y-0.5">
-          <div className="px-5 py-1 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-              Your Tutor
-            </span>
-            {isEnrolled && (
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" title="Active enrollment" />
-            )}
-          </div>
-          {groups.tutor.map(renderNavLink)}
-        </div>
-
-        {/* 3. Explore Marketplace */}
-        <div className="space-y-0.5">
-          <div className="px-5 py-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-              Explore
-            </span>
-          </div>
-          {groups.explore.map(renderNavLink)}
-        </div>
-
-        {/* 4. Account Settings */}
-        <div className="space-y-0.5">
-          <div className="px-5 py-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-              Account
-            </span>
-          </div>
-          {groups.account.map(renderNavLink)}
-        </div>
+        {STUDENT_NAV_ITEMS.map(renderNavLink)}
 
         {/* Action Button: Connect with Invite Code */}
         {handleOpenJoin && (
-          <div className="pt-2 px-3">
+          <div className="pt-4 px-3">
             <button
               type="button"
               onClick={() => {
                 if (mobile && handleClose) handleClose()
                 handleOpenJoin()
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/60 text-[#318A25] text-xs font-bold transition-all shadow-2xs"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/60 text-[#318A25] text-xs font-bold transition-all shadow-2xs cursor-pointer"
             >
               <UserPlus className="h-3.5 w-3.5 text-[#55C832]" />
               <span>{isEnrolled ? 'Enter Invite Code' : 'Join a Tutor'}</span>

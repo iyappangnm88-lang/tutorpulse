@@ -96,45 +96,19 @@ export const PARENT_NAV_ITEMS: NavItem[] = [
 
 /**
  * Source of Truth for Student Portal navigation.
+ * Consolidated into 4 primary destinations: Home, Your Tutor, Find Tutor, Profile.
  */
-export const STUDENT_CORE_NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '/student', icon: Home },
-]
-
-export const STUDENT_TUTOR_NAV_ITEMS: NavItem[] = [
-  { label: 'Live Classes', href: '/student/classes', icon: Video },
-  { label: 'Homework', href: '/student/homework', icon: BookOpen },
-  { label: 'Tests & Marks', href: '/student/tests', icon: Award },
-  { label: 'Progress & Attendance', href: '/student/progress', icon: BarChart3 },
-  { label: 'Messages', href: '/student/messages', icon: MessageSquare },
-  { label: 'Connected Tutors', href: '/student/tutors', icon: Users },
-]
-
-export const STUDENT_EXPLORE_NAV_ITEMS: NavItem[] = [
-  { label: 'Find a Tutor', href: '/student/marketplace', icon: Compass },
-]
-
-export const STUDENT_ACCOUNT_NAV_ITEMS: NavItem[] = [
-  { label: 'Settings', href: '/student/settings', icon: Settings },
-]
-
 export const STUDENT_NAV_ITEMS: NavItem[] = [
-  ...STUDENT_CORE_NAV_ITEMS,
-  ...STUDENT_TUTOR_NAV_ITEMS,
-  ...STUDENT_EXPLORE_NAV_ITEMS,
-  ...STUDENT_ACCOUNT_NAV_ITEMS,
+  { label: 'Home', href: '/student', icon: Home },
+  { label: 'Your Tutor', href: '/student/tutors', icon: Users },
+  { label: 'Find Tutor', href: '/student/marketplace', icon: Compass },
+  { label: 'Profile', href: '/student/settings', icon: User },
 ]
 
 export function getStudentNavGroups(isEnrolled: boolean = false): {
-  core: NavItem[]
-  tutor: NavItem[]
-  explore: NavItem[]
-  account: NavItem[]
+  items: NavItem[]
 } {
   return {
-    core: STUDENT_CORE_NAV_ITEMS,
-    tutor: STUDENT_TUTOR_NAV_ITEMS,
-    explore: STUDENT_EXPLORE_NAV_ITEMS,
-    account: STUDENT_ACCOUNT_NAV_ITEMS,
+    items: STUDENT_NAV_ITEMS,
   }
 }
