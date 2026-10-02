@@ -1,9 +1,9 @@
 -- ==============================================================================
--- Migration: 032_study_groups.sql (Clean & Self-Contained)
--- Description: Nuzigo Focus Sessions & Study Groups Compartment Schema
+-- Migration: 032_study_groups.sql (Non-Recursive RLS Architecture)
+-- Description: Nuzigo Focus Sessions & Study Groups Compartment Schema & Policies
 -- ==============================================================================
 
--- 1. Create focus_sessions table if it doesn't already exist
+-- 1. Focus Sessions Table
 CREATE TABLE IF NOT EXISTS public.focus_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     student_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.focus_sessions (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Ensure group_id column exists if table was already created earlier
+-- Ensure group_id column exists
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -132,220 +132,220 @@ CREATE TABLE IF NOT EXISTS public.study_group_live_focus (
 
 CREATE INDEX IF NOT EXISTS idx_study_group_live_group ON public.study_group_live_focus(group_id, is_paused);
 
--- 7. Enable RLS on all tables
+-- ==============================================================================
+-- 7. SECURITY DEFINER Helper Functions (Break Infinite Recursion in RLS)
+-- ==============================================================================
+
+CREATE OR REPLACE FUNCTION public.is_study_group_member(p_group_id UUID, p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1 
+        FROM public.study_group_members 
+        WHERE group_id = p_group_id 
+        AND user_id = p_user_id
+    );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_study_group_admin(p_group_id UUID, p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1 
+        FROM public.study_group_members 
+        WHERE group_id = p_group_id 
+        AND user_id = p_user_id 
+        AND role IN ('owner', 'admin')
+    ) OR EXISTS (
+        SELECT 1
+        FROM public.study_groups
+        WHERE id = p_group_id
+        AND created_by = p_user_id
+    );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_study_group_public_or_creator(p_group_id UUID, p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1
+        FROM public.study_groups
+        WHERE id = p_group_id
+        AND (visibility = 'public' OR created_by = p_user_id)
+    );
+$$;
+
+-- ==============================================================================
+-- 8. Enable Row Level Security & Clean Old Policies
+-- ==============================================================================
+
 ALTER TABLE public.study_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_group_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_group_join_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_group_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_group_live_focus ENABLE ROW LEVEL SECURITY;
 
--- 8. Row Level Security Policies
--- study_groups
+-- Clean existing policies to prevent naming collisions
 DROP POLICY IF EXISTS "Anyone authenticated can view groups" ON public.study_groups;
-CREATE POLICY "Anyone authenticated can view groups"
+DROP POLICY IF EXISTS "Authenticated users can create study groups" ON public.study_groups;
+DROP POLICY IF EXISTS "Owners and admins can update study groups" ON public.study_groups;
+DROP POLICY IF EXISTS "Owners can delete study groups" ON public.study_groups;
+DROP POLICY IF EXISTS "study_groups_select_policy" ON public.study_groups;
+DROP POLICY IF EXISTS "study_groups_insert_policy" ON public.study_groups;
+DROP POLICY IF EXISTS "study_groups_update_policy" ON public.study_groups;
+DROP POLICY IF EXISTS "study_groups_delete_policy" ON public.study_groups;
+
+DROP POLICY IF EXISTS "Members can view members of their groups or public groups" ON public.study_group_members;
+DROP POLICY IF EXISTS "Users can insert membership or admins can add" ON public.study_group_members;
+DROP POLICY IF EXISTS "Owners and admins can manage member roles" ON public.study_group_members;
+DROP POLICY IF EXISTS "Users can leave or owners/admins can remove members" ON public.study_group_members;
+DROP POLICY IF EXISTS "study_group_members_select_policy" ON public.study_group_members;
+DROP POLICY IF EXISTS "study_group_members_insert_policy" ON public.study_group_members;
+DROP POLICY IF EXISTS "study_group_members_update_policy" ON public.study_group_members;
+DROP POLICY IF EXISTS "study_group_members_delete_policy" ON public.study_group_members;
+
+DROP POLICY IF EXISTS "Group members can view messages" ON public.study_group_messages;
+DROP POLICY IF EXISTS "Group members can send messages" ON public.study_group_messages;
+DROP POLICY IF EXISTS "study_group_messages_select_policy" ON public.study_group_messages;
+DROP POLICY IF EXISTS "study_group_messages_insert_policy" ON public.study_group_messages;
+
+DROP POLICY IF EXISTS "Anyone can view live focus for their groups or public groups" ON public.study_group_live_focus;
+DROP POLICY IF EXISTS "Users can manage their own live focus records" ON public.study_group_live_focus;
+DROP POLICY IF EXISTS "study_group_live_focus_select_policy" ON public.study_group_live_focus;
+DROP POLICY IF EXISTS "study_group_live_focus_all_policy" ON public.study_group_live_focus;
+
+DROP POLICY IF EXISTS "Users can view their requests and admins can view group requests" ON public.study_group_join_requests;
+DROP POLICY IF EXISTS "Users can submit join requests" ON public.study_group_join_requests;
+DROP POLICY IF EXISTS "Admins can update join requests" ON public.study_group_join_requests;
+DROP POLICY IF EXISTS "study_group_join_requests_select_policy" ON public.study_group_join_requests;
+DROP POLICY IF EXISTS "study_group_join_requests_insert_policy" ON public.study_group_join_requests;
+DROP POLICY IF EXISTS "study_group_join_requests_update_policy" ON public.study_group_join_requests;
+
+-- ==============================================================================
+-- 9. Non-Recursive RLS Policies
+-- ==============================================================================
+
+-- study_groups policies
+CREATE POLICY "study_groups_select_policy"
     ON public.study_groups FOR SELECT
     TO authenticated
     USING (
         visibility = 'public' 
         OR created_by = auth.uid()
-        OR EXISTS (
-            SELECT 1 FROM public.study_group_members 
-            WHERE study_group_members.group_id = study_groups.id 
-            AND study_group_members.user_id = auth.uid()
-        )
+        OR public.is_study_group_member(id, auth.uid())
     );
 
-DROP POLICY IF EXISTS "Authenticated users can create study groups" ON public.study_groups;
-CREATE POLICY "Authenticated users can create study groups"
+CREATE POLICY "study_groups_insert_policy"
     ON public.study_groups FOR INSERT
     TO authenticated
     WITH CHECK (auth.uid() = created_by);
 
-DROP POLICY IF EXISTS "Owners and admins can update study groups" ON public.study_groups;
-CREATE POLICY "Owners and admins can update study groups"
+CREATE POLICY "study_groups_update_policy"
     ON public.study_groups FOR UPDATE
     TO authenticated
     USING (
         created_by = auth.uid()
-        OR EXISTS (
-            SELECT 1 FROM public.study_group_members 
-            WHERE study_group_members.group_id = study_groups.id 
-            AND study_group_members.user_id = auth.uid()
-            AND study_group_members.role IN ('owner', 'admin')
-        )
+        OR public.is_study_group_admin(id, auth.uid())
+    )
+    WITH CHECK (
+        created_by = auth.uid()
+        OR public.is_study_group_admin(id, auth.uid())
     );
 
-DROP POLICY IF EXISTS "Owners can delete study groups" ON public.study_groups;
-CREATE POLICY "Owners can delete study groups"
+CREATE POLICY "study_groups_delete_policy"
     ON public.study_groups FOR DELETE
     TO authenticated
     USING (created_by = auth.uid());
 
--- study_group_members
-DROP POLICY IF EXISTS "Members can view members of their groups or public groups" ON public.study_group_members;
-CREATE POLICY "Members can view members of their groups or public groups"
+-- study_group_members policies
+CREATE POLICY "study_group_members_select_policy"
     ON public.study_group_members FOR SELECT
     TO authenticated
     USING (
-        EXISTS (
-            SELECT 1 FROM public.study_groups 
-            WHERE study_groups.id = study_group_members.group_id 
-            AND (study_groups.visibility = 'public' OR study_groups.created_by = auth.uid())
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.study_group_members m2
-            WHERE m2.group_id = study_group_members.group_id 
-            AND m2.user_id = auth.uid()
-        )
+        user_id = auth.uid()
+        OR public.is_study_group_public_or_creator(group_id, auth.uid())
+        OR public.is_study_group_member(group_id, auth.uid())
     );
 
-DROP POLICY IF EXISTS "Users can insert membership or admins can add" ON public.study_group_members;
-CREATE POLICY "Users can insert membership or admins can add"
+CREATE POLICY "study_group_members_insert_policy"
     ON public.study_group_members FOR INSERT
     TO authenticated
     WITH CHECK (
         auth.uid() = user_id
-        OR EXISTS (
-            SELECT 1 FROM public.study_group_members m2
-            WHERE m2.group_id = study_group_members.group_id 
-            AND m2.user_id = auth.uid()
-            AND m2.role IN ('owner', 'admin')
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.study_groups g
-            WHERE g.id = study_group_members.group_id 
-            AND g.created_by = auth.uid()
-        )
+        OR public.is_study_group_admin(group_id, auth.uid())
     );
 
-DROP POLICY IF EXISTS "Owners and admins can manage member roles" ON public.study_group_members;
-CREATE POLICY "Owners and admins can manage member roles"
+CREATE POLICY "study_group_members_update_policy"
     ON public.study_group_members FOR UPDATE
     TO authenticated
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.study_group_members m2
-            WHERE m2.group_id = study_group_members.group_id 
-            AND m2.user_id = auth.uid()
-            AND m2.role IN ('owner', 'admin')
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.study_groups g
-            WHERE g.id = study_group_members.group_id 
-            AND g.created_by = auth.uid()
-        )
-    );
+    USING (public.is_study_group_admin(group_id, auth.uid()))
+    WITH CHECK (public.is_study_group_admin(group_id, auth.uid()));
 
-DROP POLICY IF EXISTS "Users can leave or owners/admins can remove members" ON public.study_group_members;
-CREATE POLICY "Users can leave or owners/admins can remove members"
+CREATE POLICY "study_group_members_delete_policy"
     ON public.study_group_members FOR DELETE
     TO authenticated
     USING (
-        auth.uid() = user_id
-        OR EXISTS (
-            SELECT 1 FROM public.study_group_members m2
-            WHERE m2.group_id = study_group_members.group_id 
-            AND m2.user_id = auth.uid()
-            AND m2.role IN ('owner', 'admin')
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.study_groups g
-            WHERE g.id = study_group_members.group_id 
-            AND g.created_by = auth.uid()
-        )
+        user_id = auth.uid()
+        OR public.is_study_group_admin(group_id, auth.uid())
     );
 
--- study_group_messages
-DROP POLICY IF EXISTS "Group members can view messages" ON public.study_group_messages;
-CREATE POLICY "Group members can view messages"
+-- study_group_messages policies
+CREATE POLICY "study_group_messages_select_policy"
     ON public.study_group_messages FOR SELECT
     TO authenticated
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.study_group_members 
-            WHERE study_group_members.group_id = study_group_messages.group_id 
-            AND study_group_members.user_id = auth.uid()
-        )
-    );
+    USING (public.is_study_group_member(group_id, auth.uid()));
 
-DROP POLICY IF EXISTS "Group members can send messages" ON public.study_group_messages;
-CREATE POLICY "Group members can send messages"
+CREATE POLICY "study_group_messages_insert_policy"
     ON public.study_group_messages FOR INSERT
     TO authenticated
     WITH CHECK (
-        auth.uid() = user_id
-        AND EXISTS (
-            SELECT 1 FROM public.study_group_members 
-            WHERE study_group_members.group_id = study_group_messages.group_id 
-            AND study_group_members.user_id = auth.uid()
-        )
+        auth.uid() = user_id 
+        AND public.is_study_group_member(group_id, auth.uid())
     );
 
--- study_group_live_focus
-DROP POLICY IF EXISTS "Anyone can view live focus for their groups or public groups" ON public.study_group_live_focus;
-CREATE POLICY "Anyone can view live focus for their groups or public groups"
+-- study_group_live_focus policies
+CREATE POLICY "study_group_live_focus_select_policy"
     ON public.study_group_live_focus FOR SELECT
     TO authenticated
     USING (
-        EXISTS (
-            SELECT 1 FROM public.study_groups 
-            WHERE study_groups.id = study_group_live_focus.group_id 
-            AND (study_groups.visibility = 'public' OR study_groups.created_by = auth.uid())
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.study_group_members m2
-            WHERE m2.group_id = study_group_live_focus.group_id 
-            AND m2.user_id = auth.uid()
-        )
+        public.is_study_group_public_or_creator(group_id, auth.uid())
+        OR public.is_study_group_member(group_id, auth.uid())
     );
 
-DROP POLICY IF EXISTS "Users can manage their own live focus records" ON public.study_group_live_focus;
-CREATE POLICY "Users can manage their own live focus records"
+CREATE POLICY "study_group_live_focus_all_policy"
     ON public.study_group_live_focus FOR ALL
     TO authenticated
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
--- study_group_join_requests
-DROP POLICY IF EXISTS "Users can view their requests and admins can view group requests" ON public.study_group_join_requests;
-CREATE POLICY "Users can view their requests and admins can view group requests"
+-- study_group_join_requests policies
+CREATE POLICY "study_group_join_requests_select_policy"
     ON public.study_group_join_requests FOR SELECT
     TO authenticated
     USING (
         auth.uid() = user_id
-        OR EXISTS (
-            SELECT 1 FROM public.study_group_members 
-            WHERE study_group_members.group_id = study_group_join_requests.group_id 
-            AND study_group_members.user_id = auth.uid()
-            AND study_group_members.role IN ('owner', 'admin')
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.study_groups 
-            WHERE study_groups.id = study_group_join_requests.group_id 
-            AND study_groups.created_by = auth.uid()
-        )
+        OR public.is_study_group_admin(group_id, auth.uid())
     );
 
-DROP POLICY IF EXISTS "Users can submit join requests" ON public.study_group_join_requests;
-CREATE POLICY "Users can submit join requests"
+CREATE POLICY "study_group_join_requests_insert_policy"
     ON public.study_group_join_requests FOR INSERT
     TO authenticated
     WITH CHECK (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Admins can update join requests" ON public.study_group_join_requests;
-CREATE POLICY "Admins can update join requests"
+CREATE POLICY "study_group_join_requests_update_policy"
     ON public.study_group_join_requests FOR UPDATE
     TO authenticated
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.study_group_members 
-            WHERE study_group_members.group_id = study_group_join_requests.group_id 
-            AND study_group_members.user_id = auth.uid()
-            AND study_group_members.role IN ('owner', 'admin')
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.study_groups 
-            WHERE study_groups.id = study_group_join_requests.group_id 
-            AND study_groups.created_by = auth.uid()
-        )
-    );
+    USING (public.is_study_group_admin(group_id, auth.uid()))
+    WITH CHECK (public.is_study_group_admin(group_id, auth.uid()));
