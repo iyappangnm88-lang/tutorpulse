@@ -414,19 +414,6 @@ export function ActiveFocusView({
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
-
-          {/* End Focus Button in Header (Visible ONLY when paused) */}
-          {isPaused && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEndingConfirmOpen(true)}
-              className="h-9 px-3 rounded-xl border-red-400/50 bg-red-950/40 text-red-200 hover:bg-red-900/60 text-xs font-bold gap-1 cursor-pointer backdrop-blur-md animate-in fade-in duration-200"
-            >
-              <X className="w-4 h-4" />
-              <span className="hidden sm:inline">End Focus</span>
-            </Button>
-          )}
         </div>
       </div>
 
