@@ -17,23 +17,19 @@ import {
   CheckCircle2,
   GraduationCap,
   MapPin,
-  ExternalLink,
-  ChevronRight,
-  Check,
   Compass,
+  ChevronRight,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { formatFriendlyDate } from '@/lib/calendar-utils'
 import { formatTimeRange } from '@/lib/scheduling'
 import { JoinTutorModal } from './join-tutor-modal'
-import { StudentLearningJourney } from './student-learning-journey'
-import { StudentScheduleStreak } from './student-schedule-streak'
 import type { StudentDashboardData } from '@/lib/student-portal'
 import type { StudentGamificationOverview } from '@/lib/gamification'
 import type { StudentWeeklyStreaks } from '@/lib/streaks'
 import type { StudentJourneyData } from '@/lib/student-journey'
-import { Flame, Trophy } from 'lucide-react'
 
 interface StudentDashboardClientProps {
   data: StudentDashboardData
@@ -73,6 +69,7 @@ export function StudentDashboardClient({
       supabase.removeChannel(channel)
     }
   }, [router])
+
   const {
     profile,
     connectedTutors,
@@ -83,7 +80,6 @@ export function StudentDashboardClient({
     upcomingClasses,
     homeworkList,
     announcements,
-    stats,
   } = data
 
   const hasTutors = connectedTutors.length > 0
@@ -95,8 +91,6 @@ export function StudentDashboardClient({
   const streak = gamification?.streakCount ?? 1
   const goldCoins = gamification?.goldCoins ?? 0
   const xp = gamification?.xp ?? 0
-  const badges = gamification?.badges ?? []
-  const nodes = gamification?.learningNodes ?? []
 
   // Dynamic time-based greeting
   const getGreeting = () => {
@@ -108,303 +102,212 @@ export function StudentDashboardClient({
 
   return (
     <div className="space-y-6">
-      {/* 1. NUZIGO TOP STATS BAR */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-2">
-          <span className="h-9 w-9 rounded-xl bg-[#55C832] flex items-center justify-center text-white font-black text-lg shadow-sm">
+      {/* 1. CONSOLIDATED GAMIFICATION & BRAND BAR */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 bg-white rounded-2xl border border-gray-200/80 shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-[#55C832] flex items-center justify-center text-white font-black text-sm shadow-2xs">
             N
-          </span>
+          </div>
           <div>
-            <div className="text-xs font-bold tracking-wider uppercase text-[#318A25]">Nuzigo Learning</div>
-            <div className="text-xs text-slate-500 font-medium">Level 1 Scholar</div>
+            <div className="text-xs font-bold tracking-tight text-[#172B4D]">
+              Nuzigo Learning
+            </div>
+            <div className="text-[11px] text-gray-500 font-medium">
+              {profile.gradeLevel ? `Class ${profile.gradeLevel}` : 'Student Portal'}
+            </div>
           </div>
         </div>
 
-        {/* Gamification Pills */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        {/* Compact Gamification Indicators */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Streak */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200/80 text-orange-700 font-bold text-xs shadow-2xs">
-            <span className="text-base leading-none">🔥</span>
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-50 border border-orange-200/80 text-orange-700 font-bold text-xs"
+            title="Active learning streak"
+          >
+            <span className="text-sm leading-none">🔥</span>
             <span>
               {streaks && streaks.overallStreakWeeks > 0
-                ? `${streaks.overallStreakWeeks}w Streak`
-                : `${streak}d Streak`}
+                ? `${streaks.overallStreakWeeks}w`
+                : `${streak}d`}
             </span>
           </div>
 
           {/* Gold Coins */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 font-bold text-xs shadow-2xs">
-            <span className="text-base leading-none">🪙</span>
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 font-bold text-xs"
+            title="Earned gold coins"
+          >
+            <span className="text-sm leading-none">🪙</span>
             <span>{goldCoins}</span>
           </div>
 
           {/* XP */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-50 border border-violet-200/80 text-violet-700 font-bold text-xs shadow-2xs">
-            <span className="text-base leading-none">⚡</span>
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-violet-50 border border-violet-200/80 text-violet-700 font-bold text-xs"
+            title="Experience points"
+          >
+            <span className="text-sm leading-none">⚡</span>
             <span>{xp} XP</span>
           </div>
         </div>
       </div>
 
-      {/* 2. WELCOMING GREETING & HERO */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#172B4D] via-[#10203a] to-[#172B4D] p-6 sm:p-8 text-white shadow-lg">
+      {/* 2. WELCOMING HERO & STATUS SUMMARY */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#172B4D] via-[#152744] to-[#172B4D] p-6 sm:p-7 text-white shadow-md">
         <div className="relative z-10 max-w-2xl">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832] px-3 py-1 text-xs font-bold text-white shadow-xs">
-              <Sparkles className="h-3.5 w-3.5" />
-              Nuzigo Student
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832] px-2.5 py-0.5 text-[11px] font-bold text-white shadow-2xs">
+              <Sparkles className="h-3 w-3" />
+              Student
             </span>
-            {profile.gradeLevel && (
-              <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-slate-100 backdrop-blur-xs">
-                {profile.gradeLevel}
+            {isEnrolled ? (
+              <span className="inline-flex items-center rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-medium text-slate-200 backdrop-blur-xs">
+                {connectedTutors.length} {connectedTutors.length === 1 ? 'Connected Tutor' : 'Connected Tutors'}
               </span>
-            )}
-            {profile.schoolName && (
-              <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-slate-200">
-                {profile.schoolName}
+            ) : hasPending ? (
+              <span className="inline-flex items-center rounded-full bg-amber-400/25 border border-amber-300/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
+                1 Pending Request
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-medium text-slate-200">
+                Ready to Start
               </span>
             )}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight">
             {getGreeting()}, {profile.fullName} 👋
           </h1>
-          <p className="mt-1 text-lg font-bold text-[#FFC800]">
+          <p className="mt-1 text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
             {isEnrolled
-              ? 'Ready to learn?'
+              ? 'Welcome to your learning dashboard. Access your live classes, upcoming tasks, and tutor resources below.'
               : hasPending
-              ? 'Join Request Awaiting Approval'
-              : 'Start Your Learning Journey'}
-          </p>
-          <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {isEnrolled
-              ? `You are connected to ${connectedTutors.length} ${
-                  connectedTutors.length === 1 ? 'tutor' : 'tutors'
-                } across ${enrolledBatches.length} ${
-                  enrolledBatches.length === 1 ? 'batch' : 'batches'
-                }. Complete milestones on your learning journey below to earn XP and level up.`
-              : hasPending
-              ? `Your join request for ${pendingRequests[0]?.batchName || 'your selected batch'} is awaiting tutor review. Once approved, your classes, homework, and timetable will appear automatically.`
-              : 'Welcome to Nuzigo! Discover verified tutors across subjects or enter an invite code from your teacher to begin your interactive classes.'}
+              ? 'Your join request has been sent to your tutor and is awaiting review. Your classes and homework will appear once approved.'
+              : 'Connect with your tutor using an invite code or discover expert educators across subjects to get started.'}
           </p>
 
-          {/* Quick Actions Bar */}
-          <div className="mt-6 flex flex-wrap items-center gap-2.5">
+          {/* Quick Action Buttons */}
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
             {isEnrolled ? (
               <>
                 <Link href="/student/classes">
-                  <Button
-                    className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
-                  >
-                    <Video className="mr-1.5 h-4 w-4" />
-                    Join Class / Schedule
+                  <Button className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold shadow-sm rounded-xl h-9 px-4">
+                    <Video className="mr-1.5 h-3.5 w-3.5" />
+                    <span>My Classes & Timetable</span>
                   </Button>
                 </Link>
                 <Link href="/student/homework">
                   <Button
                     variant="outline"
-                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+                    className="border-white/25 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-9 px-3.5"
                   >
                     <BookOpen className="mr-1.5 h-3.5 w-3.5" />
-                    Homework
-                  </Button>
-                </Link>
-                <Link href="/student/tests">
-                  <Button
-                    variant="outline"
-                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
-                  >
-                    <Award className="mr-1.5 h-3.5 w-3.5" />
-                    Practice
-                  </Button>
-                </Link>
-                <Link href="/student/marketplace">
-                  <Button
-                    variant="outline"
-                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
-                  >
-                    <Compass className="mr-1.5 h-3.5 w-3.5" />
-                    Find More Tutors
+                    <span>Homework</span>
                   </Button>
                 </Link>
                 <button
                   type="button"
                   onClick={() => setJoinModalOpen(true)}
-                  className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 flex items-center gap-1.5 transition-colors"
+                  className="text-xs font-bold text-slate-300 hover:text-white px-2.5 py-2 flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <UserPlus className="h-3.5 w-3.5" />
+                  <UserPlus className="h-3.5 w-3.5 text-[#55C832]" />
                   <span>Invite Code</span>
                 </button>
               </>
             ) : hasPending ? (
               <>
                 <Link href="/student/tutors">
-                  <Button
-                    className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
-                  >
-                    <Clock className="mr-1.5 h-4 w-4" />
-                    View Pending Request ({pendingRequests.length})
+                  <Button className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm rounded-xl h-9 px-4">
+                    <Clock className="mr-1.5 h-3.5 w-3.5" />
+                    <span>View Request Status ({pendingRequests.length})</span>
                   </Button>
                 </Link>
                 <Link href="/student/marketplace">
                   <Button
                     variant="outline"
-                    className="border-white/30 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-10 px-3.5"
+                    className="border-white/25 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-9 px-3.5"
                   >
                     <Compass className="mr-1.5 h-3.5 w-3.5" />
-                    Browse Tutors
+                    <span>Browse Marketplace</span>
                   </Button>
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setJoinModalOpen(true)}
-                  className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 flex items-center gap-1.5 transition-colors"
-                >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  <span>Invite Code</span>
-                </button>
               </>
             ) : (
               <>
+                <Button
+                  onClick={() => setJoinModalOpen(true)}
+                  className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold shadow-sm rounded-xl h-9 px-4"
+                >
+                  <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                  <span>Enter Invite Code</span>
+                </Button>
                 <Link href="/student/marketplace">
                   <Button
-                    className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-black shadow-md rounded-xl h-10 px-4"
+                    variant="outline"
+                    className="border-white/25 bg-white/10 text-white hover:bg-white/20 text-xs font-semibold backdrop-blur-xs rounded-xl h-9 px-3.5"
                   >
-                    <Compass className="mr-1.5 h-4 w-4" />
-                    Find a Tutor
+                    <Compass className="mr-1.5 h-3.5 w-3.5" />
+                    <span>Find a Tutor</span>
                   </Button>
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setJoinModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-xs rounded-xl h-10 px-4 transition-colors"
-                >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  <span>Enter Invite Code</span>
-                </button>
               </>
             )}
           </div>
         </div>
 
-        {/* Decorative background glow */}
-        <div className="absolute -right-12 -bottom-12 h-64 w-64 rounded-full bg-[#55C832]/20 blur-3xl pointer-events-none" />
-        <div className="absolute right-20 -top-10 h-44 w-44 rounded-full bg-[#FFC928]/15 blur-2xl pointer-events-none" />
+        {/* Subtle background glow */}
+        <div className="absolute -right-10 -bottom-10 h-48 w-48 rounded-full bg-[#55C832]/15 blur-2xl pointer-events-none" />
       </div>
 
-      {/* 2.5. PENDING JOIN REQUESTS BANNER (IF ANY) */}
+      {/* 3. PENDING REQUEST ALERT (IF ANY) */}
       {hasPending && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 space-y-3 shadow-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-600" />
-              <h2 className="text-sm font-bold text-amber-950">Pending Join Requests</h2>
-              <span className="text-[10px] font-bold bg-amber-200/70 text-amber-900 px-2 py-0.5 rounded-full">
-                {pendingRequests.length} Awaiting Tutor Approval
-              </span>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+              <Clock className="h-4 w-4" />
             </div>
-            <Link href="/student/tutors" className="text-xs font-bold text-amber-800 hover:underline">
-              Manage Requests →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {pendingRequests.map((req) => (
-              <div key={req.id} className="p-3.5 rounded-xl border border-amber-100 bg-white shadow-2xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-900 truncate">{req.batchName}</span>
-                  <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                    Pending
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-500">
-                  Tutor: {req.tutorName || 'Tutor'} • {req.batchSubject || 'All Subjects'}
-                </p>
-                <p className="text-[10px] text-gray-400">
-                  Submitted {new Date(req.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 3. SCHEDULE-BASED WEEKLY STREAK SECTION */}
-      {streaks && (
-        <div id="streaks">
-          <StudentScheduleStreak streaks={streaks} />
-        </div>
-      )}
-
-      {/* 4. REAL ACTIVITY-BASED STUDENT LEARNING JOURNEY */}
-      <div id="journey">
-        <StudentLearningJourney
-          journey={
-            journey || {
-              nodes: [],
-              totalActivitiesCompleted: 0,
-              totalXpFromActivities: 0,
-              nextMilestoneCount: 5,
-            }
-          }
-          studentName={profile.fullName}
-        />
-      </div>
-
-      {/* 4. BADGES & ACHIEVEMENTS SHELF */}
-      {badges.length > 0 && (
-        <div className="card-nuzigo p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🏆</span>
-              <h3 className="text-base font-black text-slate-900">Your Badges & Achievements</h3>
+            <div>
+              <h2 className="text-xs font-bold text-amber-950">
+                Join Request Awaiting Tutor Approval
+              </h2>
+              <p className="text-[11px] text-amber-800/80 mt-0.5">
+                {pendingRequests[0]?.batchName || 'Batch'} with {pendingRequests[0]?.tutorName || 'Tutor'}. You will be enrolled once approved.
+              </p>
             </div>
-            <span className="text-xs font-bold text-[#3C9E00] bg-[#58CC02]/15 px-2.5 py-0.5 rounded-full">
-              {badges.length} Earned
-            </span>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {badges.map((sb) => (
-              <div
-                key={sb.id}
-                className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:border-amber-200 transition-colors"
-              >
-                <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shadow-2xs">
-                  {sb.badge?.icon || '🏅'}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-bold text-slate-900 truncate">
-                    {sb.badge?.name || 'Achievement'}
-                  </div>
-                  <div className="text-[10px] text-slate-500 truncate">
-                    +{sb.badge?.xp_reward || 50} XP
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <Link href="/student/tutors">
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs border-amber-300 text-amber-900 bg-white hover:bg-amber-100/60 font-semibold"
+            >
+              <span>Manage Requests</span>
+              <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          </Link>
         </div>
       )}
 
-      {/* 2. Next Live / In-Person Class Banner */}
+      {/* 4. IMMEDIATE NEXT ACTION: LIVE OR UPCOMING CLASS */}
       {nextClass && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs transition-all hover:border-[#55C832]/30">
+        <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-2xs transition-all hover:border-[#55C832]/40">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3.5">
               <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold ${
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-bold ${
                   nextClass.status === 'in_progress'
-                    ? 'bg-rose-50 text-rose-600'
+                    ? 'bg-rose-50 text-rose-600 animate-pulse'
                     : 'bg-[#FAFBEF] text-[#318A25]'
                 }`}
               >
-                {isNextClassOnline ? <Video className="h-6 w-6" /> : <MapPin className="h-6 w-6" />}
+                {isNextClassOnline ? <Video className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {nextClass.status === 'in_progress' ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 animate-pulse">
-                      <span className="h-2 w-2 rounded-full bg-rose-600" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-700">
+                      <span className="h-2 w-2 rounded-full bg-rose-600 animate-ping" />
                       LIVE NOW
                     </span>
                   ) : (
@@ -427,18 +330,18 @@ export function StudentDashboardClient({
                   <span className="text-xs text-gray-500 font-medium">{nextClass.batch_name}</span>
                 </div>
 
-                <h3 className="text-base font-bold text-gray-900 mt-1">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 mt-1">
                   {nextClass.notes || nextClass.batch_name || 'Class Session'}
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-2">
+                <p className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-1.5">
                   <span>Instructor: {nextClass.tutor_name}</span>
                   {nextClass.session_date && (
                     <>
                       <span>•</span>
-                      <span className="flex items-center gap-1 font-medium text-slate-700">
+                      <span className="font-medium text-slate-700 flex items-center gap-1">
                         <Clock className="h-3 w-3 text-slate-400" />
                         {formatFriendlyDate(nextClass.session_date)}
-                        {nextClass.start_time ? ` • ${formatTimeRange(nextClass.start_time, nextClass.end_time)}` : ''}
+                        {nextClass.start_time ? ` (${formatTimeRange(nextClass.start_time, nextClass.end_time)})` : ''}
                       </span>
                     </>
                   )}
@@ -446,25 +349,26 @@ export function StudentDashboardClient({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-center">
+            <div className="flex items-center gap-2 self-start sm:self-center">
               {isNextClassOnline ? (
                 <Link href={`/student/classroom/${nextClass.id}`}>
                   <Button
+                    size="sm"
                     className={
                       nextClass.status === 'in_progress'
-                        ? 'bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md'
-                        : 'bg-[#55C832] hover:bg-[#318A25] text-white font-semibold text-xs'
+                        ? 'bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md h-9 px-4'
+                        : 'bg-[#55C832] hover:bg-[#318A25] text-white font-semibold text-xs h-9 px-4'
                     }
                   >
                     <Video className="mr-1.5 h-4 w-4" />
-                    {nextClass.status === 'in_progress' ? 'Join Live Room' : 'Enter Classroom'}
+                    <span>{nextClass.status === 'in_progress' ? 'Join Live Room' : 'Enter Classroom'}</span>
                   </Button>
                 </Link>
               ) : (
                 <Link href="/student/classes">
-                  <Button variant="outline" className="text-xs font-semibold">
+                  <Button variant="outline" size="sm" className="text-xs font-semibold h-9 px-3.5">
                     <MapPin className="mr-1.5 h-3.5 w-3.5 text-gray-500" />
-                    View Class Details
+                    <span>View Class Details</span>
                   </Button>
                 </Link>
               )}
@@ -473,110 +377,36 @@ export function StudentDashboardClient({
         </div>
       )}
 
-      {/* 3. Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500">My Tutors</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25]">
-              <Users className="h-3.5 w-3.5" />
-            </div>
+      {/* 5. TODAY'S FOCUS & PRIORITIES */}
+      <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-2xs">
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-[#318A25]" />
+            <h2 className="text-xs sm:text-sm font-bold text-gray-900">Today&apos;s Focus</h2>
           </div>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{stats.totalTutors}</p>
-          <Link
-            href="/student/tutors"
-            className="mt-1 text-[11px] font-medium text-[#318A25] hover:underline inline-flex items-center"
-          >
-            {hasTutors ? 'Manage tutors →' : hasPending ? 'Pending requests →' : 'Find a tutor →'}
-          </Link>
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500">Enrolled Batches</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
-              <GraduationCap className="h-3.5 w-3.5" />
-            </div>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{stats.totalBatches}</p>
-          <Link
-            href="/student/classes"
-            className="mt-1 text-[11px] font-medium text-sky-600 hover:underline inline-flex items-center"
-          >
-            {hasBatches ? 'View cohorts →' : 'View timetable →'}
-          </Link>
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500">Homework Due</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-              <BookOpen className="h-3.5 w-3.5" />
-            </div>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{stats.pendingHomeworkCount}</p>
-          <Link
-            href="/student/homework"
-            className="mt-1 text-[11px] font-medium text-amber-600 hover:underline inline-flex items-center"
-          >
-            Check tasks →
-          </Link>
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500">Attendance Rate</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-              <Award className="h-3.5 w-3.5" />
-            </div>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-gray-900">
-            {stats.attendanceRate !== null ? `${stats.attendanceRate}%` : '100%'}
-          </p>
-          <Link
-            href="/student/progress"
-            className="mt-1 text-[11px] font-medium text-emerald-600 hover:underline inline-flex items-center"
-          >
-            View progress report →
-          </Link>
-        </div>
-      </div>
-
-      {/* 4. Today's Learning Feed */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#318A25]" />
-              Today&apos;s Learning
-            </h2>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              Live sessions, assignments due, and notices for today
-            </p>
-          </div>
-          <span className="text-xs font-semibold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg">
+          <span className="text-[11px] font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md">
             {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
           </span>
         </div>
 
         {todaysLearning.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-6 text-center">
-            <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-5 text-center">
+            <CheckCircle2 className="h-6 w-6 text-emerald-500 mx-auto mb-1.5" />
             <p className="text-xs font-bold text-gray-800">You&apos;re all caught up for today 🎉</p>
-            <p className="text-[11px] text-gray-500 mt-1 max-w-sm mx-auto">
-              No live classes scheduled or assignments due today. Check your upcoming schedule or review past lesson notes.
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              No live classes scheduled or assignments due today.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="divide-y divide-gray-100">
             {todaysLearning.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors"
+                className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
               >
-                <div className="flex items-start gap-3 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                       item.type === 'class'
                         ? item.isLive
                           ? 'bg-rose-100 text-rose-700 animate-pulse'
@@ -604,342 +434,158 @@ export function StudentDashboardClient({
                   </div>
                 </div>
 
-                <div className="shrink-0 pl-2">
-                  <Link href={item.actionUrl}>
-                    <Button
-                      size="sm"
-                      variant={item.isLive ? 'primary' : 'outline'}
-                      className={`text-xs h-7 font-medium ${item.isLive ? 'bg-rose-600 hover:bg-rose-700 text-white' : ''}`}
-                    >
-                      {item.actionLabel}
-                    </Button>
-                  </Link>
-                </div>
+                <Link href={item.actionUrl} className="shrink-0">
+                  <Button
+                    size="sm"
+                    variant={item.isLive ? 'primary' : 'outline'}
+                    className={`text-xs h-7 px-3 font-semibold ${item.isLive ? 'bg-rose-600 hover:bg-rose-700 text-white' : ''}`}
+                  >
+                    <span>{item.actionLabel}</span>
+                  </Button>
+                </Link>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* 5. Main 2-Column Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Batches, Upcoming Classes & Homework */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Enrolled Batches */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-[#318A25]" />
-                My Enrolled Batches
-              </h2>
-              <Link href="/student/classes" className="text-xs font-semibold text-[#318A25] hover:underline">
-                View Timetable
-              </Link>
-            </div>
-
-            {enrolledBatches.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
-                <GraduationCap className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-xs font-medium text-gray-700">Not enrolled in any batches yet</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  When your connected tutors add you to their batch roster, it will show up here.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {enrolledBatches.map((batch) => (
-                  <div
-                    key={batch.id}
-                    className="p-3.5 rounded-xl border border-gray-100 bg-white hover:border-gray-200 transition-all flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-xs font-bold text-gray-900 truncate">{batch.name}</span>
-                        <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
-                            batch.class_mode === 'online'
-                              ? 'bg-purple-50 text-purple-700 border border-purple-100'
-                              : 'bg-[#FAFBEF] text-[#318A25] border border-[#55C832]/30'
-                          }`}
-                        >
-                          {batch.class_mode}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-gray-500">
-                        {batch.subject || 'All Subjects'} • Tutor: {batch.tutor_name}
-                      </p>
-                      {batch.schedule && (
-                        <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
-                          <Clock className="h-3 w-3 shrink-0" />
-                          {batch.schedule}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-3 pt-2.5 border-t border-gray-50 flex items-center justify-between text-[11px]">
-                      <span className="text-gray-400">
-                        {batch.class_mode === 'online' ? 'Interactive WebRTC' : batch.location || 'In-Person'}
-                      </span>
-                      <Link
-                        href="/student/classes"
-                        className="font-medium text-[#318A25] hover:underline flex items-center gap-0.5"
-                      >
-                        Schedule <ChevronRight className="h-3 w-3" />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Upcoming Classes */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Video className="h-4 w-4 text-[#318A25]" />
-                Upcoming Live & Physical Classes
-              </h2>
-              <Link href="/student/classes" className="text-xs font-semibold text-[#318A25] hover:underline">
-                View All
-              </Link>
-            </div>
-
-            {upcomingClasses.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
-                <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-xs font-medium text-gray-700">No upcoming classes scheduled</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  {hasTutors
-                    ? 'Your tutor will publish upcoming class timings soon.'
-                    : 'Connect with a tutor to see your class schedule.'}
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {upcomingClasses.slice(0, 4).map((c) => (
-                  <div key={c.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FAFBEF] text-[#318A25] text-xs font-bold">
-                        {c.status === 'in_progress' ? '🔴' : '📅'}
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-900">{c.notes || c.batch_name || 'Class'}</p>
-                        <p className="text-[11px] text-gray-500">
-                          {c.tutor_name} • {c.session_date} {c.start_time ? `(${c.start_time})` : ''}
-                        </p>
-                      </div>
-                    </div>
-                    {c.class_mode === 'online' ? (
-                      <Link href={`/student/classroom/${c.id}`}>
-                        <Button
-                          size="sm"
-                          variant={c.status === 'in_progress' ? 'primary' : 'outline'}
-                          className="text-xs h-7"
-                        >
-                          {c.status === 'in_progress' ? 'Join Now' : 'Classroom'}
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Link href="/student/classes">
-                        <Button size="sm" variant="outline" className="text-xs h-7">
-                          Details
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Pending Homework */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-amber-600" />
-                Recent Homework & Assignments
-              </h2>
-              <Link href="/student/homework" className="text-xs font-semibold text-[#318A25] hover:underline">
-                View All
-              </Link>
-            </div>
-
-            {homeworkList.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
-                <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-                <p className="text-xs font-medium text-gray-700">All caught up on homework!</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  No active assignments currently pending.
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {homeworkList.slice(0, 3).map((hw) => (
-                  <div key={hw.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
-                    <div>
-                      <p className="text-xs font-bold text-gray-900">{hw.title}</p>
-                      <p className="text-[11px] text-gray-500">
-                        {hw.batch_name} • Due{' '}
-                        {hw.due_date
-                          ? new Date(hw.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' })
-                          : 'Soon'}
-                      </p>
-                    </div>
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                        hw.student_status === 'Completed'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                          : hw.is_overdue
-                          ? 'bg-rose-50 text-rose-700 border-rose-100'
-                          : 'bg-amber-50 text-amber-700 border-amber-100'
-                      }`}
-                    >
-                      {hw.student_status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Col: Connected Tutors & Announcements */}
-        <div className="space-y-6">
-          {/* Connected Tutors Card */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#318A25]" />
-                My Tutors
-              </h2>
-              <button
-                type="button"
-                onClick={() => setJoinModalOpen(true)}
-                className="text-xs font-semibold text-[#318A25] hover:underline flex items-center gap-1"
-              >
-                <UserPlus className="h-3 w-3" />
-                {hasTutors ? 'Add Code' : 'Invite Code'}
-              </button>
-            </div>
-
-            {connectedTutors.length === 0 ? (
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-xs font-medium text-gray-700">
-                  {hasPending ? 'Join Request Submitted' : 'No tutors connected yet'}
-                </p>
-                <p className="text-[11px] text-gray-400 mt-1 mb-3">
-                  {hasPending
-                    ? 'Awaiting tutor review & enrollment'
-                    : 'Have an invite code from your teacher?'}
-                </p>
-                {hasPending ? (
-                  <Link href="/student/tutors">
-                    <Button size="sm" variant="outline" className="w-full text-xs text-amber-700 border-amber-300 bg-amber-50/50 hover:bg-amber-100">
-                      View Request Status
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    size="sm"
-                    onClick={() => setJoinModalOpen(true)}
-                    className="w-full text-xs bg-[#55C832] hover:bg-[#318A25]"
-                  >
-                    Enter Invite Code
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {connectedTutors.map((tutor) => (
-                  <div
-                    key={tutor.connectionId}
-                    className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#55C832]/20 text-[#318A25] text-xs font-bold">
-                      {tutor.fullName.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-900 truncate">{tutor.fullName}</p>
-                      <p className="text-[10px] text-gray-500 truncate">
-                        {tutor.primarySubjects.length > 0 ? tutor.primarySubjects.join(', ') : 'Instructor'}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                <Link
-                  href="/student/tutors"
-                  className="block text-center text-xs font-semibold text-[#318A25] hover:underline pt-1"
-                >
-                  Manage Tutors →
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Announcements Card */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Bell className="h-4 w-4 text-violet-600" />
-                Announcements
-              </h2>
-            </div>
-
-            {announcements.length === 0 ? (
-              <p className="text-xs text-gray-400 italic text-center py-4">No recent announcements</p>
-            ) : (
-              <div className="space-y-3">
-                {announcements.slice(0, 3).map((a) => (
-                  <div key={a.id} className="text-xs border-b border-gray-100 pb-2.5 last:border-0 last:pb-0">
-                    <p className="font-bold text-gray-900">{a.title}</p>
-                    <p className="text-gray-600 text-[11px] mt-0.5 line-clamp-2">{a.message}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {new Date(a.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Marketplace Card */}
-          <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-[#FAFBEF] to-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold text-[#318A25] uppercase tracking-wider bg-[#55C832]/15 px-2.5 py-0.5 rounded-full">
-                Marketplace
-              </span>
-              <Compass className="h-4 w-4 text-[#55C832]" />
-            </div>
-            <h3 className="text-sm font-black text-[#172B4D]">
-              {isEnrolled ? 'Explore Other Subjects' : 'Looking for a Tutor?'}
-            </h3>
-            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-              {isEnrolled
-                ? 'Find additional specialized educators for science, math, or language skills.'
-                : 'Find verified educators by subject for concept clarity or exam preparation.'}
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-3 mb-3.5">
-              {['Mathematics', 'Physics', 'Chemistry', 'English', 'Biology'].map((sub) => (
-                <Link
-                  key={sub}
-                  href={`/student/marketplace?subject=${encodeURIComponent(sub)}`}
-                  className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 hover:border-[#55C832] text-slate-700 hover:text-[#318A25] text-[11px] font-bold transition-colors"
-                >
-                  {sub}
-                </Link>
-              ))}
+      {/* 6. YOUR TUTOR HUB & QUICK ACCESS */}
+      {isEnrolled ? (
+        <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4 text-[#318A25]" />
+              <h2 className="text-xs sm:text-sm font-bold text-gray-900">Your Tutor Hub</h2>
             </div>
             <Link
-              href="/student/marketplace"
-              className="btn-nuzigo-primary text-xs font-bold py-2 px-3 w-full flex items-center justify-center gap-1.5 shadow-sm"
+              href="/student/tutors"
+              className="text-xs font-semibold text-[#318A25] hover:underline flex items-center gap-0.5"
             >
-              <span>{isEnrolled ? 'Browse Marketplace' : 'Explore All Tutors'}</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <span>Manage ({connectedTutors.length})</span>
+              <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          {/* Tutor & Batch summary pills */}
+          <div className="flex flex-wrap gap-2">
+            {connectedTutors.map((tutor) => (
+              <div
+                key={tutor.connectionId}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-xs text-gray-800"
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#55C832]/20 text-[#318A25] text-[10px] font-bold">
+                  {tutor.fullName.charAt(0).toUpperCase()}
+                </div>
+                <span className="font-bold">{tutor.fullName}</span>
+                {tutor.primarySubjects.length > 0 && (
+                  <span className="text-[10px] text-gray-500 font-medium">
+                    ({tutor.primarySubjects.join(', ')})
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Quick Hub Navigation Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+            <Link
+              href="/student/classes"
+              className="p-3 rounded-xl border border-gray-100 bg-gray-50/60 hover:bg-emerald-50/40 hover:border-emerald-200 transition-all group"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-900 group-hover:text-[#318A25]">
+                <Video className="h-4 w-4 text-[#55C832]" />
+                <span>Live Classes</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">Timetable & sessions</p>
+            </Link>
+
+            <Link
+              href="/student/homework"
+              className="p-3 rounded-xl border border-gray-100 bg-gray-50/60 hover:bg-amber-50/40 hover:border-amber-200 transition-all group"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-900 group-hover:text-amber-700">
+                <BookOpen className="h-4 w-4 text-amber-500" />
+                <span>Homework</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">
+                {homeworkList.filter((h) => h.student_status !== 'Completed').length} active tasks
+              </p>
+            </Link>
+
+            <Link
+              href="/student/tests"
+              className="p-3 rounded-xl border border-gray-100 bg-gray-50/60 hover:bg-emerald-50/40 hover:border-emerald-200 transition-all group"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-900 group-hover:text-[#318A25]">
+                <Award className="h-4 w-4 text-emerald-600" />
+                <span>Tests & Marks</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">Scores & grades</p>
+            </Link>
+
+            <Link
+              href="/student/progress"
+              className="p-3 rounded-xl border border-gray-100 bg-gray-50/60 hover:bg-violet-50/40 hover:border-violet-200 transition-all group"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-900 group-hover:text-violet-700">
+                <BarChart3 className="h-4 w-4 text-violet-500" />
+                <span>Attendance</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">Progress reports</p>
             </Link>
           </div>
         </div>
-      </div>
+      ) : (
+        /* Not Enrolled: Friendly Call to Action */
+        <div className="rounded-2xl border border-emerald-200/80 bg-gradient-to-b from-[#FAFBEF] to-white p-5 sm:p-6 shadow-2xs space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🎓</span>
+            <h2 className="text-sm font-bold text-[#172B4D]">Connect with Your Tutor</h2>
+          </div>
+          <p className="text-xs text-gray-600 leading-relaxed max-w-xl">
+            Have an invite code from your teacher or coaching academy? Enter it to access your live classes, homework, and timetable. You can also explore expert tutors across subjects on our marketplace.
+          </p>
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            <Button
+              onClick={() => setJoinModalOpen(true)}
+              className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold rounded-xl h-9 px-4"
+            >
+              <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+              <span>Enter Invite Code</span>
+            </Button>
+            <Link href="/student/marketplace">
+              <Button
+                variant="outline"
+                className="border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-semibold rounded-xl h-9 px-3.5"
+              >
+                <Compass className="mr-1.5 h-3.5 w-3.5 text-[#55C832]" />
+                <span>Explore Tutors</span>
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 7. EXPLORE MARKETPLACE (CONCISE, CLEAN FOOTER CARD) */}
+      {isEnrolled && (
+        <div className="rounded-2xl border border-gray-200/80 bg-white p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+              <Compass className="h-4 w-4 text-[#55C832]" />
+              <span>Looking for more tutors or subjects?</span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Discover verified educators for specialized subjects, entrance prep, or concept clarity.
+            </p>
+          </div>
+          <Link href="/student/marketplace" className="shrink-0">
+            <Button variant="outline" size="sm" className="text-xs font-semibold gap-1 border-gray-200 text-gray-700 hover:bg-gray-50">
+              <span>Browse Marketplace</span>
+              <ArrowRight className="h-3 w-3 text-gray-400" />
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Join Tutor Modal */}
       <JoinTutorModal isOpen={joinModalOpen} onClose={() => setJoinModalOpen(false)} />

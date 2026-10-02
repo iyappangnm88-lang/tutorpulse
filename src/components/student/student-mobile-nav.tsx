@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Compass, Sparkles, Video, BookOpen, Menu } from 'lucide-react'
+import { Home, Compass, Video, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStudentNav } from '@/contexts/student-nav-context'
 
@@ -19,79 +19,53 @@ export function StudentMobileNav() {
       isActive: pathname === '/student',
     },
     {
-      label: 'Find Tutors',
-      href: '/student/marketplace',
-      icon: Compass,
-      isActive: pathname.startsWith('/student/marketplace'),
-    },
-    {
-      label: 'Learn',
-      href: '/student/progress',
-      icon: Sparkles,
-      isPrimary: true,
-      isActive: pathname.startsWith('/student/progress'),
-    },
-    {
       label: 'Classes',
       href: '/student/classes',
       icon: Video,
       isActive: pathname.startsWith('/student/classes') || pathname.startsWith('/student/classroom'),
     },
+    {
+      label: 'Find Tutors',
+      href: '/student/marketplace',
+      icon: Compass,
+      isActive: pathname.startsWith('/student/marketplace'),
+    },
   ]
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-gray-200/80 bg-white/95 backdrop-blur-md px-2 lg:hidden shadow-lg"
+      className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-gray-200/80 bg-white/95 backdrop-blur-md px-3 lg:hidden shadow-lg safe-area-pb"
       aria-label="Student Mobile Bottom Navigation"
     >
       {tabs.map((tab) => {
-        const isCurrent =
-          tab.isActive !== undefined
-            ? tab.isActive
-            : tab.href === '/student'
-            ? pathname === '/student'
-            : pathname.startsWith(tab.href)
-
-        if (tab.isPrimary) {
-          return (
-            <Link
-              key={tab.label}
-              href={tab.href}
-              className="relative -top-3 flex flex-col items-center justify-center group select-none"
-            >
-              <div className="h-12 w-12 rounded-full bg-[#55C832] border-b-4 border-[#318A25] text-white flex items-center justify-center shadow-lg group-active:translate-y-0.5 group-active:border-b-2 transition-all">
-                <tab.icon className="h-6 w-6 stroke-[2.5]" />
-              </div>
-              <span className="text-[10px] font-bold text-[#318A25] mt-0.5">{tab.label}</span>
-            </Link>
-          )
-        }
+        const isCurrent = tab.isActive
 
         return (
           <Link
             key={tab.label}
             href={tab.href}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 rounded-xl py-1 px-2.5 text-center min-w-[56px] transition-colors select-none',
+              'flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-1.5 px-2 text-center min-w-[56px] min-h-[48px] transition-colors select-none',
               isCurrent ? 'text-[#318A25] font-bold' : 'text-gray-500 hover:text-gray-900'
             )}
           >
             <tab.icon className={cn('h-5 w-5', isCurrent ? 'text-[#55C832]' : 'text-gray-400')} />
-            <span className="text-[10px] tracking-tight">{tab.label}</span>
+            <span className="text-[11px] tracking-tight">{tab.label}</span>
           </Link>
         )
       })}
 
-      {/* 5th Tab: Full Menu Trigger */}
+      {/* 4th Tab: Full Menu Trigger */}
       <button
         type="button"
         onClick={openMobileMenu}
         aria-label="Open full student menu"
-        className="flex flex-col items-center justify-center gap-1 rounded-xl py-1 px-2.5 text-center min-w-[56px] text-gray-500 hover:text-gray-900 transition-colors select-none"
+        className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-1.5 px-2 text-center min-w-[56px] min-h-[48px] text-gray-500 hover:text-gray-900 transition-colors select-none cursor-pointer"
       >
         <Menu className="h-5 w-5 text-gray-400" />
-        <span className="text-[10px] tracking-tight font-medium">Menu</span>
+        <span className="text-[11px] tracking-tight font-medium">Menu</span>
       </button>
     </nav>
   )
 }
+

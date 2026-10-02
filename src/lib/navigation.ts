@@ -97,14 +97,44 @@ export const PARENT_NAV_ITEMS: NavItem[] = [
 /**
  * Source of Truth for Student Portal navigation.
  */
-export const STUDENT_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/student', icon: Home },
-  { label: 'Find a Tutor', href: '/student/marketplace', icon: Compass },
+export const STUDENT_CORE_NAV_ITEMS: NavItem[] = [
+  { label: 'Home', href: '/student', icon: Home },
+]
+
+export const STUDENT_TUTOR_NAV_ITEMS: NavItem[] = [
   { label: 'Live Classes', href: '/student/classes', icon: Video },
-  { label: 'My Progress', href: '/student/progress', icon: BarChart3 },
   { label: 'Homework', href: '/student/homework', icon: BookOpen },
   { label: 'Tests & Marks', href: '/student/tests', icon: Award },
-  { label: 'My Tutors', href: '/student/tutors', icon: Users },
+  { label: 'Progress & Attendance', href: '/student/progress', icon: BarChart3 },
   { label: 'Messages', href: '/student/messages', icon: MessageSquare },
+  { label: 'Connected Tutors', href: '/student/tutors', icon: Users },
+]
+
+export const STUDENT_EXPLORE_NAV_ITEMS: NavItem[] = [
+  { label: 'Find a Tutor', href: '/student/marketplace', icon: Compass },
+]
+
+export const STUDENT_ACCOUNT_NAV_ITEMS: NavItem[] = [
   { label: 'Settings', href: '/student/settings', icon: Settings },
 ]
+
+export const STUDENT_NAV_ITEMS: NavItem[] = [
+  ...STUDENT_CORE_NAV_ITEMS,
+  ...STUDENT_TUTOR_NAV_ITEMS,
+  ...STUDENT_EXPLORE_NAV_ITEMS,
+  ...STUDENT_ACCOUNT_NAV_ITEMS,
+]
+
+export function getStudentNavGroups(isEnrolled: boolean = false): {
+  core: NavItem[]
+  tutor: NavItem[]
+  explore: NavItem[]
+  account: NavItem[]
+} {
+  return {
+    core: STUDENT_CORE_NAV_ITEMS,
+    tutor: STUDENT_TUTOR_NAV_ITEMS,
+    explore: STUDENT_EXPLORE_NAV_ITEMS,
+    account: STUDENT_ACCOUNT_NAV_ITEMS,
+  }
+}

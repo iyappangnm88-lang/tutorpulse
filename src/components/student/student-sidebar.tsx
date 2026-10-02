@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { STUDENT_NAV_ITEMS } from '@/lib/navigation'
+import { getStudentNavGroups, type NavItem } from '@/lib/navigation'
 import { useStudentNav } from '@/contexts/student-nav-context'
 
 export interface StudentSidebarProps {
@@ -47,6 +47,9 @@ export function StudentSidebar({
     // Context may not be mounted in test or isolated render
   }
 
+  const isEnrolled = navContext?.isEnrolled ?? false
+  const groups = getStudentNavGroups(isEnrolled)
+
   const handleClose = onClose || (navContext ? navContext.closeMobileMenu : undefined)
   const handleOpenJoin = onOpenJoinModal || (navContext ? navContext.openJoinModal : undefined)
 
@@ -56,6 +59,44 @@ export function StudentSidebar({
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
+  }
+
+  const renderNavLink = (item: NavItem) => {
+    let isActive = false
+    if (item.href === '/student') {
+      isActive = pathname === '/student'
+    } else if (item.href === '/student/classes') {
+      isActive = pathname.startsWith('/student/classes') || pathname.startsWith('/student/classroom')
+    } else {
+      isActive = pathname.startsWith(item.href)
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={mobile ? handleClose : undefined}
+        className={cn(
+          'group flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[38px]',
+          isActive
+            ? 'bg-[#55C832]/12 text-[#318A25] font-bold shadow-2xs border border-[#55C832]/25'
+            : 'text-gray-600 hover:bg-gray-100/70 hover:text-[#172B4D]'
+        )}
+        aria-current={isActive ? 'page' : undefined}
+      >
+        <item.icon
+          className={cn(
+            'h-4 w-4 shrink-0 transition-colors duration-150',
+            isActive ? 'text-[#55C832]' : 'text-gray-400 group-hover:text-gray-600'
+          )}
+          aria-hidden="true"
+        />
+        <span className="flex-1 truncate">{item.label}</span>
+        {isActive && (
+          <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" aria-hidden="true" />
+        )}
+      </Link>
+    )
   }
 
   return (
@@ -102,51 +143,50 @@ export function StudentSidebar({
 
       {/* Nav items */}
       <nav
-        className="flex-1 overflow-y-auto py-3 space-y-0.5 overscroll-contain"
+        className="flex-1 overflow-y-auto py-3 space-y-4 overscroll-contain"
         aria-label="Student navigation links"
       >
-        {STUDENT_NAV_ITEMS.map((item) => {
-          // Robust active route detection
-          let isActive = false
-          if (item.href === '/student') {
-            isActive = pathname === '/student'
-          } else if (item.href === '/student/classes') {
-            isActive = pathname.startsWith('/student/classes') || pathname.startsWith('/student/classroom')
-          } else {
-            isActive = pathname.startsWith(item.href)
-          }
+        {/* 1. Core / Home */}
+        <div className="space-y-0.5">
+          {groups.core.map(renderNavLink)}
+        </div>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={mobile ? handleClose : undefined}
-              className={cn(
-                'group flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 mx-2.5 min-h-[40px]',
-                isActive
-                  ? 'bg-[#55C832]/12 text-[#318A25] font-bold shadow-2xs border border-[#55C832]/25'
-                  : 'text-gray-600 hover:bg-gray-100/70 hover:text-[#172B4D]'
-              )}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              <item.icon
-                className={cn(
-                  'h-4 w-4 shrink-0 transition-colors duration-150',
-                  isActive ? 'text-[#55C832]' : 'text-gray-400 group-hover:text-gray-600'
-                )}
-                aria-hidden="true"
-              />
-              <span className="flex-1 truncate">{item.label}</span>
-              {isActive && (
-                <span className="h-1.5 w-1.5 rounded-full bg-[#55C832]" aria-hidden="true" />
-              )}
-            </Link>
-          )
-        })}
+        {/* 2. Your Tutor Section */}
+        <div className="space-y-0.5">
+          <div className="px-5 py-1 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              Your Tutor
+            </span>
+            {isEnrolled && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" title="Active enrollment" />
+            )}
+          </div>
+          {groups.tutor.map(renderNavLink)}
+        </div>
+
+        {/* 3. Explore Marketplace */}
+        <div className="space-y-0.5">
+          <div className="px-5 py-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              Explore
+            </span>
+          </div>
+          {groups.explore.map(renderNavLink)}
+        </div>
+
+        {/* 4. Account Settings */}
+        <div className="space-y-0.5">
+          <div className="px-5 py-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              Account
+            </span>
+          </div>
+          {groups.account.map(renderNavLink)}
+        </div>
 
         {/* Action Button: Connect with Invite Code */}
         {handleOpenJoin && (
-          <div className="pt-3 px-3">
+          <div className="pt-2 px-3">
             <button
               type="button"
               onClick={() => {
@@ -156,7 +196,7 @@ export function StudentSidebar({
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/60 text-[#318A25] text-xs font-bold transition-all shadow-2xs"
             >
               <UserPlus className="h-3.5 w-3.5 text-[#55C832]" />
-              <span>{navContext?.isEnrolled ? 'Enter Invite Code' : 'Join a Tutor'}</span>
+              <span>{isEnrolled ? 'Enter Invite Code' : 'Join a Tutor'}</span>
             </button>
           </div>
         )}
