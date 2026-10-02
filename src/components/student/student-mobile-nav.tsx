@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Target, Compass, Users, User, GraduationCap } from 'lucide-react'
+import { Target, Compass, Users, GraduationCap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStudentNav } from '@/contexts/student-nav-context'
 
@@ -53,13 +53,6 @@ export function StudentMobileNav() {
       href: '/student/study-groups',
       icon: Users,
       isActive: pathname.startsWith('/student/study-groups'),
-      show: true,
-    },
-    {
-      label: 'Profile',
-      href: '/student/settings',
-      icon: User,
-      isActive: pathname.startsWith('/student/settings'),
       show: true,
     },
   ]

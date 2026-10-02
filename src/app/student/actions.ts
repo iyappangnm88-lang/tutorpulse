@@ -752,3 +752,149 @@ export async function endFocusSessionAction(params: {
     return { success: false, error: message }
   }
 }
+
+/**
+ * Action to upload a student profile picture from device gallery/file picker.
+ * Validates file type, size, uploads to Supabase storage, and updates profiles & student_profiles.
+ */
+export async function uploadStudentAvatarAction(
+  formData: FormData
+): Promise<ActionResponse<{ avatarUrl: string }>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return { success: false, error: 'Authentication required. Please sign in.' }
+    }
+
+    const file = formData.get('avatar') as File | null
+    if (!file) {
+      return { success: false, error: 'No image file provided.' }
+    }
+
+    // Validate size (max 3MB)
+    const MAX_SIZE = 3 * 1024 * 1024
+    if (file.size > MAX_SIZE) {
+      return { success: false, error: 'Image file size must be less than 3MB.' }
+    }
+
+    // Validate mime type
+    const validMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+    if (!validMimes.includes(file.type.toLowerCase())) {
+      return { success: false, error: 'Invalid image format. Supported: JPG, PNG, WEBP.' }
+    }
+
+    const fileExt = file.name.split('.').pop() || 'png'
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`
+    const filePath = `students/${fileName}`
+
+    // Attempt upload to avatars bucket
+    const fileBuffer = await file.arrayBuffer()
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, fileBuffer, {
+        contentType: file.type,
+        upsert: true,
+      })
+
+    let publicUrl = ''
+
+    if (uploadError) {
+      console.warn('Storage bucket upload failed, using optimized base64 fallback:', uploadError.message)
+      const base64Data = Buffer.from(fileBuffer).toString('base64')
+      publicUrl = `data:${file.type};base64,${base64Data}`
+    } else {
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      publicUrl = urlData.publicUrl
+    }
+
+    // Update profiles table
+    await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+
+    // Update student_profiles table
+    await supabase
+      .from('student_profiles')
+      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+
+    revalidatePath('/student')
+    revalidatePath('/student/profile')
+    revalidatePath('/student/settings')
+    revalidatePath('/student/study-groups')
+
+    return { success: true, data: { avatarUrl: publicUrl } }
+  } catch (err: unknown) {
+    console.error('uploadStudentAvatarAction exception:', err)
+    return { success: false, error: 'Failed to upload profile picture.' }
+  }
+}
+
+/**
+ * Updates student display name directly.
+ */
+export async function updateStudentDisplayNameAction(
+  newName: string
+): Promise<ActionResponse<{ fullName: string }>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Authentication required.' }
+    }
+
+    const cleanName = newName.trim()
+    if (!cleanName) {
+      return { success: false, error: 'Display name cannot be empty.' }
+    }
+    if (cleanName.length > 50) {
+      return { success: false, error: 'Display name cannot exceed 50 characters.' }
+    }
+
+    // 1. Update profiles table
+    await supabase
+      .from('profiles')
+      .update({
+        full_name: cleanName,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+
+    // 2. Update student_profiles table
+    await supabase
+      .from('student_profiles')
+      .update({
+        full_name: cleanName,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+
+    // 3. Update auth metadata
+    try {
+      await supabase.auth.updateUser({
+        data: { full_name: cleanName },
+      })
+    } catch {
+      // Non-critical
+    }
+
+    revalidatePath('/student')
+    revalidatePath('/student/profile')
+    revalidatePath('/student/settings')
+    revalidatePath('/student/study-groups')
+
+    return { success: true, data: { fullName: cleanName } }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to update name.'
+    return { success: false, error: message }
+  }
+}

@@ -102,14 +102,12 @@ export const PARENT_NAV_ITEMS: NavItem[] = [
  * 2. Your Tutor (conditional on isEnrolled)
  * 3. Find Tutor
  * 4. Study Groups
- * 5. Profile
  */
 export const STUDENT_NAV_ITEMS: NavItem[] = [
   { label: 'Focus', href: '/student', icon: Target },
   { label: 'Your Tutor', href: '/student/tutors', icon: GraduationCap },
   { label: 'Find Tutor', href: '/student/marketplace', icon: Compass },
   { label: 'Study Groups', href: '/student/study-groups', icon: Users },
-  { label: 'Profile', href: '/student/settings', icon: User },
 ]
 
 export function getStudentNavItems(isEnrolled: boolean = false): NavItem[] {

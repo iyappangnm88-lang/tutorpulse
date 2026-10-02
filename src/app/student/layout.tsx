@@ -28,7 +28,7 @@ export default async function StudentLayout({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, full_name, role, onboarding_completed')
+    .select('id, full_name, role, onboarding_completed, avatar_url')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -57,12 +57,14 @@ export default async function StudentLayout({
   ])
 
   const displayName = studentProfile?.full_name || profile.full_name || 'Student'
+  const avatarUrl = studentProfile?.avatar_url || profile.avatar_url || null
   const isEnrolled = connectedTutors.length > 0
   const pendingCount = joinRequests.filter((r) => r.status === 'pending').length
 
   return (
     <StudentLayoutClient
       displayName={displayName}
+      avatarUrl={avatarUrl}
       gradeLevel={studentProfile?.grade_level}
       isEnrolled={isEnrolled}
       pendingCount={pendingCount}

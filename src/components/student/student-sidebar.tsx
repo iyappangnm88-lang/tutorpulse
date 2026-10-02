@@ -25,6 +25,7 @@ import { ThemeToggleButton } from '@/components/theme/theme-toggle-button'
 
 export interface StudentSidebarProps {
   studentName: string
+  avatarUrl?: string | null
   mobile?: boolean
   onClose?: () => void
   onOpenJoinModal?: () => void
@@ -32,6 +33,7 @@ export interface StudentSidebarProps {
 
 export function StudentSidebar({
   studentName,
+  avatarUrl,
   mobile = false,
   onClose,
   onOpenJoinModal,
@@ -185,21 +187,31 @@ export function StudentSidebar({
       </nav>
 
       {/* Footer Profile & Logout */}
-      <div className="border-t border-gray-100 p-4 space-y-2">
-        <div className="flex items-center gap-2.5 px-2 py-1.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-[#318A25] text-xs font-bold shadow-2xs">
-            {studentName.charAt(0).toUpperCase()}
+      <div className="border-t border-gray-100 dark:border-[#202920] p-4 space-y-2">
+        <Link
+          href="/student/profile"
+          className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#1C261C] transition-colors group cursor-pointer"
+          title="Open Profile"
+        >
+          <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#318A25] dark:text-[#6BEA45] text-xs font-bold shadow-2xs overflow-hidden">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={studentName} className="h-full w-full object-cover" />
+            ) : (
+              (studentName || 'S').trim().charAt(0).toUpperCase()
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-[#172B4D] truncate">{studentName}</p>
-            <p className="text-[10px] text-gray-400">Student Account</p>
+            <p className="text-xs font-bold text-[#172B4D] dark:text-[#F4F7F2] truncate group-hover:text-[#318A25] dark:group-hover:text-[#6BEA45] transition-colors">
+              {studentName}
+            </p>
+            <p className="text-[10px] text-gray-400 dark:text-[#6C7A6A]">View Profile</p>
           </div>
-        </div>
+        </Link>
 
         <button
           type="button"
           onClick={handleLogout}
-          className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+          className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-gray-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400 transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4 shrink-0 text-gray-400" />
           <span>Sign Out</span>

@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle, Sparkles, Moon } from 'lucide-react'
+import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle, Sparkles, Moon, LogOut, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ThemeSelector } from '@/components/theme/theme-selector'
+import { createClient } from '@/lib/supabase/client'
 import { updateStudentProfileAction } from '@/app/student/actions'
 
 interface StudentSettingsClientProps {
@@ -64,12 +66,20 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-[#F4F7F2]">Student Profile & Settings</h1>
-        <p className="text-xs text-gray-500 dark:text-[#A8B3A5] mt-0.5">
-          Manage your personal details, academic grade, study interests, and app theme
-        </p>
+    <div className="space-y-6 max-w-2xl animate-in fade-in duration-300">
+      <div className="flex items-center justify-between">
+        <div>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors mb-2"
+          >
+            ← Back to Profile
+          </Link>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-[#F4F7F2]">Student Settings</h1>
+          <p className="text-xs text-gray-500 dark:text-[#A8B3A5] mt-0.5">
+            Manage your personal details, academic grade, study interests, and app theme
+          </p>
+        </div>
       </div>
 
       {error && (
@@ -194,6 +204,33 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
           </Button>
         </div>
       </form>
+
+      {/* Account & Session Management */}
+      <div className="rounded-2xl border border-red-100 dark:border-red-950/40 bg-white dark:bg-[#161D16] p-6 shadow-2xs space-y-4">
+        <div className="flex items-center gap-2">
+          <Shield className="h-4 w-4 text-red-500" />
+          <h2 className="text-sm font-bold text-gray-900 dark:text-[#F4F7F2]">Account & Session</h2>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-[#A8B3A5]">
+          Manage your active student session. Signing out will require you to log back in with your email credentials.
+        </p>
+        <div className="pt-1">
+          <Button
+            type="button"
+            variant="danger"
+            onClick={async () => {
+              const supabase = createClient()
+              await supabase.auth.signOut()
+              router.push('/login')
+              router.refresh()
+            }}
+            className="text-xs font-semibold inline-flex items-center gap-2"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign Out of Nuzigo
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
