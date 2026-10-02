@@ -9,6 +9,8 @@ import {
   getStudentAttendanceHistory,
 } from '@/lib/student-portal'
 import { getStudentJoinRequests } from '@/lib/marketplace'
+import { getStudentGamificationOverview } from '@/lib/gamification'
+import { getStudentWeeklyStreaks } from '@/lib/streaks'
 import { StudentTutorsClient } from '@/components/student/student-tutors-client'
 import { formatDateKey } from '@/lib/calendar-utils'
 
@@ -24,15 +26,25 @@ export default async function StudentTutorsPage() {
     redirect('/login')
   }
 
-  const [tutors, batches, joinRequests, homeworkList, testList, attendanceData] =
-    await Promise.all([
-      getStudentConnectedTutors(user.id),
-      getStudentEnrolledBatches(user.id),
-      getStudentJoinRequests(user.id),
-      getStudentHomeworkDetailed(user.id),
-      getStudentTestsDetailed(user.id),
-      getStudentAttendanceHistory(user.id),
-    ])
+  const [
+    tutors,
+    batches,
+    joinRequests,
+    homeworkList,
+    testList,
+    attendanceData,
+    gamificationData,
+    streaksData,
+  ] = await Promise.all([
+    getStudentConnectedTutors(user.id),
+    getStudentEnrolledBatches(user.id),
+    getStudentJoinRequests(user.id),
+    getStudentHomeworkDetailed(user.id),
+    getStudentTestsDetailed(user.id),
+    getStudentAttendanceHistory(user.id),
+    getStudentGamificationOverview(user.id),
+    getStudentWeeklyStreaks(user.id),
+  ])
 
   const batchIds = batches.map((b) => b.id)
   const tutorIds = tutors.map((t) => t.tutorId)
@@ -95,6 +107,7 @@ export default async function StudentTutorsPage() {
 
   return (
     <StudentTutorsClient
+      studentUserId={user.id}
       tutors={tutors}
       batches={batches}
       joinRequests={joinRequests}
@@ -105,6 +118,8 @@ export default async function StudentTutorsPage() {
       upcomingSessions={upcomingSessions}
       pastSessions={pastSessions}
       announcements={announcements}
+      gamification={gamificationData}
+      streaks={streaksData}
     />
   )
 }

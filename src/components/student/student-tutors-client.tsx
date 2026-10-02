@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { JoinTutorModal } from './join-tutor-modal'
+import { StudentGamificationStrip } from './student-gamification-strip'
 import { leaveTutorAction, toggleHomeworkStatusAction } from '@/app/student/actions'
 import { cancelJoinRequestAction } from '@/app/tutors/actions'
 import { useToast } from '@/contexts/toast-context'
@@ -41,10 +42,13 @@ import type {
 } from '@/lib/student-portal'
 import type { JoinRequestWithDetails } from '@/lib/marketplace-utils'
 import type { Announcement, ClassSession } from '@/types'
+import type { StudentGamificationOverview } from '@/lib/gamification'
+import type { StudentWeeklyStreaks } from '@/lib/streaks'
 
 type TutorTab = 'overview' | 'classes' | 'homework' | 'tests' | 'attendance' | 'announcements'
 
 interface StudentTutorsClientProps {
+  studentUserId?: string
   tutors: ConnectedTutorInfo[]
   batches?: StudentEnrolledBatch[]
   joinRequests?: JoinRequestWithDetails[]
@@ -64,9 +68,12 @@ interface StudentTutorsClientProps {
   upcomingSessions?: (ClassSession & { batch_name?: string; tutor_name?: string })[]
   pastSessions?: (ClassSession & { batch_name?: string; tutor_name?: string })[]
   announcements?: Announcement[]
+  gamification?: StudentGamificationOverview
+  streaks?: StudentWeeklyStreaks
 }
 
 export function StudentTutorsClient({
+  studentUserId,
   tutors,
   batches = [],
   joinRequests = [],
@@ -80,6 +87,8 @@ export function StudentTutorsClient({
   upcomingSessions = [],
   pastSessions = [],
   announcements = [],
+  gamification,
+  streaks,
 }: StudentTutorsClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -118,7 +127,7 @@ export function StudentTutorsClient({
     setLocalHwList(homeworkList)
   }, [homeworkList])
 
-  // Real-time synchronization for live classes
+  // Real-time synchronization for live classes & gamification stats
   useEffect(() => {
     const supabase = createClient()
     const channel = supabase
@@ -134,16 +143,37 @@ export function StudentTutorsClient({
           router.refresh()
         }
       )
-      .subscribe()
+
+    if (studentUserId) {
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'student_profiles',
+          filter: `id=eq.${studentUserId}`,
+        },
+        () => {
+          router.refresh()
+        }
+      )
+    }
+
+    channel.subscribe()
 
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [router])
+  }, [router, studentUserId])
 
   const pendingRequests = joinRequests.filter((r) => r.status === 'pending')
   const hasTutors = tutors.length > 0
   const isEnrolled = hasTutors
+
+  const xpValue = gamification?.xp ?? 0
+  const coinsValue = gamification?.goldCoins ?? 0
+  const streakCountValue = gamification?.streakCount ?? 1
+  const streakWeeksValue = streaks?.overallStreakWeeks ?? 0
 
   // Filter items by selected tutor if specific tutor chosen
   const filteredTutors = selectedTutorId === 'all' ? tutors : tutors.filter((t) => t.tutorId === selectedTutorId)
@@ -254,7 +284,7 @@ export function StudentTutorsClient({
   const activeLiveClass = filteredLiveSessions[0] || null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* 1. TOP HEADER & GLOBAL ACTIONS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-gray-200/80 shadow-2xs">
         <div>
@@ -296,7 +326,15 @@ export function StudentTutorsClient({
         </div>
       </div>
 
-      {/* 2. PENDING REQUESTS ALERT (IF ANY) */}
+      {/* 2. COMPACT ACCOUNT-LEVEL GAMIFICATION SUMMARY (XP, COINS, STREAK) */}
+      <StudentGamificationStrip
+        xp={xpValue}
+        goldCoins={coinsValue}
+        streakCount={streakCountValue}
+        streakWeeks={streakWeeksValue}
+      />
+
+      {/* 3. PENDING REQUESTS ALERT (IF ANY) */}
       {pendingRequests.length > 0 && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5 space-y-3 shadow-2xs">
           <div className="flex items-center justify-between">
@@ -343,7 +381,7 @@ export function StudentTutorsClient({
         </div>
       )}
 
-      {/* 3. UN-ENROLLED STATE */}
+      {/* 4. UN-ENROLLED STATE */}
       {!isEnrolled && pendingRequests.length === 0 && (
         <div className="rounded-3xl border border-emerald-200/80 bg-gradient-to-b from-[#FAFBEF] to-white p-6 sm:p-8 text-center shadow-2xs space-y-4">
           <div className="h-14 w-14 rounded-2xl bg-[#55C832]/20 text-[#318A25] flex items-center justify-center mx-auto text-2xl font-black shadow-xs">
@@ -378,7 +416,7 @@ export function StudentTutorsClient({
         </div>
       )}
 
-      {/* 4. ACTIVE TUTOR EXPERIENCE */}
+      {/* 5. ACTIVE TUTOR EXPERIENCE */}
       {isEnrolled && (
         <div className="space-y-6">
           {/* Multi-Tutor Selector Bar (if > 1 tutor) */}
@@ -450,337 +488,289 @@ export function StudentTutorsClient({
                 </div>
               </div>
 
-              {/* Manage connection button */}
+              {/* Leave Tutor Button (When specific tutor is filtered or only 1 tutor) */}
               {selectedTutorId !== 'all' && filteredTutors[0] && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setTutorToLeave(filteredTutors[0])}
-                  className="text-xs text-gray-500 hover:text-rose-600 hover:bg-rose-50 border-gray-200 self-start sm:self-center h-8 cursor-pointer"
+                  className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl h-8.5 px-3 self-start sm:self-center"
                 >
-                  <LogOut className="mr-1 h-3 w-3" />
-                  <span>Disconnect</span>
+                  <LogOut className="h-3.5 w-3.5 mr-1" />
+                  <span>Leave Tutor</span>
                 </Button>
               )}
             </div>
           </div>
 
           {/* Navigation Tabs Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto border-b border-gray-200/80 pb-2 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-gray-200 no-scrollbar">
             {[
-              { id: 'overview', label: 'Overview', icon: Sparkles },
-              { id: 'classes', label: 'Classes', icon: Video, count: filteredUpcomingSessions.length },
-              { id: 'homework', label: 'Homework', icon: BookOpen, count: filteredHwList.filter((h) => h.student_status !== 'Completed').length },
-              { id: 'tests', label: 'Tests & Marks', icon: Award, count: filteredTestList.length },
-              { id: 'attendance', label: 'Attendance', icon: BarChart3 },
-              { id: 'announcements', label: 'Messages', icon: MessageSquare, count: filteredAnnouncements.length },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id as TutorTab)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                  activeTab === tab.id
-                    ? 'bg-[#55C832]/15 text-[#318A25] border border-[#55C832]/30 shadow-2xs'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <tab.icon className={`h-3.5 w-3.5 ${activeTab === tab.id ? 'text-[#55C832]' : 'text-gray-400'}`} />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span
-                    className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      activeTab === tab.id
-                        ? 'bg-[#55C832] text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
+              { id: 'overview', label: 'Overview', icon: BarChart3, count: null },
+              {
+                id: 'classes',
+                label: 'Live Classes',
+                icon: Video,
+                count: activeLiveClass ? 'LIVE' : filteredUpcomingSessions.length || null,
+                countBadge: activeLiveClass ? 'bg-rose-500 text-white animate-pulse' : 'bg-gray-100 text-gray-600',
+              },
+              {
+                id: 'homework',
+                label: 'Homework',
+                icon: BookOpen,
+                count: filteredHwList.filter((h) => h.student_status === 'Pending').length || null,
+                countBadge: 'bg-amber-100 text-amber-800',
+              },
+              {
+                id: 'tests',
+                label: 'Tests & Results',
+                icon: Award,
+                count: filteredTestList.length || null,
+                countBadge: 'bg-gray-100 text-gray-600',
+              },
+              {
+                id: 'attendance',
+                label: 'Attendance',
+                icon: CheckCircle2,
+                count: attendanceData.stats.attendancePercentage != null ? `${attendanceData.stats.attendancePercentage}%` : null,
+                countBadge: 'bg-emerald-100 text-[#318A25]',
+              },
+              {
+                id: 'announcements',
+                label: 'Announcements',
+                icon: MessageSquare,
+                count: filteredAnnouncements.length || null,
+                countBadge: 'bg-gray-100 text-gray-600',
+              },
+            ].map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as TutorTab)}
+                  className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-[#172B4D] text-white shadow-xs'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-[#55C832]' : 'text-gray-400'}`} />
+                  <span>{tab.label}</span>
+                  {tab.count !== null && (
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                        isActive ? 'bg-white/20 text-white' : tab.countBadge
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
+          {/* ========================================================================= */}
           {/* TAB 1: OVERVIEW */}
+          {/* ========================================================================= */}
           {activeTab === 'overview' && (
-            <div className="space-y-5">
-              {/* Live Session Priority Banner (if any) */}
+            <div className="space-y-6">
+              {/* Live Banner if Active Session */}
               {activeLiveClass && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-5 shadow-2xs animate-fade-in">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-start gap-3.5">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600 animate-pulse">
-                        <Video className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-200/80 px-2.5 py-0.5 text-[10px] font-bold text-rose-800">
-                          <span className="h-2 w-2 rounded-full bg-rose-600 animate-ping" />
-                          LIVE NOW
-                        </span>
-                        <h3 className="text-sm font-bold text-gray-900 mt-1">
-                          {activeLiveClass.notes || activeLiveClass.batch_name}
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Instructor: {activeLiveClass.tutor_name} • {activeLiveClass.batch_name}
-                        </p>
-                      </div>
+                <div className="rounded-2xl border border-rose-300 bg-gradient-to-r from-rose-50 to-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="relative flex h-3.5 w-3.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-600"></span>
+                    </span>
+                    <div>
+                      <span className="text-xs font-bold text-rose-800 uppercase tracking-wider">
+                        Live Class In Progress
+                      </span>
+                      <h3 className="text-sm sm:text-base font-bold text-gray-900">
+                        {activeLiveClass.batch_name}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {activeLiveClass.tutor_name} • Started at {activeLiveClass.start_time || 'Now'}
+                      </p>
                     </div>
-
-                    <Link href={`/student/classroom/${activeLiveClass.id}`}>
-                      <Button className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs h-9 px-4 shadow-md w-full sm:w-auto">
-                        <Video className="mr-1.5 h-4 w-4" />
-                        <span>Join Live Room</span>
-                      </Button>
-                    </Link>
                   </div>
+                  <Link href={`/student/classroom/${activeLiveClass.id}`}>
+                    <Button className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl h-9.5 px-5 shadow-sm">
+                      <Video className="mr-1.5 h-4 w-4" />
+                      <span>Join Live Classroom Now</span>
+                    </Button>
+                  </Link>
                 </div>
               )}
 
-              {/* Next Upcoming Class Card */}
-              {nextUpcoming && !activeLiveClass && (
-                <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-2xs">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-start gap-3.5">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FAFBEF] text-[#318A25]">
-                        <Calendar className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#FAFBEF] px-2 py-0.5 text-[10px] font-bold text-[#318A25]">
-                            Next Scheduled Session
-                          </span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs font-semibold text-gray-600">{nextUpcoming.batch_name}</span>
-                        </div>
-                        <h3 className="text-sm font-bold text-gray-900 mt-1">
-                          {nextUpcoming.notes || nextUpcoming.batch_name}
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5 text-gray-400" />
-                          <span>
-                            {formatFriendlyDate(nextUpcoming.session_date)}
-                            {nextUpcoming.start_time ? ` (${formatTimeRange(nextUpcoming.start_time, nextUpcoming.end_time)})` : ''}
-                          </span>
-                          <span>• {nextUpcoming.tutor_name}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {nextUpcoming.class_mode === 'online' ? (
-                      <Link href={`/student/classroom/${nextUpcoming.id}`}>
-                        <Button className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-semibold h-9 px-4">
-                          <Video className="mr-1.5 h-3.5 w-3.5" />
-                          <span>Enter Classroom</span>
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setActiveTab('classes')}
-                        className="text-xs font-semibold h-9 px-3.5 cursor-pointer"
-                      >
-                        <MapPin className="mr-1.5 h-3.5 w-3.5 text-gray-500" />
-                        <span>View Schedule</span>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Quick 3-Tile Overview */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                {/* Pending Tasks Tile */}
-                <div
-                  onClick={() => setActiveTab('homework')}
-                  className="p-4 rounded-2xl border border-gray-100 bg-white shadow-2xs hover:border-amber-200 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-500">Homework Due</span>
-                    <div className="h-7 w-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                      <BookOpen className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                  <p className="mt-2 text-2xl font-black text-gray-900">
-                    {filteredHwList.filter((h) => h.student_status !== 'Completed').length}
-                  </p>
-                  <p className="text-[11px] text-amber-600 font-semibold mt-0.5 group-hover:underline flex items-center gap-0.5">
-                    <span>View homework tasks</span>
-                    <ChevronRight className="h-3 w-3" />
-                  </p>
-                </div>
-
-                {/* Upcoming Tests Tile */}
-                <div
-                  onClick={() => setActiveTab('tests')}
-                  className="p-4 rounded-2xl border border-gray-100 bg-white shadow-2xs hover:border-emerald-200 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-500">Tests & Scores</span>
-                    <div className="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                      <Award className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                  <p className="mt-2 text-2xl font-black text-gray-900">
-                    {filteredTestList.filter((t) => t.status === 'Graded').length}
-                  </p>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-0.5 group-hover:underline flex items-center gap-0.5">
-                    <span>View marks & grades</span>
-                    <ChevronRight className="h-3 w-3" />
-                  </p>
-                </div>
-
-                {/* Attendance Rate Tile */}
-                <div
-                  onClick={() => setActiveTab('attendance')}
-                  className="p-4 rounded-2xl border border-gray-100 bg-white shadow-2xs hover:border-violet-200 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-500">Attendance Rate</span>
-                    <div className="h-7 w-7 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
-                      <BarChart3 className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                  <p className="mt-2 text-2xl font-black text-gray-900">
-                    {attendanceData.stats.attendancePercentage !== null
+              {/* Quick Stat Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-1">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Attendance</span>
+                  <div className="text-xl font-black text-[#172B4D]">
+                    {attendanceData.stats.attendancePercentage != null
                       ? `${attendanceData.stats.attendancePercentage}%`
-                      : '100%'}
-                  </p>
-                  <p className="text-[11px] text-violet-600 font-semibold mt-0.5 group-hover:underline flex items-center gap-0.5">
-                    <span>Attendance logs</span>
-                    <ChevronRight className="h-3 w-3" />
-                  </p>
+                      : '—'}
+                  </div>
+                  <span className="text-[11px] text-gray-500">
+                    {attendanceData.stats.presentCount} of {attendanceData.stats.totalClasses} classes
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-1">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Pending Homework</span>
+                  <div className="text-xl font-black text-[#172B4D]">
+                    {filteredHwList.filter((h) => h.student_status === 'Pending').length}
+                  </div>
+                  <span className="text-[11px] text-gray-500">
+                    {filteredHwList.filter((h) => h.is_overdue).length} overdue
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-1">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Scheduled Tests</span>
+                  <div className="text-xl font-black text-[#172B4D]">
+                    {filteredTestList.filter((t) => t.status === 'Upcoming').length}
+                  </div>
+                  <span className="text-[11px] text-gray-500">
+                    {filteredTestList.filter((t) => t.status === 'Graded').length} graded
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-1">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Active Batches</span>
+                  <div className="text-xl font-black text-[#172B4D]">{filteredBatches.length}</div>
+                  <span className="text-[11px] text-gray-500">
+                    {filteredTutors.length} {filteredTutors.length === 1 ? 'tutor' : 'tutors'}
+                  </span>
                 </div>
               </div>
 
-              {/* Recent Announcements Snippet (if any) */}
-              {filteredAnnouncements.length > 0 && (
-                <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-5 shadow-2xs space-y-2.5">
+              {/* Next Scheduled Class & Enrolled Batches */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Next Class Card */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-bold text-gray-900">
-                      <MessageSquare className="h-4 w-4 text-violet-600" />
-                      <span>Latest Tutor Announcement</span>
-                    </div>
+                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-[#55C832]" />
+                      <span>Next Scheduled Class</span>
+                    </h3>
                     <button
-                      type="button"
-                      onClick={() => setActiveTab('announcements')}
-                      className="text-xs font-semibold text-[#318A25] hover:underline cursor-pointer"
+                      onClick={() => setActiveTab('classes')}
+                      className="text-xs font-semibold text-[#318A25] hover:underline"
                     >
-                      View All ({filteredAnnouncements.length})
+                      View All
                     </button>
                   </div>
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                    <p className="text-xs font-bold text-gray-900">{filteredAnnouncements[0].title}</p>
-                    <p className="text-[11px] text-gray-600 mt-0.5 line-clamp-2">{filteredAnnouncements[0].message}</p>
-                    <span className="text-[10px] text-gray-400 mt-1 block">
-                      {new Date(filteredAnnouncements[0].created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* TAB 2: CLASSES & TIMETABLE */}
-          {activeTab === 'classes' && (
-            <div className="space-y-5">
-              {/* Live sessions */}
-              {filteredLiveSessions.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-rose-600 animate-ping" />
-                    <span>In-Progress Live Classes</span>
-                  </h3>
-                  {filteredLiveSessions.map((s) => (
-                    <div
-                      key={s.id}
-                      className="p-4 rounded-2xl border border-rose-200 bg-rose-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                    >
-                      <div>
-                        <span className="text-xs font-bold text-gray-900">{s.notes || s.batch_name}</span>
-                        <p className="text-[11px] text-gray-500">Instructor: {s.tutor_name} • {s.batch_name}</p>
+                  {nextUpcoming ? (
+                    <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900">{nextUpcoming.batch_name}</h4>
+                          <p className="text-xs text-gray-500">
+                            {nextUpcoming.tutor_name} • {nextUpcoming.batch_name}
+                          </p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#55C832]/20 text-[#318A25]">
+                          {formatFriendlyDate(nextUpcoming.session_date)}
+                        </span>
                       </div>
-                      <Link href={`/student/classroom/${s.id}`}>
-                        <Button className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs h-8 px-4 shadow-sm">
-                          <Video className="mr-1 h-3.5 w-3.5" />
-                          <span>Join Live Room</span>
-                        </Button>
-                      </Link>
+                      <div className="text-xs text-gray-600 flex items-center gap-3 pt-1">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-gray-400" />
+                          <span>{formatTimeRange(nextUpcoming.start_time, nextUpcoming.end_time)}</span>
+                        </span>
+                        <span className="capitalize">{nextUpcoming.class_mode}</span>
+                      </div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="p-4 rounded-xl bg-gray-50 text-center text-xs text-gray-500">
+                      No upcoming classes scheduled right now.
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Upcoming schedule */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs space-y-3">
-                <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-[#318A25]" />
-                  <span>Upcoming Class Schedule</span>
-                </h3>
+                {/* Enrolled Batches List */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-[#55C832]" />
+                      <span>Enrolled Batches</span>
+                    </h3>
+                    <span className="text-xs font-bold text-gray-400">{filteredBatches.length} Total</span>
+                  </div>
 
-                {filteredUpcomingSessions.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic py-3 text-center">
-                    No upcoming classes scheduled right now.
-                  </p>
-                ) : (
-                  <div className="divide-y divide-gray-100">
-                    {filteredUpcomingSessions.map((s) => (
-                      <div key={s.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0 gap-3">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div className="h-8 w-8 rounded-lg bg-[#FAFBEF] text-[#318A25] flex items-center justify-center text-xs font-bold shrink-0">
-                            {s.class_mode === 'online' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-gray-900 truncate">{s.notes || s.batch_name}</p>
-                            <p className="text-[11px] text-gray-500 truncate">
-                              {formatFriendlyDate(s.session_date)} {s.start_time ? `• ${formatTimeRange(s.start_time, s.end_time)}` : ''} • {s.tutor_name}
+                  {filteredBatches.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {filteredBatches.map((b) => (
+                        <div key={b.id} className="p-2.5 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between gap-2">
+                          <div>
+                            <span className="text-xs font-bold text-gray-900">{b.name}</span>
+                            <p className="text-[11px] text-gray-500">
+                              {b.subject || 'All Subjects'} • {b.tutor_name}
                             </p>
                           </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-gray-700 border border-gray-200 capitalize shrink-0">
+                            {b.class_mode}
+                          </span>
                         </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-gray-50 text-center text-xs text-gray-500">
+                      No active batches found.
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                        {s.class_mode === 'online' ? (
-                          <Link href={`/student/classroom/${s.id}`} className="shrink-0">
-                            <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-emerald-200 text-[#318A25] hover:bg-emerald-50">
-                              Classroom
-                            </Button>
-                          </Link>
-                        ) : (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
-                            In-Person
+              {/* Connected Tutor Cards & Details */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-4">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Connected Tutor Profiles
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredTutors.map((t) => (
+                    <div key={t.tutorId} className="p-4 rounded-xl border border-gray-100 bg-gray-50/70 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-[#55C832] text-white font-bold flex items-center justify-center text-sm shadow-2xs">
+                            {t.fullName.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-gray-900">{t.fullName}</h4>
+                            <p className="text-[11px] text-gray-500">{t.email}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setTutorToLeave(t)}
+                          className="text-xs text-gray-400 hover:text-rose-600 hover:bg-rose-50 h-7 px-2"
+                        >
+                          <LogOut className="h-3 w-3 mr-1" />
+                          <span>Leave</span>
+                        </Button>
+                      </div>
+
+                      {t.bio && <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">{t.bio}</p>}
+
+                      <div className="pt-2 border-t border-gray-200/60 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
+                        {t.primarySubjects.map((sub) => (
+                          <span key={sub} className="px-2 py-0.5 rounded-full bg-white border border-gray-200 font-medium">
+                            {sub}
+                          </span>
+                        ))}
+                        {t.experienceYears > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-white border border-gray-200 font-medium">
+                            {t.experienceYears} yrs experience
                           </span>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Enrolled Batches Details */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs space-y-3">
-                <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-[#318A25]" />
-                  <span>Enrolled Cohorts & Batches</span>
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {filteredBatches.map((batch) => (
-                    <div key={batch.id} className="p-3.5 rounded-xl border border-gray-100 bg-gray-50/50 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-900">{batch.name}</span>
-                        <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-white border border-gray-200 capitalize text-gray-700">
-                          {batch.class_mode}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-gray-500">
-                        {batch.subject || 'All Subjects'} • Tutor: {batch.tutor_name}
-                      </p>
-                      {batch.schedule && (
-                        <p className="text-[10px] text-gray-400 flex items-center gap-1 pt-0.5">
-                          <Clock className="h-3 w-3" />
-                          <span>{batch.schedule}</span>
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -788,312 +778,504 @@ export function StudentTutorsClient({
             </div>
           )}
 
-          {/* TAB 3: HOMEWORK */}
-          {activeTab === 'homework' && (
-            <div className="space-y-4">
-              {/* Filter pills */}
-              <div className="flex items-center gap-2">
-                {[
-                  { id: 'all', label: `All (${filteredHwList.length})` },
-                  { id: 'pending', label: `Pending (${filteredHwList.filter((h) => h.student_status === 'Pending' && !h.is_overdue).length})` },
-                  { id: 'completed', label: `Completed (${filteredHwList.filter((h) => h.student_status === 'Completed').length})` },
-                  { id: 'overdue', label: `Overdue (${filteredHwList.filter((h) => h.is_overdue).length})` },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setHwFilter(f.id as any)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      hwFilter === f.id
-                        ? 'bg-[#172B4D] text-white shadow-2xs'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Homework cards */}
-              {displayedHwList.length === 0 ? (
-                <div className="p-8 text-center rounded-2xl border border-dashed border-gray-200 bg-white">
-                  <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-gray-700">No homework tasks here!</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">All assignments in this filter are resolved.</p>
-                </div>
-              ) : (
+          {/* ========================================================================= */}
+          {/* TAB 2: LIVE CLASSES & SCHEDULE */}
+          {/* ========================================================================= */}
+          {activeTab === 'classes' && (
+            <div className="space-y-6">
+              {/* In Progress Sessions */}
+              {filteredLiveSessions.length > 0 && (
                 <div className="space-y-3">
-                  {displayedHwList.map((hw) => (
-                    <div
-                      key={hw.id}
-                      className="p-4 rounded-2xl border border-gray-100 bg-white shadow-2xs space-y-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
+                  <h3 className="text-xs font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+                    <span>In-Progress Classes</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {filteredLiveSessions.map((session) => (
+                      <div
+                        key={session.id}
+                        className="p-4 sm:p-5 rounded-2xl border border-rose-200 bg-rose-50/40 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-900">{hw.title}</span>
-                            <span
-                              className={`text-[10px] font-semibold px-2 py-0.2 rounded-full border ${
-                                hw.student_status === 'Completed'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : hw.is_overdue
-                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                  : 'bg-amber-50 text-amber-700 border-amber-200'
-                              }`}
-                            >
-                              {hw.student_status === 'Completed' ? 'Completed' : hw.is_overdue ? 'Overdue' : 'Pending'}
+                            <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white font-bold text-[10px]">
+                              LIVE NOW
                             </span>
+                            <span className="text-xs font-bold text-gray-700">{session.batch_name}</span>
                           </div>
-                          <p className="text-[11px] text-gray-500 mt-0.5">
-                            {hw.batch_name} • Tutor: {hw.tutor_name} • Due{' '}
-                            {hw.due_date ? new Date(hw.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Soon'}
+                          <h4 className="text-base font-bold text-gray-900">{session.batch_name || 'Live Interactive Class'}</h4>
+                          <p className="text-xs text-gray-500">
+                            Tutor: {session.tutor_name} • Started {session.start_time || 'Just now'}
                           </p>
                         </div>
-
-                        <Button
-                          size="sm"
-                          disabled={togglingHwId === hw.id}
-                          onClick={() => handleToggleHomework(hw)}
-                          variant={hw.student_status === 'Completed' ? 'outline' : 'primary'}
-                          className={`text-xs h-8 px-3 font-bold cursor-pointer ${
-                            hw.student_status === 'Completed'
-                              ? 'text-gray-600 border-gray-200 hover:bg-gray-50'
-                              : 'bg-[#55C832] hover:bg-[#318A25] text-white'
-                          }`}
-                        >
-                          {togglingHwId === hw.id ? (
-                            'Updating...'
-                          ) : hw.student_status === 'Completed' ? (
-                            'Mark as Pending'
-                          ) : (
-                            <>
-                              <Check className="mr-1 h-3.5 w-3.5" />
-                              <span>Mark as Done</span>
-                            </>
-                          )}
-                        </Button>
+                        <Link href={`/student/classroom/${session.id}`}>
+                          <Button className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl h-9.5 px-5 shadow-sm">
+                            <Video className="mr-1.5 h-4 w-4" />
+                            <span>Join Classroom</span>
+                          </Button>
+                        </Link>
                       </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                      {hw.description && (
-                        <p className="text-xs text-gray-600 bg-gray-50/70 p-2.5 rounded-xl">
-                          {hw.description}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+              {/* Upcoming Scheduled Classes */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Upcoming Classes ({filteredUpcomingSessions.length})
+                  </h3>
+                </div>
+
+                {filteredUpcomingSessions.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {filteredUpcomingSessions.map((session) => (
+                      <div
+                        key={session.id}
+                        className="p-4 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="text-[11px] font-bold text-[#318A25] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              {session.batch_name}
+                            </span>
+                            <h4 className="text-sm font-bold text-gray-900 mt-1.5">{session.batch_name || 'Scheduled Session'}</h4>
+                          </div>
+                          <span className="text-xs font-bold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-xl shrink-0">
+                            {formatFriendlyDate(session.session_date)}
+                          </span>
+                        </div>
+
+                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5 text-gray-400" />
+                            <span>{formatTimeRange(session.start_time, session.end_time)}</span>
+                          </span>
+                          <span className="capitalize font-medium">{session.class_mode}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 rounded-2xl bg-white border border-gray-200/80 text-center text-xs text-gray-500">
+                    No upcoming classes scheduled. Check back later or message your tutor.
+                  </div>
+                )}
+              </div>
+
+              {/* Past Class History */}
+              {filteredPastSessions.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Recent Past Classes ({filteredPastSessions.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {filteredPastSessions.slice(0, 10).map((session) => (
+                      <div
+                        key={session.id}
+                        className="p-3 rounded-xl bg-white border border-gray-100 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <span className="font-bold text-gray-800">{session.batch_name}</span>
+                          <span className="text-gray-400 ml-2">({session.batch_name})</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-500">
+                          <span>{session.session_date}</span>
+                          <span className="capitalize px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-semibold">
+                            {session.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* TAB 4: TESTS & MARKS */}
+          {/* ========================================================================= */}
+          {/* TAB 3: HOMEWORK */}
+          {/* ========================================================================= */}
+          {activeTab === 'homework' && (
+            <div className="space-y-5">
+              {/* Filter Sub-nav */}
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl">
+                  {[
+                    { id: 'all', label: 'All Tasks', count: filteredHwList.length },
+                    {
+                      id: 'pending',
+                      label: 'Pending',
+                      count: filteredHwList.filter((h) => h.student_status === 'Pending' && !h.is_overdue).length,
+                    },
+                    {
+                      id: 'completed',
+                      label: 'Completed',
+                      count: filteredHwList.filter((h) => h.student_status === 'Completed').length,
+                    },
+                    {
+                      id: 'overdue',
+                      label: 'Overdue',
+                      count: filteredHwList.filter((h) => h.is_overdue).length,
+                    },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setHwFilter(f.id as any)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        hwFilter === f.id ? 'bg-white text-[#172B4D] shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      {f.label} ({f.count})
+                    </button>
+                  ))}
+                </div>
+
+                <span className="text-xs text-gray-400">
+                  Click checkmark to toggle submission status
+                </span>
+              </div>
+
+              {/* Homework Cards */}
+              {displayedHwList.length > 0 ? (
+                <div className="space-y-3">
+                  {displayedHwList.map((hw) => {
+                    const isCompleted = hw.student_status === 'Completed'
+                    const isOverdue = hw.is_overdue
+                    const isToggling = togglingHwId === hw.id
+
+                    return (
+                      <div
+                        key={hw.id}
+                        className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                          isCompleted
+                            ? 'bg-emerald-50/40 border-emerald-200/80'
+                            : isOverdue
+                            ? 'bg-rose-50/30 border-rose-200'
+                            : 'bg-white border-gray-200/80 shadow-2xs'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <button
+                              type="button"
+                              disabled={isToggling}
+                              onClick={() => handleToggleHomework(hw)}
+                              className={`mt-0.5 h-6 w-6 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                                isCompleted
+                                  ? 'bg-[#55C832] text-white'
+                                  : 'border-2 border-gray-300 hover:border-[#55C832] bg-white'
+                              }`}
+                            >
+                              {isToggling ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-500" />
+                              ) : isCompleted ? (
+                                <Check className="h-4 w-4 stroke-[3]" />
+                              ) : null}
+                            </button>
+
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4
+                                  className={`text-sm font-bold ${
+                                    isCompleted ? 'text-gray-500 line-through' : 'text-gray-900'
+                                  }`}
+                                >
+                                  {hw.title}
+                                </h4>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">
+                                  {hw.batch_name}
+                                </span>
+                                {isOverdue && !isCompleted && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+                                    Overdue
+                                  </span>
+                                )}
+                              </div>
+
+                              {hw.description && (
+                                <p className="text-xs text-gray-600 mt-1 leading-relaxed">{hw.description}</p>
+                              )}
+                              {hw.instructions && (
+                                <p className="text-xs text-gray-500 mt-1 bg-white/70 p-2 rounded-lg border border-gray-100">
+                                  <strong>Instructions:</strong> {hw.instructions}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <span className="text-[11px] font-semibold text-gray-400 block">Due Date</span>
+                            <span
+                              className={`text-xs font-bold ${
+                                isOverdue && !isCompleted ? 'text-rose-600' : 'text-gray-700'
+                              }`}
+                            >
+                              {hw.due_date ? formatFriendlyDate(hw.due_date) : 'No due date'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl bg-white border border-gray-200/80 text-center text-xs text-gray-500">
+                  No homework assignments found for this filter.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 4: TESTS & RESULTS */}
+          {/* ========================================================================= */}
           {activeTab === 'tests' && (
-            <div className="space-y-4">
-              {/* Filter pills */}
-              <div className="flex items-center gap-2">
+            <div className="space-y-5">
+              {/* Filter Sub-nav */}
+              <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl w-fit">
                 {[
-                  { id: 'all', label: `All Tests (${filteredTestList.length})` },
-                  { id: 'graded', label: `Graded (${filteredTestList.filter((t) => t.status === 'Graded').length})` },
-                  { id: 'upcoming', label: `Upcoming (${filteredTestList.filter((t) => t.status === 'Upcoming').length})` },
+                  { id: 'all', label: 'All Tests', count: filteredTestList.length },
+                  {
+                    id: 'upcoming',
+                    label: 'Upcoming',
+                    count: filteredTestList.filter((t) => t.status === 'Upcoming').length,
+                  },
+                  {
+                    id: 'graded',
+                    label: 'Graded & Results',
+                    count: filteredTestList.filter((t) => t.status === 'Graded').length,
+                  },
                 ].map((f) => (
                   <button
                     key={f.id}
-                    type="button"
                     onClick={() => setTestFilter(f.id as any)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      testFilter === f.id
-                        ? 'bg-[#172B4D] text-white shadow-2xs'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      testFilter === f.id ? 'bg-white text-[#172B4D] shadow-xs' : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    {f.label}
+                    {f.label} ({f.count})
                   </button>
                 ))}
               </div>
 
-              {displayedTests.length === 0 ? (
-                <div className="p-8 text-center rounded-2xl border border-dashed border-gray-200 bg-white">
-                  <Award className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-gray-700">No tests found in this category.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {displayedTests.map((test) => (
-                    <div key={test.id} className="p-4 rounded-2xl border border-gray-100 bg-white shadow-2xs space-y-2.5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-900">{test.title}</span>
-                            {test.grade && (
-                              <span className="px-2 py-0.2 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                Grade {test.grade}
-                              </span>
-                            )}
+              {/* Test List */}
+              {displayedTests.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {displayedTests.map((test) => {
+                    const isGraded = test.status === 'Graded'
+                    return (
+                      <div
+                        key={test.id}
+                        className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider bg-gray-100 px-2 py-0.5 rounded-full">
+                              {test.batch_name}
+                            </span>
+                            <h4 className="text-sm font-bold text-gray-900 mt-1">{test.title}</h4>
+                            <p className="text-xs text-gray-500">
+                              Tutor: {test.tutor_name} • Date: {test.test_date}
+                            </p>
                           </div>
-                          <p className="text-[11px] text-gray-500 mt-0.5">
-                            {test.batch_name} • {test.test_date} • Tutor: {test.tutor_name}
-                          </p>
-                        </div>
-
-                        <div className="text-right">
-                          {test.status === 'Graded' && test.marks !== null ? (
-                            <div>
-                              <span className="text-sm font-black text-gray-900">
-                                {test.marks} / {test.max_marks}
+                          {isGraded ? (
+                            <div className="text-right">
+                              <span className="text-lg font-black text-[#318A25]">
+                                {test.marks ?? '—'}/{test.max_marks}
                               </span>
-                              <p className="text-[10px] font-bold text-emerald-600">{test.percentage}%</p>
+                              <span className="text-[10px] font-bold block text-gray-400">
+                                {test.percentage != null ? `${test.percentage}% • Grade ${test.grade || '—'}` : 'Graded'}
+                              </span>
                             </div>
                           ) : (
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
                               {test.status}
                             </span>
                           )}
                         </div>
-                      </div>
 
-                      {test.remarks && (
-                        <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-100 text-[11px] text-amber-900">
-                          <span className="font-bold">Instructor Remarks:</span> {test.remarks}
+                        {test.description && (
+                          <p className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                            {test.description}
+                          </p>
+                        )}
+
+                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                          <span>Max Marks: {test.max_marks}</span>
+                          {test.remarks && <span>Remarks: {test.remarks}</span>}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl bg-white border border-gray-200/80 text-center text-xs text-gray-500">
+                  No tests found in this category.
                 </div>
               )}
             </div>
           )}
 
+          {/* ========================================================================= */}
           {/* TAB 5: ATTENDANCE */}
+          {/* ========================================================================= */}
           {activeTab === 'attendance' && (
-            <div className="space-y-4">
-              {/* Stats Bar */}
-              <div className="grid grid-cols-4 gap-2.5">
-                <div className="p-3 rounded-xl bg-white border border-gray-100 text-center shadow-2xs">
-                  <span className="text-[10px] font-bold uppercase text-gray-400">Rate</span>
-                  <p className="text-base font-black text-gray-900">
-                    {attendanceData.stats.attendancePercentage !== null
+            <div className="space-y-5">
+              {/* Summary Stats Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Overall Rate</span>
+                  <div className="text-xl font-black text-[#318A25]">
+                    {attendanceData.stats.attendancePercentage != null
                       ? `${attendanceData.stats.attendancePercentage}%`
-                      : '100%'}
-                  </p>
+                      : '—'}
+                  </div>
                 </div>
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-center">
-                  <span className="text-[10px] font-bold uppercase text-emerald-600">Present</span>
-                  <p className="text-base font-black text-emerald-800">{attendanceData.stats.presentCount}</p>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Classes Attended</span>
+                  <div className="text-xl font-black text-[#172B4D]">{attendanceData.stats.presentCount}</div>
                 </div>
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-100 text-center">
-                  <span className="text-[10px] font-bold uppercase text-amber-600">Late</span>
-                  <p className="text-base font-black text-amber-800">{attendanceData.stats.lateCount}</p>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Late Arrivals</span>
+                  <div className="text-xl font-black text-amber-600">{attendanceData.stats.lateCount}</div>
                 </div>
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-center">
-                  <span className="text-[10px] font-bold uppercase text-rose-600">Absent</span>
-                  <p className="text-base font-black text-rose-800">{attendanceData.stats.absentCount}</p>
+
+                <div className="p-3.5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Absences</span>
+                  <div className="text-xl font-black text-rose-600">{attendanceData.stats.absentCount}</div>
                 </div>
               </div>
 
-              {/* Filter pills */}
-              <div className="flex items-center gap-2">
-                {[
-                  { id: 'all', label: `All Records (${filteredAttendanceRecords.length})` },
-                  { id: 'present', label: `Present` },
-                  { id: 'late', label: `Late` },
-                  { id: 'absent', label: `Absent` },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setAttFilter(f.id as any)}
-                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      attFilter === f.id
-                        ? 'bg-[#172B4D] text-white shadow-2xs'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
+              {/* Attendance Filter & Table/List */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Attendance History ({displayedAttendance.length})
+                  </h3>
 
-              {/* Records List */}
-              {displayedAttendance.length === 0 ? (
-                <div className="p-8 text-center rounded-2xl border border-dashed border-gray-200 bg-white">
-                  <BarChart3 className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-gray-700">No attendance records in this view.</p>
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-2xs divide-y divide-gray-100">
-                  {displayedAttendance.map((rec) => (
-                    <div key={rec.id} className="p-3.5 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-bold text-gray-900">{rec.batch_name}</p>
-                        <p className="text-[11px] text-gray-500">
-                          {rec.attendance_date} • Tutor: {rec.tutor_name}
-                          {rec.note ? ` • Note: ${rec.note}` : ''}
-                        </p>
-                      </div>
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize ${
-                          rec.status === 'present'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : rec.status === 'late'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl">
+                    {['all', 'present', 'late', 'absent'].map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setAttFilter(f as any)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                          attFilter === f ? 'bg-white text-[#172B4D] shadow-xs' : 'text-gray-600 hover:text-gray-900'
                         }`}
                       >
-                        {rec.status}
-                      </span>
-                    </div>
-                  ))}
+                        {f}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
+
+                {displayedAttendance.length > 0 ? (
+                  <div className="space-y-2">
+                    {displayedAttendance.map((rec) => (
+                      <div
+                        key={rec.id}
+                        className="p-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <span className="font-bold text-gray-900">{rec.batch_name}</span>
+                          <span className="text-gray-500 ml-2 font-medium">({rec.attendance_date})</span>
+                        </div>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold capitalize ${
+                            rec.status === 'present'
+                              ? 'bg-emerald-100 text-[#318A25]'
+                              : rec.status === 'late'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {rec.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 text-center text-xs text-gray-500">
+                    No attendance records found for this view.
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
+          {/* ========================================================================= */}
           {/* TAB 6: ANNOUNCEMENTS */}
+          {/* ========================================================================= */}
           {activeTab === 'announcements' && (
-            <div className="space-y-3">
-              {filteredAnnouncements.length === 0 ? (
-                <div className="p-8 text-center rounded-2xl border border-dashed border-gray-200 bg-white">
-                  <MessageSquare className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-gray-700">No announcements yet.</p>
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                Tutor Announcements & Updates ({filteredAnnouncements.length})
+              </h3>
+
+              {filteredAnnouncements.length > 0 ? (
+                <div className="space-y-3">
+                  {filteredAnnouncements.map((ann) => (
+                    <div
+                      key={ann.id}
+                      className="p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="text-sm font-bold text-gray-900">{ann.title}</h4>
+                        <span className="text-[11px] text-gray-400 shrink-0">
+                          {new Date(ann.created_at).toLocaleDateString([], {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">{ann.message}</p>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                filteredAnnouncements.map((a) => (
-                  <div key={a.id} className="p-4 rounded-2xl border border-gray-100 bg-white shadow-2xs space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-900">{a.title}</span>
-                      <span className="text-[10px] text-gray-400">
-                        {new Date(a.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 whitespace-pre-line leading-relaxed">{a.message}</p>
-                  </div>
-                ))
+                <div className="p-8 rounded-2xl bg-white border border-gray-200/80 text-center text-xs text-gray-500">
+                  No announcements published by your connected tutors yet.
+                </div>
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* Disconnect Confirmation Modal */}
+      {/* Join with Invite Code Modal */}
+      <JoinTutorModal
+        isOpen={joinModalOpen}
+        onClose={() => setJoinModalOpen(false)}
+        onSuccess={() => {
+          setJoinModalOpen(false)
+          router.refresh()
+        }}
+      />
+
+      {/* Leave Tutor Confirmation Modal */}
       {tutorToLeave && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-2xs p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
-            <div className="flex items-center gap-3 text-red-600">
-              <div className="p-2 rounded-xl bg-red-50">
-                <AlertTriangle className="h-6 w-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+                <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900">Disconnect from Tutor?</h3>
-                <p className="text-xs text-gray-500">This action can be undone by re-joining</p>
+                <h3 className="text-base font-bold text-gray-900">Disconnect Tutor?</h3>
+                <p className="text-xs text-gray-500">This will remove your enrollment</p>
               </div>
             </div>
 
             <p className="text-xs text-gray-600 leading-relaxed">
-              Are you sure you want to disconnect from <strong>{tutorToLeave.fullName}</strong>? You will lose access to their live classes, assignments, and test scores until you re-enter an invite code.
+              Are you sure you want to disconnect from <strong>{tutorToLeave.fullName}</strong>? You will no longer receive updates, tests, or class reminders for their batches.
             </p>
 
             {leaveError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700">
                 {leaveError}
               </div>
             )}
@@ -1102,27 +1284,24 @@ export function StudentTutorsClient({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setTutorToLeave(null)}
                 disabled={leaving}
-                className="text-xs"
+                onClick={() => setTutorToLeave(null)}
+                className="rounded-xl text-xs font-semibold"
               >
                 Cancel
               </Button>
               <Button
                 size="sm"
-                onClick={handleConfirmLeave}
                 disabled={leaving}
-                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+                onClick={handleConfirmLeave}
+                className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold"
               >
-                {leaving ? 'Disconnecting...' : 'Disconnect'}
+                {leaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Leave'}
               </Button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Join Tutor Modal */}
-      <JoinTutorModal isOpen={joinModalOpen} onClose={() => setJoinModalOpen(false)} />
     </div>
   )
 }
