@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   LayoutDashboard,
+  Target,
   Calendar,
   Users,
   Layers,
@@ -99,7 +100,7 @@ export const PARENT_NAV_ITEMS: NavItem[] = [
  * Consolidated into 4 primary destinations: Home, Your Tutor, Find Tutor, Profile.
  */
 export const STUDENT_NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '/student', icon: Home },
+  { label: 'Focus', href: '/student', icon: Target },
   { label: 'Your Tutor', href: '/student/tutors', icon: Users },
   { label: 'Find Tutor', href: '/student/marketplace', icon: Compass },
   { label: 'Profile', href: '/student/settings', icon: User },
