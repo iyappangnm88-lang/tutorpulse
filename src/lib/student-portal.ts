@@ -4,6 +4,7 @@ import type { ClassSession, Announcement } from '@/types'
 import { calculateGrade, calculatePercentage } from './test-utils'
 import { formatDateKey } from './calendar-utils'
 import { getStudentJoinRequests, type JoinRequestWithDetails } from './marketplace'
+import type { FocusStats } from '@/lib/focus/types'
 
 export interface ConnectedTutorInfo {
   connectionId: string
@@ -93,6 +94,7 @@ export interface StudentTodayLearningItem {
 }
 
 export interface StudentDashboardData {
+  focusStats?: FocusStats
   profile: {
     userId: string
     fullName: string
@@ -618,9 +620,10 @@ export async function getStudentDashboardData(studentUserId: string): Promise<St
   let testList: StudentTestItem[] = []
   let announcements: Announcement[] = []
 
-  const [hwDetailed, testDetailed] = await Promise.all([
+  const [hwDetailed, testDetailed, focusStats] = await Promise.all([
     getStudentHomeworkDetailed(studentUserId),
     getStudentTestsDetailed(studentUserId),
+    getStudentFocusStats(studentUserId),
   ])
 
   homeworkList = hwDetailed
@@ -751,6 +754,7 @@ export async function getStudentDashboardData(studentUserId: string): Promise<St
     homeworkList,
     testList,
     announcements,
+    focusStats,
     stats: {
       totalTutors: connectedTutors.length,
       totalBatches: enrolledBatches.length,
@@ -760,5 +764,72 @@ export async function getStudentDashboardData(studentUserId: string): Promise<St
       completedTestsCount: testList.filter((t) => t.marks !== null).length,
       attendanceRate: attendanceData.stats.attendancePercentage,
     },
+  }
+}
+
+/**
+ * Fetches focus stats and recent focus sessions for the student.
+ */
+export async function getStudentFocusStats(studentUserId: string): Promise<FocusStats> {
+  const supabase = await createClient()
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  const { data: sessions, error } = await supabase
+    .from('focus_sessions')
+    .select('*')
+    .eq('student_user_id', studentUserId)
+    .order('started_at', { ascending: false })
+    .limit(50)
+
+  if (error || !sessions) {
+    return {
+      todayMinutes: 0,
+      todaySessionsCount: 0,
+      totalCompletedSessions: 0,
+      totalFocusMinutes: 0,
+      recentSessions: [],
+    }
+  }
+
+  let todaySeconds = 0
+  let todayCount = 0
+  let totalCompleted = 0
+  let totalSeconds = 0
+
+  for (const s of sessions) {
+    const isToday = new Date(s.started_at) >= todayStart
+    const actualSec = s.actual_duration_sec || 0
+    totalSeconds += actualSec
+
+    if (s.status === 'completed') {
+      totalCompleted++
+    }
+
+    if (isToday) {
+      todaySeconds += actualSec
+      if (s.status === 'completed' || actualSec >= 300) {
+        todayCount++
+      }
+    }
+  }
+
+  const recentSessions = sessions.slice(0, 5).map((s: any) => ({
+    id: s.id,
+    subject: s.subject || 'General Focus',
+    actualDurationSec: s.actual_duration_sec || 0,
+    plannedDurationSec: s.planned_duration_sec || 0,
+    status: s.status,
+    xpAwarded: s.xp_awarded || 0,
+    coinsAwarded: s.coins_awarded || 0,
+    startedAt: s.started_at,
+  }))
+
+  return {
+    todayMinutes: Math.round(todaySeconds / 60),
+    todaySessionsCount: todayCount,
+    totalCompletedSessions: totalCompleted,
+    totalFocusMinutes: Math.round(totalSeconds / 60),
+    recentSessions,
   }
 }

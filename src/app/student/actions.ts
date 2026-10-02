@@ -375,3 +375,315 @@ export async function updateStudentProfileAction(data: {
     return { success: false, error: message }
   }
 }
+
+/**
+ * Starts a new persistent focus session in database.
+ */
+export async function startFocusSessionAction(
+  plannedDurationSec: number,
+  subject: string = 'General Focus'
+): Promise<ActionResponse<{ sessionId: string }>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Authentication required.' }
+    }
+
+    const { data, error } = await supabase
+      .from('focus_sessions')
+      .insert({
+        student_user_id: user.id,
+        subject: subject.trim() || 'General Focus',
+        planned_duration_sec: plannedDurationSec,
+        actual_duration_sec: 0,
+        status: 'running',
+        started_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single()
+
+    if (error || !data) {
+      return { success: false, error: error?.message || 'Failed to start focus session in database.' }
+    }
+
+    return { success: true, data: { sessionId: data.id } }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error starting focus session.'
+    return { success: false, error: message }
+  }
+}
+
+/**
+ * Pauses an active focus session in database.
+ */
+export async function pauseFocusSessionAction(
+  sessionId: string,
+  actualDurationSec: number
+): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Authentication required.' }
+
+    await supabase
+      .from('focus_sessions')
+      .update({
+        status: 'paused',
+        actual_duration_sec: actualDurationSec,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', sessionId)
+      .eq('student_user_id', user.id)
+
+    return { success: true }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error pausing focus session.'
+    return { success: false, error: message }
+  }
+}
+
+/**
+ * Resumes a paused focus session in database.
+ */
+export async function resumeFocusSessionAction(
+  sessionId: string
+): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Authentication required.' }
+
+    await supabase
+      .from('focus_sessions')
+      .update({
+        status: 'running',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', sessionId)
+      .eq('student_user_id', user.id)
+
+    return { success: true }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error resuming focus session.'
+    return { success: false, error: message }
+  }
+}
+
+/**
+ * Completes a focus session, calculates rewards, updates student XP/Coins/Streaks idempotently.
+ */
+export async function completeFocusSessionAction(params: {
+  sessionId?: string | null
+  subject: string
+  plannedDurationSec: number
+  actualDurationSec: number
+}): Promise<ActionResponse<{ xpEarned: number; coinsEarned: number; actualDurationSec: number }>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Authentication required.' }
+
+    const actualSec = Math.max(0, params.actualDurationSec)
+    const minutes = Math.floor(actualSec / 60)
+
+    const xpEarned = Math.max(10, minutes + 10)
+    const coinsEarned = actualSec >= 1500 ? 5 : (actualSec >= 600 ? 2 : 1)
+
+    let alreadyAwarded = false
+    if (params.sessionId) {
+      const { data: existing } = await supabase
+        .from('focus_sessions')
+        .select('id, status, xp_awarded')
+        .eq('id', params.sessionId)
+        .eq('student_user_id', user.id)
+        .maybeSingle()
+
+      if (existing && existing.status === 'completed' && existing.xp_awarded > 0) {
+        alreadyAwarded = true
+      }
+    }
+
+    if (!alreadyAwarded) {
+      if (params.sessionId) {
+        await supabase
+          .from('focus_sessions')
+          .update({
+            status: 'completed',
+            actual_duration_sec: actualSec,
+            ended_at: new Date().toISOString(),
+            xp_awarded: xpEarned,
+            coins_awarded: coinsEarned,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', params.sessionId)
+          .eq('student_user_id', user.id)
+      } else {
+        await supabase
+          .from('focus_sessions')
+          .insert({
+            student_user_id: user.id,
+            subject: params.subject.trim() || 'General Focus',
+            planned_duration_sec: params.plannedDurationSec,
+            actual_duration_sec: actualSec,
+            status: 'completed',
+            ended_at: new Date().toISOString(),
+            xp_awarded: xpEarned,
+            coins_awarded: coinsEarned,
+          })
+      }
+
+      const { data: profile } = await supabase
+        .from('student_profiles')
+        .select('xp, gold_coins_balance, streak_count, longest_streak, last_active_date')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const currentXp = profile?.xp || 0
+      const currentCoins = profile?.gold_coins_balance || 0
+      const streakCount = profile?.streak_count || 0
+      const longestStreak = profile?.longest_streak || 0
+      const todayDateStr = new Date().toISOString().split('T')[0]
+      const lastActive = profile?.last_active_date
+
+      let newStreak = streakCount
+      if (!lastActive) {
+        newStreak = 1
+      } else if (lastActive !== todayDateStr) {
+        const lastDate = new Date(lastActive)
+        const today = new Date(todayDateStr)
+        const diffDays = Math.round((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24))
+        if (diffDays === 1) {
+          newStreak += 1
+        } else if (diffDays > 1) {
+          newStreak = 1
+        }
+      }
+
+      await supabase
+        .from('student_profiles')
+        .update({
+          xp: currentXp + xpEarned,
+          gold_coins_balance: currentCoins + coinsEarned,
+          streak_count: newStreak,
+          longest_streak: Math.max(longestStreak, newStreak),
+          last_active_date: todayDateStr,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+
+      if (coinsEarned > 0) {
+        await supabase
+          .from('gold_coin_transactions')
+          .insert({
+            student_user_id: user.id,
+            amount: coinsEarned,
+            transaction_type: 'LESSON_COMPLETE',
+            source: 'milestone',
+            description: 'Completed ' + minutes + 'm focus session in ' + (params.subject || 'General Focus'),
+            metadata: {
+              subject: params.subject,
+              actualDurationSec: actualSec,
+              plannedDurationSec: params.plannedDurationSec,
+            },
+          })
+      }
+    }
+
+    revalidatePath('/student')
+    revalidatePath('/student/progress')
+    revalidatePath('/student/settings')
+
+    return {
+      success: true,
+      data: {
+        xpEarned,
+        coinsEarned,
+        actualDurationSec: actualSec,
+      },
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error completing focus session.'
+    return { success: false, error: message }
+  }
+}
+
+/**
+ * Ends a focus session early upon confirmation. Awards partial XP if focused for >= 5 minutes.
+ */
+export async function endFocusSessionAction(params: {
+  sessionId?: string | null
+  subject: string
+  plannedDurationSec: number
+  actualDurationSec: number
+}): Promise<ActionResponse<{ xpEarned: number; actualDurationSec: number }>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Authentication required.' }
+
+    const actualSec = Math.max(0, params.actualDurationSec)
+    const minutes = Math.floor(actualSec / 60)
+    const partialXp = actualSec >= 300 ? minutes : 0
+
+    if (params.sessionId) {
+      await supabase
+        .from('focus_sessions')
+        .update({
+          status: 'ended',
+          actual_duration_sec: actualSec,
+          ended_at: new Date().toISOString(),
+          xp_awarded: partialXp,
+          coins_awarded: 0,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', params.sessionId)
+        .eq('student_user_id', user.id)
+    } else {
+      await supabase
+        .from('focus_sessions')
+        .insert({
+          student_user_id: user.id,
+          subject: params.subject.trim() || 'General Focus',
+          planned_duration_sec: params.plannedDurationSec,
+          actual_duration_sec: actualSec,
+          status: 'ended',
+          ended_at: new Date().toISOString(),
+          xp_awarded: partialXp,
+          coins_awarded: 0,
+        })
+    }
+
+    if (partialXp > 0) {
+      const { data: profile } = await supabase
+        .from('student_profiles')
+        .select('xp')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const currentXp = profile?.xp || 0
+      await supabase
+        .from('student_profiles')
+        .update({
+          xp: currentXp + partialXp,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+    }
+
+    revalidatePath('/student')
+    revalidatePath('/student/progress')
+
+    return {
+      success: true,
+      data: {
+        xpEarned: partialXp,
+        actualDurationSec: actualSec,
+      },
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error ending focus session.'
+    return { success: false, error: message }
+  }
+}

@@ -1,10 +1,66 @@
-import type { FocusSessionState, FocusSessionStatus } from './types'
+export type { FocusSessionState, FocusSessionStatus, FocusStats, FocusBroadcastEvent } from './types'
+import type { FocusSessionState, FocusSessionStatus, FocusBroadcastEvent } from './types'
 
 const FOCUS_STORAGE_KEY = 'nuzigo_active_focus_session'
+const FOCUS_CHANNEL_NAME = 'nuzigo_focus_broadcast_channel'
 
-/**
- * Loads the current focus session from persistent client storage.
- */
+let broadcastChannel: BroadcastChannel | null = null
+
+function getBroadcastChannel(): BroadcastChannel | null {
+  if (typeof window === 'undefined') return null
+  if (!broadcastChannel && typeof window.BroadcastChannel !== 'undefined') {
+    try {
+      broadcastChannel = new BroadcastChannel(FOCUS_CHANNEL_NAME)
+    } catch {
+      broadcastChannel = null
+    }
+  }
+  return broadcastChannel
+}
+
+export function broadcastSessionEvent(event: FocusBroadcastEvent): void {
+  const channel = getBroadcastChannel()
+  if (channel) {
+    try {
+      channel.postMessage(event)
+    } catch {}
+  }
+}
+
+export function subscribeFocusBroadcast(
+  callback: (event: FocusBroadcastEvent) => void
+): () => void {
+  const channel = getBroadcastChannel()
+  if (!channel) {
+    if (typeof window !== 'undefined') {
+      const storageHandler = (e: StorageEvent) => {
+        if (e.key === FOCUS_STORAGE_KEY) {
+          const session = loadFocusSession()
+          if (session) {
+            callback({ type: session.status === 'paused' ? 'SESSION_PAUSE' : 'SESSION_RESUME', session })
+          } else {
+            callback({ type: 'SESSION_END', session: { id: '', startTimestamp: 0, targetDurationSec: 0, pausedAtTimestamp: null, totalPausedDurationMs: 0, mode: 'pomodoro', status: 'idle', subject: '', completedAtTimestamp: null } })
+          }
+        }
+      }
+      window.addEventListener('storage', storageHandler)
+      return () => window.removeEventListener('storage', storageHandler)
+    }
+    return () => {}
+  }
+
+  const handler = (msgEvent: MessageEvent<FocusBroadcastEvent>) => {
+    if (msgEvent.data) {
+      callback(msgEvent.data)
+    }
+  }
+
+  channel.addEventListener('message', handler)
+  return () => {
+    channel.removeEventListener('message', handler)
+  }
+}
+
 export function loadFocusSession(): FocusSessionState | null {
   if (typeof window === 'undefined') return null
   try {
@@ -16,13 +72,10 @@ export function loadFocusSession(): FocusSessionState | null {
   }
 }
 
-/**
- * Saves the current focus session to persistent client storage.
- */
 export function saveFocusSession(session: FocusSessionState | null): void {
   if (typeof window === 'undefined') return
   try {
-    if (!session) {
+    if (!session || session.status === 'ended') {
       localStorage.removeItem(FOCUS_STORAGE_KEY)
     } else {
       localStorage.setItem(FOCUS_STORAGE_KEY, JSON.stringify(session))
@@ -30,10 +83,6 @@ export function saveFocusSession(session: FocusSessionState | null): void {
   } catch {}
 }
 
-/**
- * Calculates remaining seconds using authoritative timestamps.
- * This guarantees exact timing that survives backgrounding, screen locks, and app reloads.
- */
 export function calculateRemainingSeconds(session: FocusSessionState): {
   remainingSeconds: number
   elapsedSeconds: number
@@ -63,33 +112,30 @@ export function calculateRemainingSeconds(session: FocusSessionState): {
   }
 }
 
-/**
- * Creates and starts a new authoritative Focus session.
- */
 export function createFocusSession(
   targetDurationSec: number,
+  subject: string = 'General Focus',
   mode: FocusSessionState['mode'] = 'pomodoro',
-  label?: string
+  dbSessionId?: string | null
 ): FocusSessionState {
   const session: FocusSessionState = {
-    id: `focus_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    id: 'focus_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+    dbSessionId: dbSessionId || null,
     startTimestamp: Date.now(),
     targetDurationSec,
     pausedAtTimestamp: null,
     totalPausedDurationMs: 0,
     mode,
     status: 'running',
+    subject,
     completedAtTimestamp: null,
-    label,
   }
 
   saveFocusSession(session)
+  broadcastSessionEvent({ type: 'SESSION_START', session })
   return session
 }
 
-/**
- * Pauses an active Focus session.
- */
 export function pauseFocusSession(session: FocusSessionState): FocusSessionState {
   if (session.status !== 'running') return session
 
@@ -100,12 +146,10 @@ export function pauseFocusSession(session: FocusSessionState): FocusSessionState
   }
 
   saveFocusSession(updated)
+  broadcastSessionEvent({ type: 'SESSION_PAUSE', session: updated })
   return updated
 }
 
-/**
- * Resumes a paused Focus session.
- */
 export function resumeFocusSession(session: FocusSessionState): FocusSessionState {
   if (session.status !== 'paused' || !session.pausedAtTimestamp) return session
 
@@ -118,19 +162,35 @@ export function resumeFocusSession(session: FocusSessionState): FocusSessionStat
   }
 
   saveFocusSession(updated)
+  broadcastSessionEvent({ type: 'SESSION_RESUME', session: updated })
   return updated
 }
 
-/**
- * Completes or cancels an active Focus session.
- */
-export function endFocusSession(session: FocusSessionState, markCompleted = false): FocusSessionState {
+export function endFocusSession(
+  session: FocusSessionState,
+  markCompleted = false,
+  xpAwarded = 0,
+  coinsAwarded = 0
+): FocusSessionState {
   const updated: FocusSessionState = {
     ...session,
-    status: markCompleted ? 'completed' : 'idle',
-    completedAtTimestamp: markCompleted ? Date.now() : null,
+    status: markCompleted ? 'completed' : 'ended',
+    completedAtTimestamp: Date.now(),
+    xpAwarded,
+    coinsAwarded,
   }
 
-  saveFocusSession(null)
+  if (!markCompleted) {
+    saveFocusSession(null)
+    broadcastSessionEvent({ type: 'SESSION_END', session: updated })
+  } else {
+    saveFocusSession(updated)
+    broadcastSessionEvent({ type: 'SESSION_COMPLETE', session: updated })
+  }
+
   return updated
+}
+
+export function clearFocusSession(): void {
+  saveFocusSession(null)
 }
