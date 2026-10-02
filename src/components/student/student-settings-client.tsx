@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle, Sparkles, Moon, LogOut, Shield } from 'lucide-react'
+import { User, School, BookOpen, Loader2, CheckCircle2, AlertCircle, Sparkles, Moon, LogOut, Shield, ShieldCheck, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -95,6 +95,35 @@ export function StudentSettingsClient({ initialData }: StudentSettingsClientProp
           <span>Profile updated successfully!</span>
         </div>
       )}
+
+      {/* Dedicated Permissions Category */}
+      <Link
+        href="/student/settings/permissions"
+        prefetch={true}
+        className="group block rounded-2xl border border-gray-100 dark:border-[#293329] bg-white dark:bg-[#161D16] p-6 shadow-2xs hover:border-[#55C832]/50 dark:hover:border-[#6BEA45]/50 transition-all cursor-pointer"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-[#318A25] dark:text-[#6BEA45] flex items-center justify-center shrink-0 border border-emerald-200/40 dark:border-emerald-800/40 group-hover:scale-105 transition-transform">
+              <ShieldCheck className="h-5 w-5 text-[#55C832] dark:text-[#6BEA45]" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-gray-900 dark:text-[#F4F7F2] group-hover:text-[#318A25] dark:group-hover:text-[#6BEA45] transition-colors">
+                  Permissions
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-[#318A25] dark:text-[#6BEA45] border border-emerald-200/40 dark:border-emerald-800/40">
+                  Focus & Device
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-[#A8B3A5] leading-relaxed">
+                Manage the permissions NUZIGO uses to support your learning and Focus experience.
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-[#318A25] dark:group-hover:text-[#6BEA45] group-hover:translate-x-0.5 transition-all shrink-0" />
+        </div>
+      </Link>
 
       {/* Global Theme Selector Section */}
       <div className="rounded-2xl border border-gray-100 dark:border-[#293329] bg-white dark:bg-[#161D16] p-6 shadow-2xs space-y-4">
