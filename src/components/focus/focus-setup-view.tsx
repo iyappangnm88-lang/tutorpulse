@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   ChevronRight,
   BookOpen,
+  Palette,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FocusModeModal } from './focus-mode-modal'
@@ -98,118 +99,99 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/70 pointer-events-none" />
 
       {/* 2. Top Minimal Bar */}
-      <div className="relative z-10 flex items-center justify-between text-white">
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-xs font-semibold shadow-md">
-          <Sparkles className="h-3.5 w-3.5 text-[#6BEA45]" />
-          <span>{getModeBadge()}</span>
+      <div className="relative z-10 flex items-center justify-between">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-lg">
+          <Flame className="w-4 h-4 text-[#6BEA45] fill-current animate-pulse" />
+          <span>Focus Environment</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Background switcher button */}
-          <button
-            type="button"
-            onClick={() => setIsBgSelectorOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-xs font-semibold text-white transition-all cursor-pointer shadow-md"
-            title="Change focus scenery"
-          >
-            <ImageIcon className="h-3.5 w-3.5 text-[#6BEA45]" />
-            <span className="hidden sm:inline">{currentBg.name}</span>
-          </button>
-        </div>
+        {/* Quick Theme Switcher Button */}
+        <button
+          onClick={() => setIsBgSelectorOpen(true)}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer shadow-lg hover:border-[#6BEA45]/50 group"
+          title="Customize Theme"
+        >
+          <Palette className="w-3.5 h-3.5 text-[#6BEA45] group-hover:rotate-12 transition-transform" />
+          <span>Theme: {currentBg.name}</span>
+        </button>
       </div>
 
-      {/* 3. Center Dominant Focus Circle */}
-      <div className="relative z-10 flex flex-col items-center justify-center my-auto py-6">
+      {/* 3. Central Dominant Focus Circle & Primary Triggers */}
+      <div className="relative z-10 flex flex-col items-center justify-center my-auto space-y-6">
+        {/* Interactive Central Circle */}
         <div
           onClick={() => setIsModeModalOpen(true)}
-          className="group relative w-64 h-64 sm:w-80 sm:h-80 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-95"
-          title="Tap circle to change Focus mode and breaks"
+          className="group relative w-64 h-64 sm:w-80 sm:h-80 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-[0_0_60px_rgba(0,0,0,0.5)]"
         >
-          {/* Frosted Glass Disc */}
-          <div className="absolute inset-0 rounded-full bg-black/35 backdrop-blur-xl border border-white/25 shadow-[0_0_60px_rgba(0,0,0,0.5)] group-hover:border-[#6BEA45]/60 transition-colors" />
+          {/* Glowing Animated Outer Border Ring */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#6BEA45]/40 via-emerald-400/20 to-[#6BEA45]/60 animate-spin-slow blur-xs" />
+          
+          {/* Inner Frosted Lens */}
+          <div className="absolute inset-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/30 group-hover:border-[#6BEA45] transition-colors" />
 
-          {/* Glowing Outer Ring */}
-          <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="46"
-              className="stroke-white/20 fill-none group-hover:stroke-[#6BEA45]/40 transition-colors"
-              strokeWidth="2.5"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="46"
-              className="stroke-[#6BEA45] fill-none"
-              strokeWidth="2.5"
-              strokeDasharray="289"
-              strokeDashoffset="70"
-              strokeLinecap="round"
-            />
-          </svg>
-
-          {/* Time & Subtitle Inside Circle */}
-          <div className="relative z-10 flex flex-col items-center justify-center text-center text-white pointer-events-none">
-            <span className="text-5xl sm:text-6xl font-black tracking-tighter font-mono drop-shadow-md">
+          {/* Time & Mode Label */}
+          <div className="relative z-10 flex flex-col items-center text-center px-4">
+            <span className="text-6xl sm:text-7xl font-black text-white tracking-tighter font-mono drop-shadow-md">
               {getDisplayTime()}
             </span>
-            <span className="text-xs uppercase tracking-widest font-bold text-[#6BEA45] mt-2 flex items-center gap-1 drop-shadow-xs">
-              <span>{mode.toUpperCase()}</span>
-              <Settings2 className="h-3 w-3" />
-            </span>
-            <span className="text-[11px] text-white/70 mt-1 font-medium group-hover:text-white transition-colors">
-              Tap circle to customize
+
+            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6BEA45]/20 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold shadow-xs">
+              <span>{getModeBadge()}</span>
+              <Settings2 className="w-3 h-3 group-hover:rotate-45 transition-transform" />
+            </div>
+
+            <span className="text-[11px] text-white/70 mt-2">
+              Tap circle to customize mode & breaks
             </span>
           </div>
         </div>
+
+        {/* Primary Action Button: START FOCUSING */}
+        <Button
+          size="lg"
+          onClick={handleStart}
+          className="h-14 px-12 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-lg shadow-[0_0_35px_rgba(107,234,69,0.45)] hover:shadow-[0_0_50px_rgba(107,234,69,0.6)] transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          <span>START FOCUSING</span>
+          <ChevronRight className="ml-2 h-5 w-5 stroke-[3]" />
+        </Button>
       </div>
 
-      {/* 4. Bottom Floating Action & Subject Card */}
-      <div className="relative z-10 max-w-xl w-full mx-auto p-4 sm:p-5 rounded-3xl bg-black/45 backdrop-blur-xl border border-white/20 text-white shadow-2xl space-y-4">
-        {/* Subject Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-          <span className="text-[11px] text-white/60 font-semibold shrink-0 mr-1 flex items-center gap-1">
-            <BookOpen className="h-3.5 w-3.5 text-[#6BEA45]" />
-            <span>Subject:</span>
-          </span>
-          {SUBJECTS.map((s) => {
-            const isSel = subject === s
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSubject(s)}
-                className={'px-3 py-1 rounded-xl font-medium transition-all shrink-0 cursor-pointer ' + (
-                  isSel
-                    ? 'bg-[#6BEA45] text-[#0B0F0C] font-bold shadow-xs'
-                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
-                )}
-              >
-                {s}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Primary START FOCUSING Action Button */}
-        <div className="flex items-center justify-between gap-4 pt-1">
-          <div className="text-xs text-white/80 hidden sm:block">
-            Ready for a distraction-free <strong className="text-white">{subject}</strong> session.
-          </div>
-
-          <Button
-            size="lg"
-            onClick={handleStart}
-            className="w-full sm:w-auto h-13 px-9 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-base shadow-[0_0_35px_rgba(107,234,69,0.45)] transition-all transform hover:scale-105 active:scale-95 cursor-pointer ml-auto"
+      {/* 4. Bottom Controls: Subject Picker & Stats Overview */}
+      <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/20 text-white">
+        {/* Subject Selector */}
+        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/20">
+          <BookOpen className="w-4 h-4 text-[#6BEA45]" />
+          <span className="text-xs text-white/80 font-medium">Subject:</span>
+          <select
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="bg-transparent text-xs font-bold text-white focus:outline-hidden cursor-pointer"
           >
-            <Flame className="w-5 h-5 mr-2 fill-current" />
-            <span>START FOCUSING</span>
-          </Button>
+            {SUBJECTS.map((s) => (
+              <option key={s} value={s} className="bg-[#161D16] text-white">
+                {s}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {/* Mini Stats Indicator */}
+        {focusStats && (
+          <div className="flex items-center gap-4 text-xs text-white/80">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#6BEA45]" />
+              <span>Today: <strong className="text-white">{focusStats.todayMinutes}m</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Flame className="w-3.5 h-3.5 text-amber-400" />
+              <span>Sessions: <strong className="text-white">{focusStats.todaySessionsCount}</strong></span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Mode Config Modal */}
+      {/* Focus Mode & Timing Config Modal */}
       <FocusModeModal
         isOpen={isModeModalOpen}
         onClose={() => setIsModeModalOpen(false)}
@@ -220,18 +202,18 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
         longBreakDurationMin={longBreakMin}
         longBreakInterval={longInterval}
         stopwatchTargetMin={swTargetMin}
-        onApply={(config) => {
-          setMode(config.mode)
-          setFocusMin(config.focusDurationMin)
-          setBreakCount(config.breakCount)
-          setBreakMin(config.breakDurationMin)
-          setLongBreakMin(config.longBreakDurationMin)
-          setLongInterval(config.longBreakInterval)
-          setSwTargetMin(config.stopwatchTargetMin)
+        onApply={(cfg) => {
+          setMode(cfg.mode)
+          setFocusMin(cfg.focusDurationMin)
+          setBreakCount(cfg.breakCount)
+          setBreakMin(cfg.breakDurationMin)
+          setLongBreakMin(cfg.longBreakDurationMin)
+          setLongInterval(cfg.longBreakInterval)
+          setSwTargetMin(cfg.stopwatchTargetMin)
         }}
       />
 
-      {/* Background Selector Modal */}
+      {/* Theme Selector Modal */}
       <FocusBackgroundSelector
         isOpen={isBgSelectorOpen}
         onClose={() => setIsBgSelectorOpen(false)}

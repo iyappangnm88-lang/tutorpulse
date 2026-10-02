@@ -15,6 +15,7 @@ import {
   Minimize2,
   ArrowRight,
   CheckCircle2,
+  Palette,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,6 +34,7 @@ import {
   completeFocusSessionAction,
   endFocusSessionAction,
 } from '@/app/student/actions'
+import { FocusBackgroundSelector } from './focus-background-selector'
 
 interface ActiveFocusViewProps {
   session: FocusSessionState
@@ -52,6 +54,7 @@ export function ActiveFocusView({
   const [elapsedInPhase, setElapsedInPhase] = useState<number>(0)
   const [progressFraction, setProgressFraction] = useState<number>(0)
   const [isEndingConfirmOpen, setIsEndingConfirmOpen] = useState(false)
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false)
   const [isCompletedState, setIsCompletedState] = useState(session.status === 'completed')
   const [completionRewards, setCompletionRewards] = useState<{ xp: number; coins: number } | null>(
     session.xpAwarded !== undefined ? { xp: session.xpAwarded || 0, coins: session.coinsAwarded || 0 } : null
@@ -309,6 +312,16 @@ export function ActiveFocusView({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Theme Selector Button in Active Mode */}
+          <button
+            onClick={() => setIsThemeModalOpen(true)}
+            className="h-9 px-3 rounded-xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center gap-1.5 transition-all cursor-pointer text-xs font-bold"
+            title="Change Focus Theme"
+          >
+            <Palette className="w-3.5 h-3.5 text-[#6BEA45]" />
+            <span className="hidden sm:inline">Theme</span>
+          </button>
+
           {/* Mute Button */}
           <button
             onClick={() => setIsMuted(!isMuted)}
@@ -421,6 +434,18 @@ export function ActiveFocusView({
           “Deep work produces rare and irreplaceable value.”
         </div>
       </div>
+
+      {/* Theme Selector Modal in Active Mode */}
+      <FocusBackgroundSelector
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+        currentBackgroundId={currentSession.backgroundId}
+        onSelectBackground={(newBgId) => {
+          const updated = { ...currentSession, backgroundId: newBgId }
+          setCurrentSession(updated)
+          onUpdateSession(updated)
+        }}
+      />
 
       {/* Confirmation Dialog on End */}
       {isEndingConfirmOpen && (

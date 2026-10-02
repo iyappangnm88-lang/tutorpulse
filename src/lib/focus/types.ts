@@ -38,45 +38,63 @@ export interface FocusBackground {
   id: string
   name: string
   subtitle: string
+  category: 'Nature' | string
   src: string
   thumbnail: string
+  isDefault?: boolean
 }
+
+export const THEME_CATEGORIES = ['Nature'] as const
 
 export const FOCUS_BACKGROUNDS: FocusBackground[] = [
   {
     id: 'mountain',
     name: 'Mountain Pines',
     subtitle: 'Alpine serenity & boundless sky',
+    category: 'Nature',
     src: '/backgrounds/focus/mountain-sky.jpg',
     thumbnail: '/backgrounds/focus/mountain-sky.jpg',
-  },
-  {
-    id: 'waterfall',
-    name: 'Golden Waterfall',
-    subtitle: 'Autumn canopy & turquoise flow',
-    src: '/backgrounds/focus/autumn-waterfall.jpg',
-    thumbnail: '/backgrounds/focus/autumn-waterfall.jpg',
-  },
-  {
-    id: 'sunset',
-    name: 'Twilight Meadow',
-    subtitle: 'Gentle dusk & violet blooms',
-    src: '/backgrounds/focus/purple-sunset.png',
-    thumbnail: '/backgrounds/focus/purple-sunset.png',
+    isDefault: true,
   },
   {
     id: 'wildflowers',
     name: 'Sunny Wildflowers',
     subtitle: 'Warm sunlight & blooming daisies',
-    src: '/backgrounds/focus/wildflowers.png',
-    thumbnail: '/backgrounds/focus/wildflowers.png',
+    category: 'Nature',
+    src: '/backgrounds/focus/nature-wildflowers.jpg',
+    thumbnail: '/backgrounds/focus/nature-wildflowers.jpg',
+  },
+  {
+    id: 'sunset',
+    name: 'Twilight Meadow',
+    subtitle: 'Gentle dusk & violet blooms',
+    category: 'Nature',
+    src: '/backgrounds/focus/nature-twilight-meadow.jpg',
+    thumbnail: '/backgrounds/focus/nature-twilight-meadow.jpg',
+  },
+  {
+    id: 'waterfall',
+    name: 'Golden Waterfall',
+    subtitle: 'Autumn canopy & turquoise cascade',
+    category: 'Nature',
+    src: '/backgrounds/focus/nature-golden-waterfall.jpg',
+    thumbnail: '/backgrounds/focus/nature-golden-waterfall.jpg',
   },
   {
     id: 'snow',
-    name: 'Snowy Peak',
-    subtitle: 'Crisp Himalayan peaks & pine forests',
-    src: '/backgrounds/focus/snowy-peaks.jpg',
-    thumbnail: '/backgrounds/focus/snowy-peaks.jpg',
+    name: 'Snowy Peaks',
+    subtitle: 'Crisp Himalayan peaks & winter valley',
+    category: 'Nature',
+    src: '/backgrounds/focus/nature-snowy-peaks.jpg',
+    thumbnail: '/backgrounds/focus/nature-snowy-peaks.jpg',
+  },
+  {
+    id: 'starry',
+    name: 'Starry Forest Path',
+    subtitle: 'Orion constellation & quiet pine highway',
+    category: 'Nature',
+    src: '/backgrounds/focus/nature-starry-forest.jpg',
+    thumbnail: '/backgrounds/focus/nature-starry-forest.jpg',
   },
 ]
 
@@ -96,6 +114,7 @@ export interface FocusStats {
     startedAt: string
   }>
 }
+
 export type FocusSpecialPermissionType = 'overlay' | 'usage_access' | 'notifications'
 
 export interface FocusCapabilities {
@@ -125,4 +144,4 @@ export type FocusBroadcastEvent =
   | { type: 'SESSION_RESUME'; session: FocusSessionState }
   | { type: 'SESSION_PHASE_CHANGE'; session: FocusSessionState }
   | { type: 'SESSION_COMPLETE'; session: FocusSessionState }
-  | { type: 'SESSION_END'; session: FocusSessionState }
+  | { type: 'SESSION_END'; session: FocusSessionState }
