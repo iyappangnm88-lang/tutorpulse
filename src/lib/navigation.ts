@@ -22,6 +22,8 @@ import {
   Video,
   UserCheck,
   Compass,
+  GraduationCap,
+  Users2,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -94,22 +96,33 @@ export const PARENT_NAV_ITEMS: NavItem[] = [
   { label: 'Announcements', href: '/parent/announcements', icon: Bell },
   { label: 'My Profile', href: '/parent/profile', icon: User },
 ]
-
 /**
  * Source of Truth for Student Portal navigation.
- * Consolidated into 4 primary destinations: Home, Your Tutor, Find Tutor, Profile.
+ * 1. Focus
+ * 2. Your Tutor (conditional on isEnrolled)
+ * 3. Find Tutor
+ * 4. Study Groups
+ * 5. Profile
  */
 export const STUDENT_NAV_ITEMS: NavItem[] = [
   { label: 'Focus', href: '/student', icon: Target },
-  { label: 'Your Tutor', href: '/student/tutors', icon: Users },
+  { label: 'Your Tutor', href: '/student/tutors', icon: GraduationCap },
   { label: 'Find Tutor', href: '/student/marketplace', icon: Compass },
+  { label: 'Study Groups', href: '/student/study-groups', icon: Users },
   { label: 'Profile', href: '/student/settings', icon: User },
 ]
+
+export function getStudentNavItems(isEnrolled: boolean = false): NavItem[] {
+  if (isEnrolled) {
+    return STUDENT_NAV_ITEMS
+  }
+  return STUDENT_NAV_ITEMS.filter((item) => item.href !== '/student/tutors')
+}
 
 export function getStudentNavGroups(isEnrolled: boolean = false): {
   items: NavItem[]
 } {
   return {
-    items: STUDENT_NAV_ITEMS,
+    items: getStudentNavItems(isEnrolled),
   }
 }

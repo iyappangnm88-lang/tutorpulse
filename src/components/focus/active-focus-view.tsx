@@ -39,6 +39,7 @@ import {
   completeFocusSessionAction,
   endFocusSessionAction,
 } from '@/app/student/actions'
+import { heartbeatStudyGroupLiveFocusAction } from '@/app/student/study-groups/actions'
 import { FocusBackgroundSelector } from './focus-background-selector'
 import { FocusMusicModal } from './focus-music-modal'
 import { useFocusMusic } from '@/contexts/focus-music-context'
@@ -160,6 +161,15 @@ export function ActiveFocusView({
     return unsub
   }, [onExitFocusMode])
 
+  // Live Focus Heartbeat for Study Groups
+  useEffect(() => {
+    if (!currentSession.groupId || currentSession.status !== 'running') return
+    const interval = setInterval(() => {
+      heartbeatStudyGroupLiveFocusAction(currentSession.groupId!, currentSession.subject, false).catch(() => {})
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [currentSession.groupId, currentSession.status, currentSession.subject])
+
   // Trigger Completion
   const handleTriggerCompletion = useCallback(async (actualFocusSec: number) => {
     if (isCompletedRef.current) return
@@ -170,6 +180,7 @@ export function ActiveFocusView({
     try {
       const res = await completeFocusSessionAction({
         sessionId: currentSession.dbSessionId,
+        groupId: currentSession.groupId,
         subject: currentSession.subject,
         plannedDurationSec: currentSession.focusDurationSec,
         actualDurationSec: finalFocusSec,
@@ -198,14 +209,14 @@ export function ActiveFocusView({
       setCurrentSession(paused)
       onUpdateSession(paused)
       if (currentSession.dbSessionId) {
-        pauseFocusSessionAction(currentSession.dbSessionId, elapsedInPhase).catch(() => {})
+        pauseFocusSessionAction(currentSession.dbSessionId, elapsedInPhase, currentSession.groupId).catch(() => {})
       }
     } else if (currentSession.status === 'paused') {
       const resumed = resumeFocusSession(currentSession)
       setCurrentSession(resumed)
       onUpdateSession(resumed)
       if (currentSession.dbSessionId) {
-        resumeFocusSessionAction(currentSession.dbSessionId).catch(() => {})
+        resumeFocusSessionAction(currentSession.dbSessionId, currentSession.groupId).catch(() => {})
       }
     }
   }
@@ -219,6 +230,7 @@ export function ActiveFocusView({
     try {
       const res = await endFocusSessionAction({
         sessionId: currentSession.dbSessionId,
+        groupId: currentSession.groupId,
         subject: currentSession.subject,
         plannedDurationSec: currentSession.focusDurationSec,
         actualDurationSec: totalFocus,
@@ -352,6 +364,12 @@ export function ActiveFocusView({
               <span className="text-xs font-semibold text-white/90">
                 {currentSession.subject}
               </span>
+              {currentSession.groupId && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#6BEA45] bg-black/40 px-2.5 py-0.5 rounded-full border border-[#6BEA45]/30 backdrop-blur-md">
+                  <span>👥</span>
+                  <span>{currentSession.groupName || 'Study Group'}</span>
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-white/70 mt-0.5">
               {currentSession.mode === 'pomodoro'

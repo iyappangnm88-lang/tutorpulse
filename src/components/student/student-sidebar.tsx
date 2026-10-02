@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { STUDENT_NAV_ITEMS, type NavItem } from '@/lib/navigation'
+import { getStudentNavItems, type NavItem } from '@/lib/navigation'
 import { useStudentNav } from '@/contexts/student-nav-context'
 import { ThemeToggleButton } from '@/components/theme/theme-toggle-button'
 
@@ -164,7 +164,7 @@ export function StudentSidebar({
         className="flex-1 overflow-y-auto py-4 space-y-1.5 overscroll-contain"
         aria-label="Student navigation links"
       >
-        {STUDENT_NAV_ITEMS.map(renderNavLink)}
+        {getStudentNavItems(isEnrolled).map(renderNavLink)}
 
         {/* Action Button: Connect with Invite Code */}
         {handleOpenJoin && (

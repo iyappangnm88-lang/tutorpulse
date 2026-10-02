@@ -3,23 +3,34 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Compass, Users, User } from 'lucide-react'
+import { Target, Compass, Users, User, GraduationCap } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useStudentNav } from '@/contexts/student-nav-context'
 
 export function StudentMobileNav() {
   const pathname = usePathname()
 
-  const tabs = [
+  let isEnrolled = false
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const navContext = useStudentNav()
+    isEnrolled = navContext.isEnrolled
+  } catch {
+    // Context may not be mounted in isolated render
+  }
+
+  const allTabs = [
     {
-      label: 'Home',
+      label: 'Focus',
       href: '/student',
-      icon: Home,
+      icon: Target,
       isActive: pathname === '/student',
+      show: true,
     },
     {
       label: 'Your Tutor',
       href: '/student/tutors',
-      icon: Users,
+      icon: GraduationCap,
       isActive:
         pathname.startsWith('/student/tutors') ||
         pathname.startsWith('/student/classroom') ||
@@ -28,20 +39,32 @@ export function StudentMobileNav() {
         pathname.startsWith('/student/tests') ||
         pathname.startsWith('/student/progress') ||
         pathname.startsWith('/student/messages'),
+      show: isEnrolled,
     },
     {
       label: 'Find Tutor',
       href: '/student/marketplace',
       icon: Compass,
       isActive: pathname.startsWith('/student/marketplace') || pathname.startsWith('/tutors'),
+      show: true,
+    },
+    {
+      label: 'Study Groups',
+      href: '/student/study-groups',
+      icon: Users,
+      isActive: pathname.startsWith('/student/study-groups'),
+      show: true,
     },
     {
       label: 'Profile',
       href: '/student/settings',
       icon: User,
       isActive: pathname.startsWith('/student/settings'),
+      show: true,
     },
   ]
+
+  const tabs = allTabs.filter((t) => t.show)
 
   return (
     <nav

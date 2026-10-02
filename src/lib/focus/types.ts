@@ -5,6 +5,8 @@ export type FocusSessionStatus = 'idle' | 'running' | 'paused' | 'completed' | '
 export interface FocusSessionState {
   id: string
   dbSessionId?: string | null
+  groupId?: string | null
+  groupName?: string | null
   mode: FocusMode
   status: FocusSessionStatus
   phase: FocusPhase

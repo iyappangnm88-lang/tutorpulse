@@ -381,7 +381,8 @@ export async function updateStudentProfileAction(data: {
  */
 export async function startFocusSessionAction(
   plannedDurationSec: number,
-  subject: string = 'General Focus'
+  subject: string = 'General Focus',
+  groupId?: string | null
 ): Promise<ActionResponse<{ sessionId: string }>> {
   try {
     const supabase = await createClient()
@@ -395,6 +396,7 @@ export async function startFocusSessionAction(
       .from('focus_sessions')
       .insert({
         student_user_id: user.id,
+        group_id: groupId || null,
         subject: subject.trim() || 'General Focus',
         planned_duration_sec: plannedDurationSec,
         actual_duration_sec: 0,
@@ -406,6 +408,21 @@ export async function startFocusSessionAction(
 
     if (error || !data) {
       return { success: false, error: error?.message || 'Failed to start focus session in database.' }
+    }
+
+    if (groupId) {
+      await supabase.from('study_group_live_focus').upsert(
+        {
+          group_id: groupId,
+          user_id: user.id,
+          session_id: data.id,
+          subject: subject.trim() || 'General Focus',
+          started_at: new Date().toISOString(),
+          last_heartbeat: new Date().toISOString(),
+          is_paused: false,
+        },
+        { onConflict: 'group_id,user_id' }
+      )
     }
 
     return { success: true, data: { sessionId: data.id } }
@@ -420,7 +437,8 @@ export async function startFocusSessionAction(
  */
 export async function pauseFocusSessionAction(
   sessionId: string,
-  actualDurationSec: number
+  actualDurationSec: number,
+  groupId?: string | null
 ): Promise<ActionResponse> {
   try {
     const supabase = await createClient()
@@ -437,6 +455,14 @@ export async function pauseFocusSessionAction(
       .eq('id', sessionId)
       .eq('student_user_id', user.id)
 
+    if (groupId) {
+      await supabase
+        .from('study_group_live_focus')
+        .update({ is_paused: true, last_heartbeat: new Date().toISOString() })
+        .eq('group_id', groupId)
+        .eq('user_id', user.id)
+    }
+
     return { success: true }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error pausing focus session.'
@@ -448,7 +474,8 @@ export async function pauseFocusSessionAction(
  * Resumes a paused focus session in database.
  */
 export async function resumeFocusSessionAction(
-  sessionId: string
+  sessionId: string,
+  groupId?: string | null
 ): Promise<ActionResponse> {
   try {
     const supabase = await createClient()
@@ -464,6 +491,14 @@ export async function resumeFocusSessionAction(
       .eq('id', sessionId)
       .eq('student_user_id', user.id)
 
+    if (groupId) {
+      await supabase
+        .from('study_group_live_focus')
+        .update({ is_paused: false, last_heartbeat: new Date().toISOString() })
+        .eq('group_id', groupId)
+        .eq('user_id', user.id)
+    }
+
     return { success: true }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error resuming focus session.'
@@ -476,6 +511,7 @@ export async function resumeFocusSessionAction(
  */
 export async function completeFocusSessionAction(params: {
   sessionId?: string | null
+  groupId?: string | null
   subject: string
   plannedDurationSec: number
   actualDurationSec: number
@@ -510,6 +546,7 @@ export async function completeFocusSessionAction(params: {
         await supabase
           .from('focus_sessions')
           .update({
+            group_id: params.groupId || null,
             status: 'completed',
             actual_duration_sec: actualSec,
             ended_at: new Date().toISOString(),
@@ -524,6 +561,7 @@ export async function completeFocusSessionAction(params: {
           .from('focus_sessions')
           .insert({
             student_user_id: user.id,
+            group_id: params.groupId || null,
             subject: params.subject.trim() || 'General Focus',
             planned_duration_sec: params.plannedDurationSec,
             actual_duration_sec: actualSec,
@@ -591,9 +629,21 @@ export async function completeFocusSessionAction(params: {
       }
     }
 
+    if (params.groupId) {
+      await supabase
+        .from('study_group_live_focus')
+        .delete()
+        .eq('group_id', params.groupId)
+        .eq('user_id', user.id)
+    }
+
     revalidatePath('/student')
     revalidatePath('/student/progress')
     revalidatePath('/student/settings')
+    if (params.groupId) {
+      revalidatePath(`/student/study-groups/${params.groupId}`)
+      revalidatePath('/student/study-groups')
+    }
 
     return {
       success: true,
@@ -614,6 +664,7 @@ export async function completeFocusSessionAction(params: {
  */
 export async function endFocusSessionAction(params: {
   sessionId?: string | null
+  groupId?: string | null
   subject: string
   plannedDurationSec: number
   actualDurationSec: number
@@ -631,6 +682,7 @@ export async function endFocusSessionAction(params: {
       await supabase
         .from('focus_sessions')
         .update({
+          group_id: params.groupId || null,
           status: 'ended',
           actual_duration_sec: actualSec,
           ended_at: new Date().toISOString(),
@@ -645,6 +697,7 @@ export async function endFocusSessionAction(params: {
         .from('focus_sessions')
         .insert({
           student_user_id: user.id,
+          group_id: params.groupId || null,
           subject: params.subject.trim() || 'General Focus',
           planned_duration_sec: params.plannedDurationSec,
           actual_duration_sec: actualSec,
@@ -672,8 +725,20 @@ export async function endFocusSessionAction(params: {
         .eq('id', user.id)
     }
 
+    if (params.groupId) {
+      await supabase
+        .from('study_group_live_focus')
+        .delete()
+        .eq('group_id', params.groupId)
+        .eq('user_id', user.id)
+    }
+
     revalidatePath('/student')
     revalidatePath('/student/progress')
+    if (params.groupId) {
+      revalidatePath(`/student/study-groups/${params.groupId}`)
+      revalidatePath('/student/study-groups')
+    }
 
     return {
       success: true,

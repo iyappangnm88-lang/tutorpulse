@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FocusSetupView } from '@/components/focus/focus-setup-view'
 import { ActiveFocusView } from '@/components/focus/active-focus-view'
 import { FocusMusicProvider } from '@/contexts/focus-music-context'
@@ -32,6 +32,10 @@ export function StudentDashboardClient({
   journey,
 }: StudentDashboardClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const queryGroupId = searchParams.get('groupId')
+  const queryGroupName = searchParams.get('groupName')
+
   const [activeSession, setActiveSession] = useState<FocusSessionState | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
@@ -60,7 +64,7 @@ export function StudentDashboardClient({
 
     let dbSessionId: string | null = null
     try {
-      const res = await startFocusSessionAction(durationSec, config.subject)
+      const res = await startFocusSessionAction(durationSec, config.subject, queryGroupId)
       if (res.success && res.data?.sessionId) {
         dbSessionId = res.data.sessionId
       }
@@ -77,6 +81,8 @@ export function StudentDashboardClient({
       subject: config.subject,
       backgroundId: config.backgroundId,
       dbSessionId,
+      groupId: queryGroupId,
+      groupName: queryGroupName,
     })
 
     setActiveSession(session)

@@ -167,6 +167,8 @@ export function createMultiModeFocusSession(params: {
   subject?: string
   backgroundId?: string
   dbSessionId?: string | null
+  groupId?: string | null
+  groupName?: string | null
 }): FocusSessionState {
   const mode = params.mode
   const focusDurationSec = Math.max(60, params.focusDurationMin * 60)
@@ -182,6 +184,8 @@ export function createMultiModeFocusSession(params: {
   const session: FocusSessionState = {
     id: 'focus_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
     dbSessionId: params.dbSessionId || null,
+    groupId: params.groupId || null,
+    groupName: params.groupName || null,
     mode,
     status: 'running',
     phase: 'focus',
