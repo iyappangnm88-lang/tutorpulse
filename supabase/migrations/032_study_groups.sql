@@ -1,9 +1,9 @@
 -- ==============================================================================
--- Migration: 032_study_groups.sql (Self-contained)
+-- Migration: 032_study_groups.sql (Clean & Self-Contained)
 -- Description: Nuzigo Focus Sessions & Study Groups Compartment Schema
 -- ==============================================================================
 
--- 0. Ensure Focus Sessions Table Exists
+-- 1. Create focus_sessions table if it doesn't already exist
 CREATE TABLE IF NOT EXISTS public.focus_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     student_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -12,18 +12,30 @@ CREATE TABLE IF NOT EXISTS public.focus_sessions (
     actual_duration_sec INT NOT NULL DEFAULT 0,
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     ended_at TIMESTAMPTZ,
-    status TEXT NOT NULL DEFAULT 'running' 
-        CHECK (status IN ('running', 'paused', 'completed', 'ended')),
+    status TEXT NOT NULL DEFAULT 'running' CHECK (status IN ('running', 'paused', 'completed', 'ended')),
     xp_awarded INT NOT NULL DEFAULT 0,
     coins_awarded INT NOT NULL DEFAULT 0,
     metadata JSONB NOT NULL DEFAULT '{}',
+    group_id UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Ensure group_id column exists if table was already created earlier
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'focus_sessions' 
+        AND column_name = 'group_id'
+    ) THEN
+        ALTER TABLE public.focus_sessions ADD COLUMN group_id UUID;
+    END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_focus_sessions_user ON public.focus_sessions(student_user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_focus_sessions_status ON public.focus_sessions(student_user_id, status);
-CREATE INDEX IF NOT EXISTS idx_focus_sessions_date ON public.focus_sessions(student_user_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_focus_sessions_group ON public.focus_sessions(group_id, started_at DESC);
 
 ALTER TABLE public.focus_sessions ENABLE ROW LEVEL SECURITY;
 
@@ -46,7 +58,7 @@ CREATE POLICY "Students can update their own focus sessions"
     USING (auth.uid() = student_user_id)
     WITH CHECK (auth.uid() = student_user_id);
 
--- 1. Study Groups Table
+-- 2. Study Groups Table
 CREATE TABLE IF NOT EXISTS public.study_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -66,7 +78,7 @@ CREATE INDEX IF NOT EXISTS idx_study_groups_visibility ON public.study_groups(vi
 CREATE INDEX IF NOT EXISTS idx_study_groups_created_by ON public.study_groups(created_by);
 CREATE INDEX IF NOT EXISTS idx_study_groups_created_at ON public.study_groups(created_at DESC);
 
--- 2. Study Group Members Table
+-- 3. Study Group Members Table
 CREATE TABLE IF NOT EXISTS public.study_group_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_id UUID NOT NULL REFERENCES public.study_groups(id) ON DELETE CASCADE,
@@ -79,7 +91,7 @@ CREATE TABLE IF NOT EXISTS public.study_group_members (
 CREATE INDEX IF NOT EXISTS idx_study_group_members_user ON public.study_group_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_study_group_members_group ON public.study_group_members(group_id);
 
--- 3. Study Group Join Requests (for private groups)
+-- 4. Study Group Join Requests Table
 CREATE TABLE IF NOT EXISTS public.study_group_join_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_id UUID NOT NULL REFERENCES public.study_groups(id) ON DELETE CASCADE,
@@ -93,7 +105,7 @@ CREATE TABLE IF NOT EXISTS public.study_group_join_requests (
 CREATE INDEX IF NOT EXISTS idx_study_group_requests_group ON public.study_group_join_requests(group_id, status);
 CREATE INDEX IF NOT EXISTS idx_study_group_requests_user ON public.study_group_join_requests(user_id, status);
 
--- 4. Study Group Messages Table
+-- 5. Study Group Messages Table
 CREATE TABLE IF NOT EXISTS public.study_group_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_id UUID NOT NULL REFERENCES public.study_groups(id) ON DELETE CASCADE,
@@ -105,12 +117,12 @@ CREATE TABLE IF NOT EXISTS public.study_group_messages (
 CREATE INDEX IF NOT EXISTS idx_study_group_messages_group ON public.study_group_messages(group_id, created_at ASC);
 CREATE INDEX IF NOT EXISTS idx_study_group_messages_user ON public.study_group_messages(user_id, created_at DESC);
 
--- 5. Study Group Live Focus Table
+-- 6. Study Group Live Focus Table
 CREATE TABLE IF NOT EXISTS public.study_group_live_focus (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_id UUID NOT NULL REFERENCES public.study_groups(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    session_id UUID REFERENCES public.focus_sessions(id) ON DELETE SET NULL,
+    session_id UUID,
     subject TEXT NOT NULL DEFAULT 'General Focus',
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_heartbeat TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -119,13 +131,6 @@ CREATE TABLE IF NOT EXISTS public.study_group_live_focus (
 );
 
 CREATE INDEX IF NOT EXISTS idx_study_group_live_group ON public.study_group_live_focus(group_id, is_paused);
-
--- 6. Add group_id column to focus_sessions
-ALTER TABLE public.focus_sessions 
-    ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES public.study_groups(id) ON DELETE SET NULL;
-
-CREATE INDEX IF NOT EXISTS idx_focus_sessions_group ON public.focus_sessions(group_id, started_at DESC) 
-    WHERE group_id IS NOT NULL;
 
 -- 7. Enable RLS on all tables
 ALTER TABLE public.study_groups ENABLE ROW LEVEL SECURITY;
