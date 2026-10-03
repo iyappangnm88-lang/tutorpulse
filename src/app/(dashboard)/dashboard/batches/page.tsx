@@ -33,7 +33,7 @@ export default async function BatchesPage() {
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800"
+          className="rounded-xl border border-yellow-200 dark:border-yellow-800/60 bg-yellow-50 dark:bg-yellow-950/30 p-4 text-sm text-yellow-800 dark:text-yellow-200"
         >
           <strong>Notice:</strong> Unable to connect to Supabase database ({error}). Please ensure the SQL migration 002 has been applied.
         </div>
