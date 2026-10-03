@@ -3,7 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Users, Edit2, Archive, ClipboardCheck, Clock, Video, Building2, Globe2 } from 'lucide-react'
+import { Users, Edit2, Archive, ClipboardCheck, Clock, Video, Building2, Globe2, Compass } from 'lucide-react'
 import { formatDaysSummary, formatTimeRange, type WorkingDay } from '@/lib/scheduling'
 import { cn } from '@/lib/utils'
 import type { BatchWithCount } from '@/types'
@@ -87,7 +87,7 @@ export function BatchCard({ batch, onArchive }: BatchCardProps) {
           </span>
         </div>
 
-        {/* Subject / Class Information */}
+        {/* Subject / Class & Marketplace Information */}
         <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-[#A8B3A5] flex-wrap">
           {hasClass && (
             <span className="font-bold text-gray-900 dark:text-white">
@@ -102,6 +102,17 @@ export function BatchCard({ batch, onArchive }: BatchCardProps) {
           )}
           {!hasClass && !hasSubject && (
             <span className="text-gray-400 dark:text-[#A8B3A5]/60 italic">General Batch</span>
+          )}
+          {batch.is_public && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/50 shadow-2xs">
+              <Compass className="h-3 w-3 text-sky-600 dark:text-sky-400 shrink-0" />
+              <span>Marketplace</span>
+              {batch.pricing_rate != null && (
+                <span className="font-bold text-sky-800 dark:text-sky-200">
+                  · ₹{batch.pricing_rate}{batch.pricing_unit ? `/${batch.pricing_unit.replace('per_', '')}` : ''}
+                </span>
+              )}
+            </span>
           )}
         </div>
       </div>

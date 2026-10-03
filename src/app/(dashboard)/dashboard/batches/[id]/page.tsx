@@ -11,6 +11,7 @@ import { getBatchHomework } from '@/lib/homework'
 import { getBatchTests } from '@/lib/tests'
 import { getBatchUpcomingSessions } from '@/lib/class-sessions'
 import { getFees } from '@/lib/fees'
+import { getTutorJoinRequests } from '@/lib/marketplace'
 import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 
@@ -35,14 +36,23 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes, profileRes] = await Promise.all([
+  const [batchRes, enrolledRes, availableRes, homeworkRes, testsRes, upcomingSessionsRes, profileRes, joinRequestsRes] = await Promise.all([
     getBatchById(id),
     getBatchEnrolledStudents(id),
     getAvailableStudentsForBatch(id),
     getBatchHomework(id),
     getBatchTests(id),
     getBatchUpcomingSessions(id, 5),
-    user ? supabase.from('profiles').select('id, pricing_rate, pricing_unit, pricing_type, subjects, bio, experience_years').eq('id', user.id).maybeSingle() : Promise.resolve({ data: null }),
+    user
+      ? supabase
+          .from('profiles')
+          .select('id, pricing_rate, pricing_unit, pricing_currency, pricing_description, subjects, bio, experience_years, headline, is_public_marketplace, profile_slug')
+          .eq('id', user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    user
+      ? getTutorJoinRequests(user.id)
+      : Promise.resolve({ pending: [], accepted: [], rejected: [], pendingCount: 0 }),
   ])
 
   const batch = batchRes.data
@@ -91,6 +101,8 @@ export default async function BatchDetailPage({ params }: BatchDetailPageProps) 
         tests={testsRes.data}
         fees={batchFees}
         tutorProfile={tutorProfile}
+        joinRequests={joinRequestsRes}
+        tutorId={user?.id}
       />
     </div>
   )

@@ -39,7 +39,6 @@ export interface NavItem {
  */
 export const TUTOR_MAIN_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Marketplace', href: '/dashboard/marketplace', icon: Compass },
   { label: 'Batches', href: '/dashboard/batches', icon: Layers },
   { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
   { label: 'Classroom', href: '/dashboard/classroom', icon: Video },

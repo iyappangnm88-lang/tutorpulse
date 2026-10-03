@@ -10,6 +10,7 @@ import {
   Calendar,
   ClipboardCheck,
   UserCheck,
+  UserX,
   Clock,
   MapPin,
   Building2,
@@ -22,6 +23,7 @@ import {
   ArrowRight,
   School,
   CheckCircle2,
+  XCircle,
   Search,
   ExternalLink,
   Presentation,
@@ -38,6 +40,10 @@ import {
   AlertCircle,
   Check,
   X,
+  Compass,
+  Inbox,
+  Mail,
+  Phone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -51,6 +57,7 @@ import { useToast } from '@/contexts/toast-context'
 import { AddStudentsDialog } from './add-students-dialog'
 import { removeStudentFromBatchAction } from '@/app/(dashboard)/dashboard/batches/actions'
 import { recordPaymentAction, recordBatchStudentPaymentAction } from '@/app/(dashboard)/dashboard/fees/actions'
+import { respondJoinRequestAction } from '@/app/tutors/actions'
 import { SessionStatusBadge } from '@/components/calendar/session-status-badge'
 import { HomeworkStatusBadge } from '@/components/homework/homework-status-badge'
 import { HomeworkProgressBar } from '@/components/homework/homework-progress-bar'
@@ -72,6 +79,7 @@ import type {
   FeeWithDetails,
   PaymentMethod,
 } from '@/types'
+import type { JoinRequestWithDetails } from '@/lib/marketplace-utils'
 
 export type BatchWorkspaceTab =
   | 'overview'
@@ -81,6 +89,7 @@ export type BatchWorkspaceTab =
   | 'homework'
   | 'tests'
   | 'fees'
+  | 'marketplace'
   | 'progress'
   | 'messages'
   | 'settings'
@@ -94,6 +103,13 @@ interface BatchDetailsClientProps {
   tests?: TestWithDetails[]
   fees?: FeeWithDetails[]
   tutorProfile?: any
+  joinRequests?: {
+    pending: JoinRequestWithDetails[]
+    accepted: JoinRequestWithDetails[]
+    rejected: JoinRequestWithDetails[]
+    pendingCount: number
+  }
+  tutorId?: string
 }
 
 export function BatchDetailsClient({
@@ -105,6 +121,8 @@ export function BatchDetailsClient({
   tests = [],
   fees: initialFees = [],
   tutorProfile,
+  joinRequests = { pending: [], accepted: [], rejected: [], pendingCount: 0 },
+  tutorId,
 }: BatchDetailsClientProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -112,6 +130,9 @@ export function BatchDetailsClient({
   const [activeTab, setActiveTab] = useState<BatchWorkspaceTab>('overview')
   const [enrolled, setEnrolled] = useState<EnrolledStudent[]>(initialEnrolled)
   const [fees, setFees] = useState<FeeWithDetails[]>(initialFees)
+  const [requestsData, setRequestsData] = useState(joinRequests)
+  const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null)
+  const [marketplaceSubTab, setMarketplaceSubTab] = useState<'pending' | 'accepted' | 'rejected'>('pending')
   const [studentSearch, setStudentSearch] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [studentToRemove, setStudentToRemove] = useState<EnrolledStudent | null>(null)
@@ -188,6 +209,61 @@ export function BatchDetailsClient({
   const upcomingTestsCount = tests.filter(
     (t) => t.display_status === 'Upcoming' || t.display_status === 'Draft'
   ).length
+
+  // Batch join requests filtering
+  const batchPendingRequests = useMemo(
+    () => (requestsData.pending || []).filter((r) => r.batchId === batch.id),
+    [requestsData.pending, batch.id]
+  )
+  const batchAcceptedRequests = useMemo(
+    () => (requestsData.accepted || []).filter((r) => r.batchId === batch.id),
+    [requestsData.accepted, batch.id]
+  )
+  const batchRejectedRequests = useMemo(
+    () => (requestsData.rejected || []).filter((r) => r.batchId === batch.id),
+    [requestsData.rejected, batch.id]
+  )
+
+  async function handleRespondJoinRequest(requestId: string, action: 'accept' | 'reject') {
+    setRespondingRequestId(requestId)
+    try {
+      const res = await respondJoinRequestAction({ requestId, action })
+      if (!res.success) {
+        toast('error', 'Action Failed', res.error || 'Could not update request.')
+        return
+      }
+
+      const req = (requestsData.pending || []).find((r) => r.id === requestId)
+      if (req) {
+        if (action === 'accept') {
+          toast(
+            'success',
+            'Request Accepted',
+            `${req.studentName} has been enrolled in ${batch.name}.`
+          )
+          setRequestsData((prev) => ({
+            ...prev,
+            pending: prev.pending.filter((r) => r.id !== requestId),
+            accepted: [{ ...req, status: 'accepted', respondedAt: new Date().toISOString() }, ...prev.accepted],
+            pendingCount: Math.max(0, prev.pendingCount - 1),
+          }))
+        } else {
+          toast('info', 'Request Declined', `Join request from ${req.studentName} was declined.`)
+          setRequestsData((prev) => ({
+            ...prev,
+            pending: prev.pending.filter((r) => r.id !== requestId),
+            rejected: [{ ...req, status: 'rejected', respondedAt: new Date().toISOString() }, ...prev.rejected],
+            pendingCount: Math.max(0, prev.pendingCount - 1),
+          }))
+        }
+      }
+      router.refresh()
+    } catch {
+      toast('error', 'Error', 'Something went wrong processing the request.')
+    } finally {
+      setRespondingRequestId(null)
+    }
+  }
 
   async function handleConfirmRemove() {
     if (!studentToRemove) return
@@ -392,6 +468,15 @@ export function BatchDetailsClient({
             { id: 'homework', label: 'Homework', count: homeworkList.length },
             { id: 'tests', label: 'Tests', count: tests.length },
             { id: 'fees', label: 'Fees', count: fees.length },
+            ...(batch.is_public
+              ? [
+                  {
+                    id: 'marketplace',
+                    label: 'Marketplace',
+                    count: batchPendingRequests.length > 0 ? batchPendingRequests.length : null,
+                  },
+                ]
+              : []),
             { id: 'progress', label: 'Progress', count: null },
             { id: 'messages', label: 'Messages', count: null },
             { id: 'settings', label: 'Settings', count: null },
@@ -425,6 +510,33 @@ export function BatchDetailsClient({
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* Marketplace Pending Inquiries Banner */}
+          {batch.is_public && batchPendingRequests.length > 0 && (
+            <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 dark:from-amber-950/30 dark:via-yellow-950/20 dark:to-amber-950/30 dark:border-amber-700/50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 flex items-center justify-center text-amber-700 dark:text-amber-300 shrink-0">
+                  <Compass className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-amber-950 dark:text-amber-100">
+                    {batchPendingRequests.length} Pending Student {batchPendingRequests.length === 1 ? 'Inquiry' : 'Inquiries'}
+                  </p>
+                  <p className="text-xs text-amber-800 dark:text-amber-300">
+                    Prospective students have requested to join this batch from the public marketplace.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setActiveTab('marketplace')}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold gap-1.5 shrink-0 shadow-xs"
+              >
+                <span>Review Requests</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+
           {/* Section 15 Requirement: Next Class Hero Banner */}
           {nextSession ? (
             <Card className="border border-[#55C832]/30 bg-gradient-to-r from-[#FAFBEF] via-white to-[#FAFBEF] shadow-xs">
@@ -683,19 +795,33 @@ export function BatchDetailsClient({
                     {batch.is_public ? '● Listed in Marketplace' : 'Private Draft'}
                   </span>
                 </div>
-                <div className="pt-1 flex items-center justify-between">
-                  <Link
-                    href={`/dashboard/marketplace/batches/${batch.id}/edit`}
-                    className="text-xs font-bold text-[#318A25] hover:underline"
-                  >
-                    Edit Marketplace Fee →
-                  </Link>
-                  <Link
-                    href="/dashboard/marketplace"
-                    className="text-xs text-gray-500 hover:text-gray-900"
-                  >
-                    Marketplace Dashboard
-                  </Link>
+                <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    {batch.is_public && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('marketplace')}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-[#318A25] hover:underline"
+                      >
+                        <Compass className="h-3.5 w-3.5" />
+                        <span>Student Inquiries ({batchPendingRequests.length})</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href="/dashboard/settings"
+                      className="text-xs text-gray-600 hover:text-gray-900 font-semibold"
+                    >
+                      Edit Profile
+                    </Link>
+                    <Link
+                      href={`/dashboard/marketplace/batches/${batch.id}/edit`}
+                      className="text-xs font-bold text-[#318A25] hover:underline"
+                    >
+                      Edit Offering & Fee →
+                    </Link>
+                  </div>
                 </div>
               </CardBody>
             </Card>
@@ -1366,6 +1492,290 @@ export function BatchDetailsClient({
             </div>
           </CardBody>
         </Card>
+      )}
+
+      {/* TAB: MARKETPLACE & STUDENT REQUESTS */}
+      {activeTab === 'marketplace' && (
+        <div className="space-y-6">
+          {/* Marketplace Status Summary Card */}
+          <Card className="border border-sky-200/80 dark:border-sky-800/40 bg-gradient-to-br from-sky-50/50 via-white to-sky-50/30 dark:from-sky-950/20 dark:via-[#161D16] dark:to-sky-950/10 shadow-xs">
+            <CardBody className="p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
+                    <span className="text-xs font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider">
+                      Public Marketplace Listing
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-black text-[#172B4D] dark:text-[#F4F7F2]">
+                    {batch.name} Offering
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-[#A8B3A5]">
+                    This batch is discoverable by prospective students & parents on the Nuzigo marketplace.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={`/dashboard/marketplace/batches/${batch.id}/edit`}>
+                    <Button size="sm" className="bg-[#55C832] hover:bg-[#318A25] text-white text-xs font-bold gap-1 shadow-sm">
+                      <Edit2 className="h-3.5 w-3.5" />
+                      <span>Edit Offering & Fee</span>
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/settings">
+                    <Button size="sm" variant="outline" className="text-xs gap-1">
+                      <Settings className="h-3.5 w-3.5" />
+                      <span>Edit Marketplace Profile</span>
+                    </Button>
+                  </Link>
+                  {(tutorProfile?.profile_slug || tutorId) && (
+                    <Link
+                      href={`/tutors/${tutorProfile?.profile_slug || tutorId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button size="sm" variant="outline" className="text-xs gap-1">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        <span>Public Page</span>
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              {/* Offering Details Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                <div className="p-3 bg-white dark:bg-[#1C261C] rounded-xl border border-gray-100 dark:border-[#293329]">
+                  <p className="text-[11px] text-gray-500 dark:text-[#A8B3A5]">Listed Fee</p>
+                  <p className="text-sm font-black text-[#172B4D] dark:text-[#F4F7F2] mt-0.5">
+                    {feeRate != null ? `₹${feeRate} /${feeUnit}` : 'Not set'}
+                  </p>
+                </div>
+                <div className="p-3 bg-white dark:bg-[#1C261C] rounded-xl border border-gray-100 dark:border-[#293329]">
+                  <p className="text-[11px] text-gray-500 dark:text-[#A8B3A5]">Capacity</p>
+                  <p className="text-sm font-black text-[#172B4D] dark:text-[#F4F7F2] mt-0.5">
+                    {enrolled.length} / {(batch as any).max_students || '∞'} Seats
+                  </p>
+                </div>
+                <div className="p-3 bg-white dark:bg-[#1C261C] rounded-xl border border-gray-100 dark:border-[#293329]">
+                  <p className="text-[11px] text-gray-500 dark:text-[#A8B3A5]">Teaching Mode</p>
+                  <p className="text-sm font-black text-[#172B4D] dark:text-[#F4F7F2] mt-0.5 capitalize">
+                    {batch.class_mode || 'online'}
+                  </p>
+                </div>
+                <div className="p-3 bg-white dark:bg-[#1C261C] rounded-xl border border-gray-100 dark:border-[#293329]">
+                  <p className="text-[11px] text-gray-500 dark:text-[#A8B3A5]">Pending Inquiries</p>
+                  <p className="text-sm font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                    {batchPendingRequests.length} Pending
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Student Join Requests Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 border-b border-gray-200 dark:border-[#293329] pb-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Compass className="h-5 w-5 text-[#55C832]" />
+                <h3 className="text-base font-bold text-[#172B4D] dark:text-[#F4F7F2]">
+                  Student Inquiries & Join Requests
+                </h3>
+              </div>
+
+              {/* Sub-tabs */}
+              <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-[#1C261C] p-1 rounded-xl text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setMarketplaceSubTab('pending')}
+                  className={`px-3 py-1 rounded-lg transition-colors ${
+                    marketplaceSubTab === 'pending'
+                      ? 'bg-white dark:bg-[#161D16] text-[#318A25] dark:text-[#6BEA45] shadow-2xs font-bold'
+                      : 'text-gray-600 dark:text-[#A8B3A5] hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  Pending ({batchPendingRequests.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMarketplaceSubTab('accepted')}
+                  className={`px-3 py-1 rounded-lg transition-colors ${
+                    marketplaceSubTab === 'accepted'
+                      ? 'bg-white dark:bg-[#161D16] text-[#318A25] dark:text-[#6BEA45] shadow-2xs font-bold'
+                      : 'text-gray-600 dark:text-[#A8B3A5] hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  Accepted ({batchAcceptedRequests.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMarketplaceSubTab('rejected')}
+                  className={`px-3 py-1 rounded-lg transition-colors ${
+                    marketplaceSubTab === 'rejected'
+                      ? 'bg-white dark:bg-[#161D16] text-[#318A25] dark:text-[#6BEA45] shadow-2xs font-bold'
+                      : 'text-gray-600 dark:text-[#A8B3A5] hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  Declined ({batchRejectedRequests.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Sub-tab 1: PENDING */}
+            {marketplaceSubTab === 'pending' && (
+              <div className="space-y-3">
+                {batchPendingRequests.length === 0 ? (
+                  <EmptyState
+                    icon={Inbox}
+                    title="No pending join requests"
+                    description="When students or parents discover this batch on the public marketplace and request to join, their inquiries will appear here for your review and 1-click enrollment."
+                  />
+                ) : (
+                  batchPendingRequests.map((req) => (
+                    <Card key={req.id} className="border border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16] shadow-2xs">
+                      <CardBody className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-[#172B4D] dark:text-[#F4F7F2]">
+                              {req.studentName}
+                            </span>
+                            {req.studentGrade && (
+                              <Badge variant="default" className="text-[10px]">
+                                Grade {req.studentGrade}
+                              </Badge>
+                            )}
+                            <Badge variant="warning" className="text-[10px]">
+                              Pending Review
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-[#A8B3A5] flex-wrap">
+                            {req.studentEmail && (
+                              <span className="flex items-center gap-1">
+                                <Mail className="h-3 w-3" />
+                                <span>{req.studentEmail}</span>
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>Requested {new Date(req.createdAt).toLocaleDateString()}</span>
+                            </span>
+                          </div>
+
+                          {req.studentNotes && (
+                            <div className="text-xs text-gray-700 dark:text-[#D1D5DB] bg-gray-50 dark:bg-[#0B0F0C] p-2.5 rounded-xl border border-gray-100 dark:border-[#293329] mt-2">
+                              <span className="font-bold text-gray-900 dark:text-white">Note from student: </span>
+                              <span>&ldquo;{req.studentNotes}&rdquo;</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
+                          <Button
+                            size="sm"
+                            onClick={() => handleRespondJoinRequest(req.id, 'accept')}
+                            loading={respondingRequestId === req.id}
+                            className="bg-[#55C832] hover:bg-[#318A25] text-white font-bold gap-1.5 text-xs shadow-xs"
+                          >
+                            <UserCheck className="h-3.5 w-3.5" />
+                            <span>Accept & Enroll</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRespondJoinRequest(req.id, 'reject')}
+                            disabled={respondingRequestId === req.id}
+                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-900/40 dark:hover:bg-red-950/20 text-xs gap-1"
+                          >
+                            <UserX className="h-3.5 w-3.5" />
+                            <span>Decline</span>
+                          </Button>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Sub-tab 2: ACCEPTED */}
+            {marketplaceSubTab === 'accepted' && (
+              <div className="space-y-3">
+                {batchAcceptedRequests.length === 0 ? (
+                  <EmptyState
+                    icon={UserCheck}
+                    title="No accepted inquiries yet"
+                    description="When you accept prospective students, they are automatically enrolled into this batch and listed here."
+                  />
+                ) : (
+                  batchAcceptedRequests.map((req) => (
+                    <Card key={req.id} className="border border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16] shadow-2xs">
+                      <CardBody className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-[#172B4D] dark:text-[#F4F7F2]">
+                              {req.studentName}
+                            </span>
+                            <Badge variant="success" className="text-[10px] gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              <span>Enrolled in Batch</span>
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-[#A8B3A5]">
+                            {req.studentEmail} {req.studentGrade ? `· Grade ${req.studentGrade}` : ''} · Accepted {req.respondedAt ? new Date(req.respondedAt).toLocaleDateString() : 'recently'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('students')}
+                          className="text-xs font-bold text-[#318A25] dark:text-[#6BEA45] hover:underline"
+                        >
+                          View in Roster →
+                        </button>
+                      </CardBody>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Sub-tab 3: REJECTED */}
+            {marketplaceSubTab === 'rejected' && (
+              <div className="space-y-3">
+                {batchRejectedRequests.length === 0 ? (
+                  <EmptyState
+                    icon={UserX}
+                    title="No declined inquiries"
+                    description="Declined requests will be archived here."
+                  />
+                ) : (
+                  batchRejectedRequests.map((req) => (
+                    <Card key={req.id} className="border border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16] shadow-2xs">
+                      <CardBody className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-[#172B4D] dark:text-[#F4F7F2]">
+                              {req.studentName}
+                            </span>
+                            <Badge variant="danger" className="text-[10px] gap-1">
+                              <XCircle className="h-3 w-3" />
+                              <span>Declined</span>
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-[#A8B3A5]">
+                            {req.studentEmail} · Declined {req.respondedAt ? new Date(req.respondedAt).toLocaleDateString() : 'recently'}
+                          </p>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Modal: Record Payment against Enrolled Student */}

@@ -3,12 +3,11 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Layers, Compass, MessageSquare } from 'lucide-react'
+import { LayoutDashboard, Layers, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const mobileNavItems = [
   { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Marketplace', href: '/dashboard/marketplace', icon: Compass },
   { label: 'Batches', href: '/dashboard/batches', icon: Layers },
   { label: 'Messages', href: '/dashboard/communication', icon: MessageSquare },
 ]
