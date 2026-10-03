@@ -18,13 +18,13 @@ export function cleanBatchDescription(raw?: string | null): string {
 export function extractBatchPricingMetadata(batch: any): BatchPricingMeta {
   if (!batch) return {}
   // If native column has rate, use it
-  if (batch.pricing_rate != null) {
+  if (batch.pricing_rate != null && !isNaN(Number(batch.pricing_rate)) && Number(batch.pricing_rate) > 0) {
     return {
       rate: Number(batch.pricing_rate),
       unit: batch.pricing_unit || 'per_month',
       currency: batch.pricing_currency || 'INR',
       description: batch.pricing_description || null,
-      max_students: batch.max_students != null ? Number(batch.max_students) : null,
+      max_students: batch.max_students != null && !isNaN(Number(batch.max_students)) ? Number(batch.max_students) : null,
     }
   }
 
@@ -34,12 +34,14 @@ export function extractBatchPricingMetadata(batch: any): BatchPricingMeta {
   if (match && match[1]) {
     try {
       const parsed = JSON.parse(match[1])
-      return {
-        rate: parsed.rate != null ? Number(parsed.rate) : null,
-        unit: parsed.unit || 'per_month',
-        currency: parsed.currency || 'INR',
-        description: parsed.description || null,
-        max_students: parsed.max_students != null ? Number(parsed.max_students) : null,
+      if (parsed.rate != null && !isNaN(Number(parsed.rate)) && Number(parsed.rate) > 0) {
+        return {
+          rate: Number(parsed.rate),
+          unit: parsed.unit || 'per_month',
+          currency: parsed.currency || 'INR',
+          description: parsed.description || null,
+          max_students: parsed.max_students != null && !isNaN(Number(parsed.max_students)) ? Number(parsed.max_students) : null,
+        }
       }
     } catch {
       // ignore JSON parse error
@@ -116,16 +118,68 @@ export async function getBatches(workspaceId?: string): Promise<{ data: BatchWit
       }
     }
 
+    // Resolve tutor default profile pricing fallback for batches without explicit pricing
+    const tutorIdsNeedingPricing = Array.from(
+      new Set(
+        batchesData
+          .filter((b) => {
+            const meta = extractBatchPricingMetadata(b)
+            const rate = (b as any).pricing_rate != null && Number((b as any).pricing_rate) > 0
+              ? Number((b as any).pricing_rate)
+              : (meta.rate ?? null)
+            return rate == null || rate <= 0
+          })
+          .map((b) => b.tutor_id)
+          .filter(Boolean)
+      )
+    )
+
+    let tutorProfilePricingMap = new Map<string, { pricing_rate?: number | null; pricing_unit?: string | null; pricing_currency?: string | null; pricing_description?: string | null }>()
+
+    if (tutorIdsNeedingPricing.length > 0) {
+      const { data: tutorProfiles } = await supabase
+        .from('profiles')
+        .select('id, pricing_rate, pricing_unit, pricing_currency, pricing_description')
+        .in('id', tutorIdsNeedingPricing)
+
+      if (tutorProfiles) {
+        tutorProfilePricingMap = new Map(
+          tutorProfiles.map((p) => [
+            p.id,
+            {
+              pricing_rate: p.pricing_rate != null && Number(p.pricing_rate) > 0 ? Number(p.pricing_rate) : null,
+              pricing_unit: p.pricing_unit || 'per_month',
+              pricing_currency: p.pricing_currency || 'INR',
+              pricing_description: p.pricing_description || null,
+            },
+          ])
+        )
+      }
+    }
+
     const batchesWithCount: BatchWithCount[] = batchesData.map((b) => {
       const meta = extractBatchPricingMetadata(b)
+      const profPricing = tutorProfilePricingMap.get(b.tutor_id)
+
+      const resolvedRate =
+        (b as any).pricing_rate != null && Number((b as any).pricing_rate) > 0
+          ? Number((b as any).pricing_rate)
+          : (meta.rate != null && Number(meta.rate) > 0
+              ? Number(meta.rate)
+              : (profPricing?.pricing_rate ?? null))
+
+      const resolvedUnit = (b as any).pricing_unit || meta.unit || profPricing?.pricing_unit || 'per_month'
+      const resolvedCurrency = (b as any).pricing_currency || meta.currency || profPricing?.pricing_currency || 'INR'
+      const resolvedDescription = (b as any).pricing_description || meta.description || profPricing?.pricing_description || null
+
       return {
         ...b,
         description: cleanBatchDescription(b.description),
-        pricing_rate: (b as any).pricing_rate != null ? Number((b as any).pricing_rate) : (meta.rate ?? null),
-        pricing_unit: (b as any).pricing_unit || meta.unit || 'per_month',
-        pricing_currency: (b as any).pricing_currency || meta.currency || 'INR',
-        pricing_description: (b as any).pricing_description || meta.description || null,
-        max_students: (b as any).max_students != null ? Number((b as any).max_students) : (meta.max_students ?? null),
+        pricing_rate: resolvedRate,
+        pricing_unit: resolvedUnit,
+        pricing_currency: resolvedCurrency,
+        pricing_description: resolvedDescription,
+        max_students: (b as any).max_students != null && !isNaN(Number((b as any).max_students)) ? Number((b as any).max_students) : (meta.max_students ?? null),
         student_count: countMap[b.id] || 0,
       }
     })
@@ -168,14 +222,38 @@ export async function getBatchById(id: string, workspaceId?: string): Promise<{ 
       .eq('status', 'active')
 
     const meta = extractBatchPricingMetadata(batch)
+    let finalPricingRate =
+      (batch as any).pricing_rate != null && Number((batch as any).pricing_rate) > 0
+        ? Number((batch as any).pricing_rate)
+        : (meta.rate != null && Number(meta.rate) > 0 ? Number(meta.rate) : null)
+    let finalPricingUnit = (batch as any).pricing_unit || meta.unit || null
+    let finalPricingCurrency = (batch as any).pricing_currency || meta.currency || null
+    let finalPricingDescription = (batch as any).pricing_description || meta.description || null
+
+    // Authoritative fallback: If fee is not set directly on batch row, fetch tutor's profile pricing
+    if ((finalPricingRate == null || finalPricingRate <= 0) && batch.tutor_id) {
+      const { data: tutorProf } = await supabase
+        .from('profiles')
+        .select('pricing_rate, pricing_unit, pricing_currency, pricing_description')
+        .eq('id', batch.tutor_id)
+        .maybeSingle()
+
+      if (tutorProf?.pricing_rate != null && Number(tutorProf.pricing_rate) > 0) {
+        finalPricingRate = Number(tutorProf.pricing_rate)
+        if (!finalPricingUnit) finalPricingUnit = tutorProf.pricing_unit
+        if (!finalPricingCurrency) finalPricingCurrency = tutorProf.pricing_currency
+        if (!finalPricingDescription) finalPricingDescription = tutorProf.pricing_description
+      }
+    }
+
     const cleanBatch: BatchWithCount = {
       ...(batch as Batch),
       description: cleanBatchDescription(batch.description),
-      pricing_rate: (batch as any).pricing_rate != null ? Number((batch as any).pricing_rate) : (meta.rate ?? null),
-      pricing_unit: (batch as any).pricing_unit || meta.unit || 'per_month',
-      pricing_currency: (batch as any).pricing_currency || meta.currency || 'INR',
-      pricing_description: (batch as any).pricing_description || meta.description || null,
-      max_students: (batch as any).max_students != null ? Number((batch as any).max_students) : (meta.max_students ?? null),
+      pricing_rate: finalPricingRate,
+      pricing_unit: finalPricingUnit || 'per_month',
+      pricing_currency: finalPricingCurrency || 'INR',
+      pricing_description: finalPricingDescription || null,
+      max_students: (batch as any).max_students != null && !isNaN(Number((batch as any).max_students)) ? Number((batch as any).max_students) : (meta.max_students ?? null),
       student_count: count || 0,
     }
 

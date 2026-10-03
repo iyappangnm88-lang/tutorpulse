@@ -379,9 +379,23 @@ export async function recordBatchStudentPaymentAction(input: {
     }
 
     const meta = extractBatchPricingMetadata(batch)
-    const authoritativeRate = (batch as any).pricing_rate != null
-      ? Number((batch as any).pricing_rate)
-      : (meta.rate ?? null)
+    let authoritativeRate =
+      (batch as any).pricing_rate != null && !isNaN(Number((batch as any).pricing_rate)) && Number((batch as any).pricing_rate) > 0
+        ? Number((batch as any).pricing_rate)
+        : (meta.rate != null && Number(meta.rate) > 0 ? Number(meta.rate) : null)
+
+    if (authoritativeRate == null || authoritativeRate <= 0) {
+      // Authoritative fallback: fetch tutor's profile pricing
+      const { data: tutorProfile } = await supabase
+        .from('profiles')
+        .select('pricing_rate')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (tutorProfile?.pricing_rate != null && Number(tutorProfile.pricing_rate) > 0) {
+        authoritativeRate = Number(tutorProfile.pricing_rate)
+      }
+    }
 
     if (authoritativeRate == null || authoritativeRate <= 0) {
       return { success: false, error: 'Batch does not have a teaching fee configured. Please set the fee in Marketplace first.' }

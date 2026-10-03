@@ -152,10 +152,18 @@ export function BatchDetailsClient({
   const nextSession = upcomingSessions[0] || null
 
   // Pricing calculations
-  const feeRate = (batch as any).pricing_rate ?? tutorProfile?.pricing_rate ?? null
-  const feeUnit = ((batch as any).pricing_unit ?? tutorProfile?.pricing_unit ?? 'per_month').replace('per_', '')
-  const feeCurrency = (batch as any).pricing_currency ?? tutorProfile?.pricing_currency ?? 'INR'
-  const feeDescription = (batch as any).pricing_description || tutorProfile?.pricing_description || ''
+  const parsedBatchRate =
+    (batch as any)?.pricing_rate != null && !isNaN(Number((batch as any).pricing_rate)) && Number((batch as any).pricing_rate) > 0
+      ? Number((batch as any).pricing_rate)
+      : null
+  const parsedProfileRate =
+    tutorProfile?.pricing_rate != null && !isNaN(Number(tutorProfile.pricing_rate)) && Number(tutorProfile.pricing_rate) > 0
+      ? Number(tutorProfile.pricing_rate)
+      : null
+  const feeRate = parsedBatchRate ?? parsedProfileRate ?? null
+  const feeUnit = ((batch as any)?.pricing_unit || tutorProfile?.pricing_unit || 'per_month').replace('per_', '')
+  const feeCurrency = (batch as any)?.pricing_currency || tutorProfile?.pricing_currency || 'INR'
+  const feeDescription = (batch as any)?.pricing_description || tutorProfile?.pricing_description || ''
 
   // Student Fee Map (student_id -> FeeWithDetails)
   const studentFeeMap = useMemo(() => {
@@ -1203,69 +1211,69 @@ export function BatchDetailsClient({
           {/* Marketplace Batch Fee & Payment Tracking Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Marketplace Batch Fee Card */}
-            <Card className="border-2 border-[#55C832]/30 bg-[#FAFBEF]/60">
+            <Card className="border-2 border-[#55C832]/40 bg-[#FAFBEF]/80 dark:bg-[#1C261C] dark:border-[#55C832]/30">
               <CardBody className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#318A25] bg-white px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#318A25] dark:text-[#55C832] bg-white dark:bg-[#161D16] px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60">
                     Marketplace Batch Fee
                   </span>
                   <Link
                     href={`/dashboard/marketplace/batches/${batch.id}/edit`}
-                    className="text-xs font-bold text-[#318A25] hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[#318A25] dark:text-[#55C832] hover:underline flex items-center gap-1"
                   >
                     <span>Edit in Marketplace</span>
                     <Edit2 className="h-3 w-3" />
                   </Link>
                 </div>
-                <h4 className="text-xs font-bold text-gray-500">
+                <h4 className="text-xs font-bold text-gray-500 dark:text-[#A8B3A5]">
                   Authoritative Batch Teaching Fee
                 </h4>
-                <div className="text-xl font-black text-[#172B4D]">
+                <div className="text-xl font-black text-[#172B4D] dark:text-[#F4F7F2]">
                   {feeRate != null ? (
                     <div className="space-y-1">
                       <p>
-                        ₹{feeRate} <span className="text-xs font-normal text-gray-500">/{feeUnit}</span>
+                        ₹{feeRate} <span className="text-xs font-normal text-gray-500 dark:text-[#A8B3A5]">/{feeUnit}</span>
                       </p>
-                      <span className="inline-block text-xs font-bold text-[#318A25] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      <span className="inline-block text-xs font-bold text-[#318A25] dark:text-[#55C832] bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/40">
                         ₹{feeRate}/{feeUnit} • Teaching fee configured
                       </span>
                     </div>
                   ) : (
                     <div className="space-y-1.5">
-                      <span className="text-sm font-bold text-amber-600">Teaching fee: Not set</span>
-                      <p className="text-xs font-medium text-gray-500">
-                        Teaching fee not set. <Link href={`/dashboard/marketplace/batches/${batch.id}/edit`} className="text-[#318A25] underline font-bold">Set the batch fee in Marketplace.</Link>
+                      <span className="text-sm font-bold text-amber-600 dark:text-amber-400">Teaching fee: Not set</span>
+                      <p className="text-xs font-medium text-gray-500 dark:text-[#A8B3A5]">
+                        Teaching fee not set. <Link href={`/dashboard/marketplace/batches/${batch.id}/edit`} className="text-[#318A25] dark:text-[#55C832] underline font-bold">Set the batch fee in Marketplace.</Link>
                       </p>
                     </div>
                   )}
                 </div>
-                <p className="text-[11px] text-gray-600">
+                <p className="text-[11px] text-gray-600 dark:text-[#A8B3A5]">
                   {feeDescription || 'Every enrolled student in this cohort automatically follows the batch teaching fee.'}
                 </p>
               </CardBody>
             </Card>
 
             {/* Student Payment Tracking (Private Tutor Management) */}
-            <Card className="border border-gray-200 bg-white">
+            <Card className="border border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16]">
               <CardBody className="p-4 space-y-2">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-[#A8B3A5] bg-slate-100 dark:bg-[#1C261C] px-2 py-0.5 rounded">
                   Private Payment Tracking
                 </span>
-                <h4 className="text-xs font-bold text-gray-500">
+                <h4 className="text-xs font-bold text-gray-500 dark:text-[#A8B3A5]">
                   Cohort Dues & Collection Summary
                 </h4>
                 <div className="flex items-center gap-3 pt-1 text-xs">
                   <div>
-                    <span className="text-gray-400 block text-[10px]">Collected</span>
-                    <span className="font-bold text-[#318A25]">₹{totalCollected.toLocaleString()}</span>
+                    <span className="text-gray-400 dark:text-[#7A8A78] block text-[10px]">Collected</span>
+                    <span className="font-bold text-[#318A25] dark:text-[#55C832]">₹{totalCollected.toLocaleString()}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400 block text-[10px]">Outstanding</span>
-                    <span className="font-bold text-red-600">₹{totalBalance.toLocaleString()}</span>
+                    <span className="text-gray-400 dark:text-[#7A8A78] block text-[10px]">Outstanding</span>
+                    <span className="font-bold text-red-600 dark:text-red-400">₹{totalBalance.toLocaleString()}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400 block text-[10px]">Paid Status</span>
-                    <span className="font-bold text-gray-700">
+                    <span className="text-gray-400 dark:text-[#7A8A78] block text-[10px]">Paid Status</span>
+                    <span className="font-bold text-gray-700 dark:text-[#D0DDD0]">
                       {paidCount} Paid / {pendingCount} Pending
                     </span>
                   </div>
@@ -1275,14 +1283,14 @@ export function BatchDetailsClient({
           </div>
 
           {/* Enrolled Students Fee Tracking List */}
-          <Card className="border border-gray-200">
-            <CardHeader className="border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Card className="border border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16]">
+            <CardHeader className="border-b border-gray-100 dark:border-[#293329] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold text-[#172B4D] flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#172B4D] dark:text-[#F4F7F2] flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-[#55C832]" />
                   <span>Enrolled Student Fee Tracking</span>
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-500 dark:text-[#A8B3A5] mt-0.5">
                   {feeRate != null
                     ? `Every enrolled student automatically follows the batch's ₹${feeRate}/${feeUnit} fee.`
                     : 'Configure the batch fee in Marketplace to enable payment tracking.'}
@@ -1291,12 +1299,12 @@ export function BatchDetailsClient({
             </CardHeader>
             <CardBody className="p-4">
               {enrolled.length === 0 ? (
-                <div className="text-center py-8 px-4 rounded-xl border border-dashed border-gray-200">
-                  <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-[#172B4D]">
+                <div className="text-center py-8 px-4 rounded-xl border border-dashed border-gray-200 dark:border-[#293329]">
+                  <Users className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-[#172B4D] dark:text-[#F4F7F2]">
                     No enrolled students yet. Students who join this batch will appear here automatically.
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-[#A8B3A5] mt-1">
                     Add students to this cohort to begin tracking attendance, homework, and batch teaching fees.
                   </p>
                 </div>
@@ -1312,18 +1320,18 @@ export function BatchDetailsClient({
                     return (
                       <div
                         key={student.id}
-                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-gray-100 bg-white hover:border-[#55C832]/40 transition-colors gap-3"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-xl border border-gray-100 dark:border-[#293329] bg-white dark:bg-[#1C261C] hover:border-[#55C832]/40 transition-colors gap-3"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-emerald-50 text-[#318A25] font-black text-sm flex items-center justify-center border border-emerald-100">
+                          <div className="h-9 w-9 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-[#318A25] dark:text-[#55C832] font-black text-sm flex items-center justify-center border border-emerald-100 dark:border-emerald-800/40">
                             {student.full_name?.charAt(0).toUpperCase() || 'S'}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-[#172B4D]">
+                            <p className="text-sm font-bold text-[#172B4D] dark:text-[#F4F7F2]">
                               {student.full_name}
                             </p>
-                            <p className="text-xs text-gray-500">
-                              Batch Fee: <span className="font-semibold text-gray-700">{feeRate != null ? `₹${feeRate}` : 'Not set'}</span>
+                            <p className="text-xs text-gray-500 dark:text-[#A8B3A5]">
+                              Batch Fee: <span className="font-semibold text-gray-700 dark:text-[#D0DDD0]">{feeRate != null ? `₹${feeRate}` : 'Not set'}</span>
                               {studentFee?.due_date ? ` • Due: ${studentFee.due_date}` : ''}
                             </p>
                           </div>
@@ -1333,10 +1341,10 @@ export function BatchDetailsClient({
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                               isPaid
-                                ? 'bg-[#55C832]/20 text-[#318A25]'
+                                ? 'bg-[#55C832]/20 text-[#318A25] dark:text-[#55C832]'
                                 : isPartial
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300'
+                                : 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300'
                             }`}
                           >
                             {isPaid
