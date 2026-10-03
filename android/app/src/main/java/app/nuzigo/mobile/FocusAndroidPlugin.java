@@ -12,11 +12,15 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.util.Base64;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.JSArray;
@@ -28,6 +32,7 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
+import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -267,51 +272,110 @@ public class FocusAndroidPlugin extends Plugin {
     }
 
     /**
-     * Retrieves launchable non-system & user apps installed on this Android device.
+     * Converts an Android Drawable into a Base64 encoded PNG data URL.
      */
-    @PluginMethod
-    public void getInstalledApps(PluginCall call) {
+    private String drawableToBase64(Drawable drawable) {
+        if (drawable == null) return null;
         try {
-            PackageManager pm = getContext().getPackageManager();
-            Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-            List<ResolveInfo> pkgAppsList = pm.queryIntentActivities(mainIntent, 0);
-
-            JSArray appsArray = new JSArray();
-            String myPackage = getContext().getPackageName();
-            Set<String> seen = new HashSet<String>();
-
-            for (ResolveInfo info : pkgAppsList) {
-                if (info.activityInfo == null || info.activityInfo.packageName == null) continue;
-                String pkg = info.activityInfo.packageName;
-                if (pkg.equals(myPackage) || seen.contains(pkg)) continue;
-                seen.add(pkg);
-
-                String label = "";
-                try {
-                    CharSequence cs = info.loadLabel(pm);
-                    if (cs != null) label = cs.toString();
-                } catch (Exception e) {
-                    label = pkg;
+            int width = drawable.getIntrinsicWidth();
+            int height = drawable.getIntrinsicHeight();
+            if (width <= 0 || height <= 0) {
+                width = 96;
+                height = 96;
+            } else {
+                int maxSize = 96;
+                if (width > maxSize || height > maxSize) {
+                    float ratio = (float) width / (float) height;
+                    if (ratio > 1) {
+                        width = maxSize;
+                        height = Math.max(1, (int) (maxSize / ratio));
+                    } else {
+                        height = maxSize;
+                        width = Math.max(1, (int) (maxSize * ratio));
+                    }
                 }
-                if (label.isEmpty()) label = pkg;
-
-                boolean isSystem = (info.activityInfo.applicationInfo != null) &&
-                    ((info.activityInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
-
-                JSObject appObj = new JSObject();
-                appObj.put("packageName", pkg);
-                appObj.put("appName", label);
-                appObj.put("isSystem", isSystem);
-                appsArray.put(appObj);
             }
 
-            JSObject ret = new JSObject();
-            ret.put("apps", appsArray);
-            call.resolve(ret);
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            byte[] byteArray = outputStream.toByteArray();
+            outputStream.close();
+            bitmap.recycle();
+
+            return "data:image/png;base64," + Base64.encodeToString(byteArray, Base64.NO_WRAP);
         } catch (Exception e) {
-            call.reject("Failed to get installed apps: " + e.getMessage());
+            return null;
         }
+    }
+
+    /**
+     * Retrieves launchable non-system & user apps installed on this Android device with their native app icons.
+     */
+    @PluginMethod
+    public void getInstalledApps(final PluginCall call) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    PackageManager pm = getContext().getPackageManager();
+                    Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                    mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    List<ResolveInfo> pkgAppsList = pm.queryIntentActivities(mainIntent, 0);
+
+                    JSArray appsArray = new JSArray();
+                    String myPackage = getContext().getPackageName();
+                    Set<String> seen = new HashSet<String>();
+
+                    for (ResolveInfo info : pkgAppsList) {
+                        if (info.activityInfo == null || info.activityInfo.packageName == null) continue;
+                        String pkg = info.activityInfo.packageName;
+                        if (pkg.equals(myPackage) || seen.contains(pkg)) continue;
+                        seen.add(pkg);
+
+                        String label = "";
+                        try {
+                            CharSequence cs = info.loadLabel(pm);
+                            if (cs != null) label = cs.toString();
+                        } catch (Exception e) {
+                            label = pkg;
+                        }
+                        if (label.isEmpty()) label = pkg;
+
+                        boolean isSystem = (info.activityInfo.applicationInfo != null) &&
+                            ((info.activityInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
+
+                        String iconDataUrl = null;
+                        try {
+                            Drawable iconDrawable = info.loadIcon(pm);
+                            if (iconDrawable == null && info.activityInfo.applicationInfo != null) {
+                                iconDrawable = info.activityInfo.applicationInfo.loadIcon(pm);
+                            }
+                            iconDataUrl = drawableToBase64(iconDrawable);
+                        } catch (Exception ignored) {}
+
+                        JSObject appObj = new JSObject();
+                        appObj.put("packageName", pkg);
+                        appObj.put("appName", label);
+                        appObj.put("isSystem", isSystem);
+                        if (iconDataUrl != null) {
+                            appObj.put("iconDataUrl", iconDataUrl);
+                        }
+                        appsArray.put(appObj);
+                    }
+
+                    JSObject ret = new JSObject();
+                    ret.put("apps", appsArray);
+                    call.resolve(ret);
+                } catch (Exception e) {
+                    call.reject("Failed to get installed apps: " + e.getMessage());
+                }
+            }
+        }).start();
     }
 
     /**

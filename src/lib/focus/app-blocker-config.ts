@@ -4,6 +4,7 @@ export interface BlockedApp {
   category?: 'social' | 'entertainment' | 'games' | 'other'
   isSystem?: boolean
   iconEmoji?: string
+  iconDataUrl?: string
 }
 
 export interface AppBlockerConfig {

@@ -16,7 +16,14 @@ interface FocusAndroidNativePlugin {
     canUsageStats: boolean
     needsRuntimeNotificationPermission: boolean
   }>
-  getInstalledApps(): Promise<{ apps: Array<{ packageName: string; appName: string; isSystem: boolean }> }>
+  getInstalledApps(): Promise<{
+    apps: Array<{
+      packageName: string
+      appName: string
+      isSystem: boolean
+      iconDataUrl?: string
+    }>
+  }>
   startAppBlocking(options: { packages: string[] }): Promise<{ success: boolean; count: number }>
   stopAppBlocking(): Promise<{ success: boolean }>
   isAppBlockingActive(): Promise<{ active: boolean; count: number }>
@@ -248,6 +255,8 @@ export async function requestAppBlockingPermission(): Promise<PermissionRequestR
   return { opened: false, alreadyGranted: true }
 }
 
+let cachedInstalledApps: BlockedApp[] | null = null
+
 /**
  * Retrieves the list of apps installed on the device (or curated presets on Web).
  */
@@ -256,12 +265,16 @@ export async function getInstalledApps(): Promise<BlockedApp[]> {
     return PRESET_DISTRACTING_APPS
   }
 
+  if (cachedInstalledApps && cachedInstalledApps.length > 0) {
+    return cachedInstalledApps
+  }
+
   try {
     const res = await FocusAndroid.getInstalledApps()
     if (res && Array.isArray(res.apps) && res.apps.length > 0) {
       const presetMap = new Map(PRESET_DISTRACTING_APPS.map((a) => [a.packageName, a]))
       
-      return res.apps.map((app) => {
+      const mapped = res.apps.map((app) => {
         const preset = presetMap.get(app.packageName)
         return {
           packageName: app.packageName,
@@ -269,8 +282,11 @@ export async function getInstalledApps(): Promise<BlockedApp[]> {
           isSystem: app.isSystem,
           category: preset?.category || (app.isSystem ? 'other' : 'social'),
           iconEmoji: preset?.iconEmoji,
+          iconDataUrl: app.iconDataUrl,
         }
       })
+      cachedInstalledApps = mapped
+      return mapped
     }
   } catch (err) {
     console.warn('[FocusAndroid] getInstalledApps error, falling back to presets:', err)

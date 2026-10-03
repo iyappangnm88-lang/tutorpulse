@@ -319,8 +319,17 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="h-11 w-11 rounded-2xl bg-[#161D16] border border-[#293329] flex items-center justify-center text-xl shrink-0">
-                        {app.iconEmoji || '📱'}
+                      <div className="h-11 w-11 rounded-2xl bg-[#161D16] border border-[#293329] flex items-center justify-center text-xl shrink-0 overflow-hidden p-1.5">
+                        {app.iconDataUrl ? (
+                          <img
+                            src={app.iconDataUrl}
+                            alt={app.appName}
+                            className="h-full w-full object-contain rounded-xl"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span>{app.iconEmoji || '📱'}</span>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <span className="text-sm sm:text-base font-bold text-white block truncate">
