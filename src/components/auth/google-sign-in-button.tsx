@@ -90,8 +90,13 @@ export function GoogleSignInButton({
         }
 
         if (data?.url) {
-          const { Browser } = await import('@capacitor/browser')
-          await Browser.open({ url: data.url, windowName: '_self' })
+          try {
+            const { Browser } = await import('@capacitor/browser')
+            await Browser.open({ url: data.url, windowName: '_self' })
+          } catch (browserErr: any) {
+            console.warn('Capacitor Browser.open error, falling back to window.location:', browserErr)
+            window.location.href = data.url
+          }
         } else {
           onError?.('No authorization URL was returned by Google.')
         }

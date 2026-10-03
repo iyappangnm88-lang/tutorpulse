@@ -29,9 +29,14 @@ export function WhatsAppReminderModal({ isOpen, onClose, item }: WhatsAppReminde
       })
     : ''
 
-  function handleOpenWhatsApp() {
+  async function handleOpenWhatsApp() {
     if (whatsappUrl) {
-      window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+      try {
+        const { Browser } = await import('@capacitor/browser')
+        await Browser.open({ url: whatsappUrl })
+      } catch {
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+      }
       onClose()
     }
   }
