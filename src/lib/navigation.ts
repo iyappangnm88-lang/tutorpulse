@@ -41,7 +41,6 @@ export const TUTOR_MAIN_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Marketplace', href: '/dashboard/marketplace', icon: Compass },
   { label: 'Batches', href: '/dashboard/batches', icon: Layers },
-  { label: 'Students', href: '/dashboard/students', icon: Users },
   { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
   { label: 'Classroom', href: '/dashboard/classroom', icon: Video },
   { label: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
