@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowRight, Users, GraduationCap, Sparkles, CheckCircle2 } from 'lucide-react'
 import { NuzigoLogo } from '@/components/brand/nuzigo-logo'
 import { isCapacitorNative } from '@/lib/capacitor'
-import { createClient } from '@/lib/supabase/client'
+import { NativeStartupResolver } from '@/components/capacitor/native-startup-resolver'
 
 interface PreLandingPageProps {
   currentUser: {
@@ -64,50 +64,17 @@ export function PreLandingPage({ currentUser, dashboardHref }: PreLandingPagePro
   const router = useRouter()
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
   const [isNavigating, setIsNavigating] = useState(false)
-  const [isNativeRedirecting, setIsNativeRedirecting] = useState(false)
+  const [isNative, setIsNative] = useState(false)
 
   useEffect(() => {
-    // In Capacitor native Android app, if user is already authenticated with server-verified data,
-    // seamlessly bypass the pre-landing page and navigate directly to their dashboard.
-    if (isCapacitorNative() && currentUser && dashboardHref) {
-      setIsNativeRedirecting(true)
-      router.replace(dashboardHref)
-      return
+    if (isCapacitorNative()) {
+      setIsNative(true)
     }
+  }, [])
 
-    // Secondary client-side check in case cookies were refreshing or hydrating in the native shell
-    if (isCapacitorNative() && !currentUser) {
-      const supabase = createClient()
-      supabase.auth.getUser().then(async ({ data: { user } }) => {
-        if (!user) return
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, onboarding_completed')
-          .eq('id', user.id)
-          .maybeSingle()
-
-        let target = '/dashboard'
-        const role = profile?.role
-        const isOnboarded = Boolean(profile?.onboarding_completed)
-
-        if (role === 'parent') {
-          target = '/parent'
-        } else if (!isOnboarded) {
-          if (role === 'student') target = '/onboarding/student'
-          else if (role === 'tutor') target = '/onboarding/tutor'
-          else target = '/onboarding/role'
-        } else if (role === 'student') {
-          target = '/student'
-        } else if (role === 'tutor') {
-          target = '/dashboard'
-        }
-
-        setIsNativeRedirecting(true)
-        router.replace(target)
-      })
-    }
-  }, [currentUser, dashboardHref, router])
+  if (isNative) {
+    return <NativeStartupResolver />
+  }
 
   const handleRoleSelect = (href: string, roleId: string) => {
     setSelectedRole(roleId)
@@ -115,18 +82,6 @@ export function PreLandingPage({ currentUser, dashboardHref }: PreLandingPagePro
     router.push(href)
   }
 
-  if (isNativeRedirecting) {
-    return (
-      <div className="min-h-screen bg-[#FAFBEF] text-[#172B4D] flex flex-col items-center justify-center font-sans">
-        <div className="flex flex-col items-center gap-4 animate-fade-in">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#55C832] p-2.5 text-white shadow-lg shadow-[#55C832]/30">
-            <NuzigoLogo variant="glyph" className="h-full w-full text-white" />
-          </div>
-          <div className="h-5 w-5 rounded-full border-2 border-[#55C832] border-t-transparent animate-spin" />
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-[#FAFBEF] text-[#172B4D] flex flex-col justify-between font-sans selection:bg-[#55C832] selection:text-white">

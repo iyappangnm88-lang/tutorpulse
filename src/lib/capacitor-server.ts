@@ -14,17 +14,27 @@ export async function isNativeAppRequest(): Promise<boolean> {
     const xRequestedWith = (headerList.get('x-requested-with') || '').toLowerCase()
 
     // 1. Explicit custom user agent configured in capacitor.config.ts
-    if (userAgent.includes('nuzigonativeapp') || userAgent.includes('capacitor')) {
+    if (
+      userAgent.includes('nuzigonativeapp') ||
+      userAgent.includes('capacitor') ||
+      userAgent.includes('app.nuzigo.mobile')
+    ) {
       return true
     }
 
     // 2. Android WebView package ID in X-Requested-With
-    if (xRequestedWith === 'app.nuzigo.mobile') {
+    if (
+      xRequestedWith === 'app.nuzigo.mobile' ||
+      xRequestedWith.includes('nuzigo')
+    ) {
       return true
     }
 
-    // 3. Native Android WebView user-agent identifiers with Nuzigo package
-    if (userAgent.includes('app.nuzigo.mobile')) {
+    // 3. Android WebView standard user agent signature (; wv or Version/4.0 + Android)
+    if (
+      userAgent.includes('; wv') ||
+      (userAgent.includes('version/4.0') && userAgent.includes('android'))
+    ) {
       return true
     }
 

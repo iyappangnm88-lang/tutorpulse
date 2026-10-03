@@ -13,17 +13,19 @@ export function CapacitorSplashHandler() {
   const pathname = usePathname()
 
   useEffect(() => {
-    // Dismiss after next animation frame to ensure the DOM is painted
-    const frameId = requestAnimationFrame(() => {
-      hideNativeSplashScreen(200)
-    })
-    const timer = setTimeout(() => {
-      hideNativeSplashScreen(200)
-    }, 150)
+    // When on a destination route (not unresolved root /), dismiss the native splash screen after paint
+    if (pathname !== '/') {
+      const frameId = requestAnimationFrame(() => {
+        hideNativeSplashScreen(200)
+      })
+      const timer = setTimeout(() => {
+        hideNativeSplashScreen(200)
+      }, 100)
 
-    return () => {
-      cancelAnimationFrame(frameId)
-      clearTimeout(timer)
+      return () => {
+        cancelAnimationFrame(frameId)
+        clearTimeout(timer)
+      }
     }
   }, [pathname])
 
