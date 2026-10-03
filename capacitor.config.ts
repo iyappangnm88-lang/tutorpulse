@@ -14,11 +14,13 @@ const config: CapacitorConfig = {
     backgroundColor: '#FAFBEF',
     allowMixedContent: false,
     captureInput: true,
+    appendUserAgent: 'NuzigoNativeApp/1.0 Capacitor',
   },
   plugins: {
     SplashScreen: {
-      launchAutoHide: true,
-      launchShowDuration: 2000,
+      launchAutoHide: false,
+      launchShowDuration: 8000,
+      launchFadeOutDuration: 250,
       backgroundColor: '#FAFBEF',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',

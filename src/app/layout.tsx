@@ -10,6 +10,7 @@ import { InstallBanner } from '@/components/pwa/install-prompt'
 import { CapacitorBackButton } from '@/components/capacitor/capacitor-back-button'
 import { CapacitorKeyboard } from '@/components/capacitor/capacitor-keyboard'
 import { CapacitorAuthListener } from '@/components/capacitor/capacitor-auth-listener'
+import { CapacitorSplashHandler } from '@/components/capacitor/capacitor-splash-handler'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <CapacitorBackButton />
             <CapacitorKeyboard />
             <CapacitorAuthListener />
+            <CapacitorSplashHandler />
           </ToastProvider>
         </ThemeProvider>
         <Analytics />
