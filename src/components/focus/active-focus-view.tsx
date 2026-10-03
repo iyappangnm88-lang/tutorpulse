@@ -547,8 +547,8 @@ export function ActiveFocusView({
       )}
 
       {/* 3. Center Dominant Countdown / Countup Circle */}
-      <div className="relative z-10 flex flex-col items-center justify-center my-auto">
-        <div className="relative w-72 h-72 sm:w-88 sm:h-88 rounded-full flex flex-col items-center justify-center shadow-[0_0_80px_rgba(0,0,0,0.6)]">
+      <div className="relative z-10 flex flex-col items-center justify-center my-auto py-4">
+        <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-88 md:h-88 aspect-square shrink-0 max-w-[calc(100vw-3.5rem)] max-h-[calc(100vw-3.5rem)] rounded-full flex flex-col items-center justify-center shadow-[0_0_60px_rgba(0,0,0,0.6)] mx-auto">
           {/* Frosted Inner Backdrop */}
           <div className="absolute inset-0 rounded-full bg-black/45 backdrop-blur-xl border border-white/25" />
 
@@ -574,11 +574,11 @@ export function ActiveFocusView({
           </svg>
 
           {/* Live Timer Text Inside */}
-          <div className="relative z-10 flex flex-col items-center justify-center text-center">
-            <span className="text-6xl sm:text-7xl font-black tracking-tighter font-mono drop-shadow-lg">
+          <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 max-w-full">
+            <span className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight font-mono drop-shadow-lg leading-none">
               {formattedTime}
             </span>
-            <span className={`text-xs sm:text-sm uppercase tracking-widest font-black mt-3 drop-shadow-xs ${
+            <span className={`text-xs sm:text-sm uppercase tracking-widest font-black mt-2.5 sm:mt-3 drop-shadow-xs ${
               isBreak ? 'text-amber-300' : 'text-[#6BEA45]'
             }`}>
               {isPaused ? 'PAUSED' : isBreak ? 'BREAK IN PROGRESS' : 'FOCUSING'}
@@ -587,12 +587,12 @@ export function ActiveFocusView({
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4 mt-8">
+        <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4 mt-6 sm:mt-8">
           {/* Primary Action Button: Pause or Resume */}
           <Button
             size="lg"
             onClick={handleTogglePause}
-            className={`h-16 px-12 rounded-2xl font-black text-lg sm:text-xl transition-all transform hover:scale-105 active:scale-95 cursor-pointer min-h-[60px] ${
+            className={`h-14 sm:h-16 px-10 sm:px-12 rounded-2xl font-black text-base sm:text-lg md:text-xl transition-all transform hover:scale-105 active:scale-95 cursor-pointer min-h-[54px] sm:min-h-[60px] ${
               isPaused
                 ? 'bg-amber-400 hover:bg-amber-500 text-[#0B0F0C] shadow-[0_0_35px_rgba(251,191,36,0.4)]'
                 : 'bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] shadow-[0_0_40px_rgba(107,234,69,0.5)]'
@@ -600,11 +600,11 @@ export function ActiveFocusView({
           >
             {isPaused ? (
               <>
-                <Play className="w-6 h-6 mr-2 fill-current" /> Resume
+                <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> Resume
               </>
             ) : (
               <>
-                <Pause className="w-6 h-6 mr-2" /> Pause
+                <Pause className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> Pause
               </>
             )}
           </Button>
@@ -615,9 +615,9 @@ export function ActiveFocusView({
               size="lg"
               variant="outline"
               onClick={() => setIsEndingConfirmOpen(true)}
-              className="h-16 px-8 rounded-2xl border-red-500/40 bg-red-950/50 hover:bg-red-900/70 text-red-200 hover:text-white font-black text-base backdrop-blur-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-[60px]"
+              className="h-14 sm:h-16 px-6 sm:px-8 rounded-2xl border-red-500/40 bg-red-950/50 hover:bg-red-900/70 text-red-200 hover:text-white font-black text-sm sm:text-base backdrop-blur-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-[54px] sm:min-h-[60px]"
             >
-              <Square className="w-5 h-5 fill-current text-red-400" />
+              <Square className="w-4.5 h-4.5 sm:w-5 sm:h-5 fill-current text-red-400" />
               <span>End Focus</span>
             </Button>
           )}
