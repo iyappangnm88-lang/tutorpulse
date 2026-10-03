@@ -10,7 +10,6 @@ import {
   CreditCard,
   BookOpen,
   FileText,
-  MessageSquare,
   BarChart3,
   Settings,
   HelpCircle,
@@ -44,7 +43,7 @@ export const TUTOR_MAIN_NAV_ITEMS: NavItem[] = [
   { label: 'Classroom', href: '/dashboard/classroom', icon: Video },
   { label: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
   { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-  { label: 'Messages', href: '/dashboard/communication', icon: MessageSquare },
+  { label: 'Tests', href: '/dashboard/tests', icon: GraduationCap },
 ]
 
 /**
