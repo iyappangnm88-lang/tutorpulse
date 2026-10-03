@@ -133,26 +133,8 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
           <span>Focus Environment</span>
         </div>
 
-        {/* Top Control Chips: App Blocker, Music & Theme */}
+        {/* Top Control Chips: Music & Theme */}
         <div className="flex items-center gap-2">
-          {/* App Blocker Button */}
-          <button
-            onClick={() => setIsBlockerModalOpen(true)}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full backdrop-blur-md border text-xs font-semibold transition-all cursor-pointer shadow-lg group ${
-              blockerConfig.enabled
-                ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white shadow-[0_0_15px_rgba(107,234,69,0.25)]'
-                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white/80 hover:border-white/40'
-            }`}
-            title="Configure Distraction App Blocker"
-          >
-            <ShieldAlert className={`w-3.5 h-3.5 ${blockerConfig.enabled ? 'text-[#6BEA45]' : 'text-white/60 group-hover:text-white'}`} />
-            <span>
-              {blockerConfig.enabled
-                ? `Shield: ${blockerConfig.selectedPackages.length} Apps`
-                : 'App Blocker'}
-            </span>
-          </button>
-
           {/* Music Button */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
@@ -205,13 +187,21 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
               {getDisplayTime()}
             </span>
 
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6BEA45]/20 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold shadow-xs">
-              <span>{getModeBadge()}</span>
-              <Settings2 className="w-3 h-3 group-hover:rotate-45 transition-transform" />
+            <div className="mt-2 flex items-center gap-2 flex-wrap justify-center">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6BEA45]/20 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold shadow-xs">
+                <span>{getModeBadge()}</span>
+                <Settings2 className="w-3 h-3 group-hover:rotate-45 transition-transform" />
+              </div>
+              {blockerConfig.enabled && blockerConfig.selectedPackages.length > 0 && (
+                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/50 border border-[#6BEA45]/40 text-[#6BEA45] text-[11px] font-bold">
+                  <ShieldAlert className="w-3 h-3" />
+                  <span>Blocked Apps ( {blockerConfig.selectedPackages.length} )</span>
+                </div>
+              )}
             </div>
 
             <span className="text-[11px] text-white/70 mt-2">
-              Tap circle to customize mode & breaks
+              Tap circle to customize mode, breaks & blocked apps
             </span>
           </div>
         </div>

@@ -65,10 +65,6 @@ const FocusMusicModal = dynamic(
   () => import('./focus-music-modal').then((m) => m.FocusMusicModal),
   { ssr: false }
 )
-const AppBlockerModal = dynamic(
-  () => import('./app-blocker-modal').then((m) => m.AppBlockerModal),
-  { ssr: false }
-)
 
 interface ActiveFocusViewProps {
   session: FocusSessionState
@@ -97,7 +93,6 @@ export function ActiveFocusView({
   const [isProcessing, setIsProcessing] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isOfflineSavedNotice, setIsOfflineSavedNotice] = useState(false)
-  const [isBlockerModalOpen, setIsBlockerModalOpen] = useState(false)
   const [blockerConfig, setBlockerConfig] = useState<AppBlockerConfig>(loadAppBlockerConfig)
   const [blockedNotice, setBlockedNotice] = useState<string | null>(null)
 
@@ -488,22 +483,6 @@ export function ActiveFocusView({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* App Blocker Shield Chip in Active Mode */}
-          <button
-            onClick={() => setIsBlockerModalOpen(true)}
-            className={`h-9 px-3 rounded-xl backdrop-blur-md border flex items-center gap-1.5 transition-all cursor-pointer text-xs font-bold ${
-              blockerConfig.enabled
-                ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white shadow-[0_0_15px_rgba(107,234,69,0.25)]'
-                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white/70'
-            }`}
-            title="App Blocker Shield"
-          >
-            <ShieldAlert className={`w-3.5 h-3.5 ${blockerConfig.enabled ? 'text-[#6BEA45]' : 'text-white/60'}`} />
-            <span className="hidden sm:inline">
-              {blockerConfig.enabled ? `Shield: ${blockerConfig.selectedPackages.length}` : 'Shield'}
-            </span>
-          </button>
-
           {/* Music Player Button in Active Mode */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
@@ -678,20 +657,6 @@ export function ActiveFocusView({
           const updated = { ...currentSession, backgroundId: newBgId }
           setCurrentSession(updated)
           onUpdateSession(updated)
-        }}
-      />
-
-      {/* App Blocker Config Modal in Active Mode */}
-      <AppBlockerModal
-        isOpen={isBlockerModalOpen}
-        onClose={() => setIsBlockerModalOpen(false)}
-        onConfigChange={(cfg) => {
-          setBlockerConfig(cfg)
-          if (cfg.enabled && cfg.selectedPackages.length > 0) {
-            startNativeAppBlocking(cfg.selectedPackages)
-          } else {
-            stopNativeAppBlocking()
-          }
         }}
       />
 

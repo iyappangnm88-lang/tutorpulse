@@ -1,28 +1,31 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ShieldAlert,
   Search,
   Check,
-  Smartphone,
-  ExternalLink,
   X,
-  AlertCircle,
+  Smartphone,
+  Info,
+  ShieldCheck,
+  CheckCircle2,
+  Lock,
+  Layers,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
-  type BlockedApp,
-  type AppBlockerConfig,
-  PRESET_DISTRACTING_APPS,
   loadAppBlockerConfig,
   saveAppBlockerConfig,
+  type AppBlockerConfig,
+  type BlockedApp,
+  PRESET_DISTRACTING_APPS,
 } from '@/lib/focus/app-blocker-config'
 import {
   isAndroidNative,
+  checkUsageAccessPermission,
+  requestUsageAccessPermission,
   getInstalledApps,
-  checkAppBlockingPermission,
-  requestAppBlockingPermission,
 } from '@/lib/focus/android-capabilities'
 
 interface AppBlockerModalProps {
@@ -31,370 +34,341 @@ interface AppBlockerModalProps {
   onConfigChange?: (config: AppBlockerConfig) => void
 }
 
+const CATEGORIES = ['All', 'Social', 'Entertainment', 'Games', 'Other']
+
 export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerModalProps) {
   const [config, setConfig] = useState<AppBlockerConfig>(loadAppBlockerConfig)
-  const [apps, setApps] = useState<BlockedApp[]>(PRESET_DISTRACTING_APPS)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'social' | 'entertainment' | 'games'>('all')
+  const [activeCategory, setActiveCategory] = useState('All')
   const [isAndroid, setIsAndroid] = useState(false)
-  const [hasPermission, setHasPermission] = useState(true)
-  const [isCheckingPermission, setIsCheckingPermission] = useState(false)
+  const [hasPermission, setHasPermission] = useState(false)
+  const [installedApps, setInstalledApps] = useState<BlockedApp[]>([])
+  const [loadingApps, setLoadingApps] = useState(false)
 
-  // 1. Initial Load & Permission check
   useEffect(() => {
     if (!isOpen) return
-    const isNative = isAndroidNative()
-    setIsAndroid(isNative)
-    setConfig(loadAppBlockerConfig())
+    const current = loadAppBlockerConfig()
+    setConfig(current)
 
-    // Load available apps (installed apps on Android, curated presets on web)
-    getInstalledApps().then((loadedApps) => {
-      if (loadedApps && loadedApps.length > 0) {
-        setApps(loadedApps)
-      }
-    })
+    const android = isAndroidNative()
+    setIsAndroid(android)
 
-    // Check Android permissions
-    if (isNative) {
-      setIsCheckingPermission(true)
-      checkAppBlockingPermission()
-        .then((res) => {
-          setHasPermission(res.granted)
+    if (android) {
+      checkUsageAccessPermission().then((status) => {
+        setHasPermission(status.granted)
+      })
+
+      setLoadingApps(true)
+      getInstalledApps()
+        .then((apps: BlockedApp[]) => {
+          if (apps && apps.length > 0) {
+            setInstalledApps(apps)
+          }
         })
+        .catch(() => {})
         .finally(() => {
-          setIsCheckingPermission(false)
+          setLoadingApps(false)
         })
     }
   }, [isOpen])
 
-  // 2. Filter apps by search and category
-  const filteredApps = useMemo(() => {
-    return apps.filter((app) => {
-      const matchesSearch =
-        app.appName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.packageName.toLowerCase().includes(searchQuery.toLowerCase())
-
-      if (!matchesSearch) return false
-      if (selectedCategory === 'all') return true
-      return app.category === selectedCategory
-    })
-  }, [apps, searchQuery, selectedCategory])
+  if (!isOpen) return null
 
   const selectedCount = config.selectedPackages.length
 
-  const handleTogglePackage = (pkg: string) => {
-    setConfig((prev) => {
-      const isSelected = prev.selectedPackages.includes(pkg)
-      const nextPackages = isSelected
-        ? prev.selectedPackages.filter((p) => p !== pkg)
-        : [...prev.selectedPackages, pkg]
+  const handleToggleApp = (packageName: string) => {
+    const isSelected = config.selectedPackages.includes(packageName)
+    const nextPackages = isSelected
+      ? config.selectedPackages.filter((p) => p !== packageName)
+      : [...config.selectedPackages, packageName]
 
-      return {
-        ...prev,
-        selectedPackages: nextPackages,
-      }
-    })
+    const nextConfig: AppBlockerConfig = {
+      ...config,
+      selectedPackages: nextPackages,
+    }
+
+    setConfig(nextConfig)
+    saveAppBlockerConfig(nextConfig)
+    onConfigChange?.(nextConfig)
   }
 
-  const handleSelectAllFiltered = () => {
-    const pkgsToAdd = filteredApps.map((a) => a.packageName)
-    setConfig((prev) => ({
-      ...prev,
-      selectedPackages: Array.from(new Set([...prev.selectedPackages, ...pkgsToAdd])),
-    }))
+  const handleToggleGlobal = (enabled: boolean) => {
+    const nextConfig: AppBlockerConfig = {
+      ...config,
+      enabled,
+    }
+    setConfig(nextConfig)
+    saveAppBlockerConfig(nextConfig)
+    onConfigChange?.(nextConfig)
+  }
+
+  const handleSelectAllDefaults = () => {
+    const defaultPkgs = PRESET_DISTRACTING_APPS.map((a: BlockedApp) => a.packageName)
+    const nextConfig: AppBlockerConfig = {
+      ...config,
+      selectedPackages: defaultPkgs,
+    }
+    setConfig(nextConfig)
+    saveAppBlockerConfig(nextConfig)
+    onConfigChange?.(nextConfig)
   }
 
   const handleClearAll = () => {
-    setConfig((prev) => ({
-      ...prev,
+    const nextConfig: AppBlockerConfig = {
+      ...config,
       selectedPackages: [],
-    }))
+    }
+    setConfig(nextConfig)
+    saveAppBlockerConfig(nextConfig)
+    onConfigChange?.(nextConfig)
   }
 
-  const handleSelectCategoryPreset = (category: 'social' | 'entertainment' | 'games') => {
-    const categoryPkgs = apps.filter((a) => a.category === category).map((a) => a.packageName)
-    setConfig((prev) => ({
-      ...prev,
-      selectedPackages: Array.from(new Set([...prev.selectedPackages, ...categoryPkgs])),
-    }))
-  }
+  const appSource = installedApps.length > 0 ? installedApps : PRESET_DISTRACTING_APPS
 
-  const handleGrantPermission = async () => {
-    await requestAppBlockingPermission()
-    const res = await checkAppBlockingPermission()
-    setHasPermission(res.granted)
-  }
+  const displayedApps = appSource.filter((app: BlockedApp) => {
+    const matchesSearch =
+      app.appName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.packageName.toLowerCase().includes(searchQuery.toLowerCase())
 
-  const handleSave = () => {
-    saveAppBlockerConfig(config)
-    onConfigChange?.(config)
-    onClose()
-  }
+    const matchesCategory =
+      activeCategory === 'All' ||
+      (app.category && app.category.toLowerCase() === activeCategory.toLowerCase())
 
-  if (!isOpen) return null
+    return matchesSearch && matchesCategory
+  })
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 select-none animate-in fade-in duration-200">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end justify-center animate-in fade-in duration-200">
+      {/* Click outside backdrop */}
+      <div className="absolute inset-0" onClick={onClose} />
 
-      {/* Modal Container */}
-      <div className="relative z-10 w-full max-w-lg bg-[#161D16] border border-[#293329] rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-[#F4F7F2]">
-        {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-[#293329] flex items-center justify-between">
+      {/* Android Bottom Sheet Container */}
+      <div className="relative z-10 bg-[#161D16] border-t border-x border-[#293329] text-[#F4F7F2] w-full max-w-xl rounded-t-3xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
+        {/* Bottom Sheet Drag Handle */}
+        <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
+          <div className="w-12 h-1.5 bg-[#293329] rounded-full" />
+        </div>
+
+        {/* Header with Dynamic Count Indicator */}
+        <div className="px-6 py-4 border-b border-[#293329] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center border border-[#6BEA45]/40 shadow-xs">
+            <div className="h-10 w-10 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center border border-[#6BEA45]/40 shrink-0">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#F4F7F2]">App Blocker</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-white tracking-tight">Blocked Apps</h3>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40 shadow-xs">
+                  ( {selectedCount} )
+                </span>
+              </div>
               <p className="text-xs text-[#A8B3A5]">
-                Prevent access to distracting apps while studying
+                {selectedCount > 0
+                  ? `${selectedCount} distracting ${selectedCount === 1 ? 'app' : 'apps'} selected`
+                  : 'Shield your Focus session from interruptions'}
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="h-8 w-8 rounded-full bg-[#202920] text-[#A8B3A5] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="h-9 w-9 rounded-xl bg-[#1C261C] text-[#A8B3A5] hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-[#293329]"
+            title="Close"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
-          {/* Main Enable / Disable Switch Card */}
-          <div className="p-4 rounded-2xl bg-[#1C251C] border border-[#293329] flex items-center justify-between">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#F4F7F2]">Block Distracting Apps</span>
-                {config.enabled && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/30">
-                    Active
-                  </span>
-                )}
+        {/* Scrollable Content */}
+        <div className="p-6 overflow-y-auto space-y-5 flex-1">
+          {/* Main Activation Banner / Toggle */}
+          <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div
+                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors ${
+                  config.enabled ? 'bg-[#6BEA45]/20 text-[#6BEA45]' : 'bg-[#1C261C] text-[#A8B3A5]'
+                }`}
+              >
+                <Lock className="h-4 w-4" />
               </div>
-              <p className="text-xs text-[#A8B3A5]">
-                Shield your attention during active focus blocks
-              </p>
+              <div>
+                <span className="text-xs font-bold text-white block">
+                  Enable Distraction Blocking
+                </span>
+                <span className="text-[11px] text-[#A8B3A5]">
+                  {config.enabled
+                    ? 'Active during Focus sessions'
+                    : 'Turn on to prevent app switching'}
+                </span>
+              </div>
             </div>
 
             <button
               type="button"
-              role="switch"
-              aria-checked={config.enabled}
-              onClick={() => setConfig((p) => ({ ...p, enabled: !p.enabled }))}
-              className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${
+              onClick={() => handleToggleGlobal(!config.enabled)}
+              className={`w-12 h-6.5 rounded-full transition-colors relative cursor-pointer focus:outline-hidden ${
                 config.enabled ? 'bg-[#6BEA45]' : 'bg-[#293329]'
               }`}
             >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[#0B0F0C] shadow-lg ring-0 transition duration-200 ease-in-out mt-1 ${
+              <div
+                className={`w-5 h-5 rounded-full bg-white transition-transform transform absolute top-0.5 ${
                   config.enabled ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
           </div>
 
-          {/* Android Permission Check Banner */}
-          {isAndroid && !hasPermission && config.enabled && (
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-2 flex-1">
-                <p className="text-xs font-bold text-amber-300">Android Permission Required</p>
-                <p className="text-[11px] text-amber-200/80 leading-relaxed">
-                  Usage Access is needed so NUZIGO can detect when a selected distracting app opens and redirect you back to your study session.
-                </p>
-                <Button
-                  size="sm"
-                  onClick={handleGrantPermission}
-                  className="h-8 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-[#0B0F0C] font-bold text-xs gap-1.5 shadow-xs cursor-pointer"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  <span>Grant Usage Access</span>
-                </Button>
+          {/* Android Usage Stats Permission Alert (if on Android without permission) */}
+          {isAndroid && !hasPermission && (
+            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <Info className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-amber-200">Android Permission Needed</h4>
+                  <p className="text-[11px] text-amber-300/80 leading-relaxed mt-0.5">
+                    Enable Usage Access so NUZIGO can detect and shield chosen apps.
+                  </p>
+                </div>
               </div>
+              <Button
+                size="sm"
+                onClick={() => requestUsageAccessPermission()}
+                className="bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold shrink-0 min-h-[36px] rounded-xl px-3 cursor-pointer"
+              >
+                Grant
+              </Button>
             </div>
           )}
 
-          {/* Web Fallback Card */}
+          {/* Web Mode Disclaimer */}
           {!isAndroid && (
-            <div className="p-3.5 rounded-2xl bg-[#1B231B] border border-[#293329] flex items-center gap-3 text-xs text-[#A8B3A5]">
+            <div className="p-3.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center gap-2.5 text-xs text-[#A8B3A5]">
               <Smartphone className="h-4 w-4 text-[#6BEA45] shrink-0" />
               <span>
-                App Blocker enforces directly on the <strong>NUZIGO Android App</strong>. Your preferences are saved here.
+                App Blocking operates natively on the <strong>NUZIGO Android App</strong>. Your selected preferences sync across devices.
               </span>
             </div>
           )}
 
-          {/* Apps Selection Header & Category Chips */}
+          {/* Search Bar & Fast Actions */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#A8B3A5]">
-                Selected Apps ({selectedCount})
-              </span>
+            <div className="relative">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#A8B3A5]" />
+              <input
+                type="text"
+                placeholder="Search distracting apps..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 h-10 rounded-xl bg-[#0B0F0C] border border-[#293329] text-xs text-white placeholder:text-[#A8B3A5]/60 focus:border-[#6BEA45] focus:outline-hidden transition-colors"
+              />
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 min-h-[34px] ${
+                    activeCategory === cat
+                      ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-xs'
+                      : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* App List (Comfortable Touch Targets, Min 52px Per Row) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-[#A8B3A5] px-1">
+              <span>Installed & Popular Apps</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handleSelectAllFiltered}
-                  className="text-xs font-bold text-[#6BEA45] hover:underline cursor-pointer"
+                  onClick={handleSelectAllDefaults}
+                  className="text-[11px] text-[#6BEA45] hover:underline cursor-pointer font-bold"
                 >
-                  Select All
+                  Select Defaults
                 </button>
-                <span className="text-[#293329]">•</span>
+                <span>•</span>
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="text-xs font-medium text-[#A8B3A5] hover:text-white cursor-pointer"
+                  className="text-[11px] text-red-400 hover:underline cursor-pointer"
                 >
                   Clear All
                 </button>
               </div>
             </div>
 
-            {/* Category Filter Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-              <button
-                type="button"
-                onClick={() => setSelectedCategory('all')}
-                className={`px-3 py-1.5 rounded-xl font-bold transition-colors whitespace-nowrap cursor-pointer ${
-                  selectedCategory === 'all'
-                    ? 'bg-[#6BEA45] text-[#0B0F0C]'
-                    : 'bg-[#202920] text-[#A8B3A5] hover:text-white'
-                }`}
-              >
-                All Apps
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory('social')
-                  handleSelectCategoryPreset('social')
-                }}
-                className={`px-3 py-1.5 rounded-xl font-bold transition-colors whitespace-nowrap cursor-pointer ${
-                  selectedCategory === 'social'
-                    ? 'bg-[#6BEA45] text-[#0B0F0C]'
-                    : 'bg-[#202920] text-[#A8B3A5] hover:text-white'
-                }`}
-              >
-                📸 Social
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory('entertainment')
-                  handleSelectCategoryPreset('entertainment')
-                }}
-                className={`px-3 py-1.5 rounded-xl font-bold transition-colors whitespace-nowrap cursor-pointer ${
-                  selectedCategory === 'entertainment'
-                    ? 'bg-[#6BEA45] text-[#0B0F0C]'
-                    : 'bg-[#202920] text-[#A8B3A5] hover:text-white'
-                }`}
-              >
-                ▶️ Streaming
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory('games')
-                  handleSelectCategoryPreset('games')
-                }}
-                className={`px-3 py-1.5 rounded-xl font-bold transition-colors whitespace-nowrap cursor-pointer ${
-                  selectedCategory === 'games'
-                    ? 'bg-[#6BEA45] text-[#0B0F0C]'
-                    : 'bg-[#202920] text-[#A8B3A5] hover:text-white'
-                }`}
-              >
-                🎮 Games
-              </button>
-            </div>
-
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#71806F]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search apps to block..."
-                className="w-full h-10 pl-10 pr-4 rounded-xl bg-[#121812] border border-[#293329] text-xs text-white placeholder-[#71806F] focus:outline-hidden focus:border-[#6BEA45]/60 transition-colors"
-              />
-            </div>
-
-            {/* Apps List */}
-            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1 pt-1">
-              {filteredApps.map((app) => {
+            <div className="space-y-1.5">
+              {displayedApps.map((app: BlockedApp) => {
                 const isSelected = config.selectedPackages.includes(app.packageName)
                 return (
                   <div
                     key={app.packageName}
-                    onClick={() => handleTogglePackage(app.packageName)}
-                    className={`p-3 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
+                    onClick={() => handleToggleApp(app.packageName)}
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer select-none min-h-[52px] ${
                       isSelected
-                        ? 'bg-[#1F2B1F] border-[#6BEA45]/50 text-white'
-                        : 'bg-[#121812] border-[#202920] text-[#A8B3A5] hover:bg-[#161D16] hover:text-[#F4F7F2]'
+                        ? 'bg-[#1C261C] border-[#6BEA45]/50 shadow-xs'
+                        : 'bg-[#0B0F0C] border-[#293329] hover:border-white/20'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-8 w-8 rounded-xl bg-[#202920] text-sm flex items-center justify-center shrink-0">
-                        <span>{app.iconEmoji || '📱'}</span>
+                      <div className="h-9 w-9 rounded-xl bg-[#161D16] border border-[#293329] flex items-center justify-center text-lg shrink-0">
+                        {app.iconEmoji || '📱'}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold truncate text-[#F4F7F2]">{app.appName}</p>
-                        <p className="text-[10px] text-[#71806F] truncate">{app.packageName}</p>
+                        <span className="text-xs font-bold text-white block truncate">
+                          {app.appName}
+                        </span>
+                        <span className="text-[10px] text-[#A8B3A5] block truncate font-mono">
+                          {app.packageName}
+                        </span>
                       </div>
                     </div>
 
                     <div
-                      className={`h-5 w-5 rounded-lg border flex items-center justify-center transition-colors shrink-0 ${
+                      className={`h-6 w-6 rounded-lg flex items-center justify-center transition-colors shrink-0 ml-3 ${
                         isSelected
-                          ? 'bg-[#6BEA45] border-[#6BEA45] text-[#0B0F0C]'
-                          : 'border-[#374437] bg-transparent'
+                          ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                          : 'border-2 border-[#293329] bg-[#161D16]'
                       }`}
                     >
-                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                      {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                     </div>
                   </div>
                 )
               })}
-
-              {filteredApps.length === 0 && (
-                <div className="p-6 text-center text-xs text-[#A8B3A5]">
-                  No apps found matching &ldquo;{searchQuery}&rdquo;
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-4 sm:p-5 border-t border-[#293329] bg-[#121812] flex items-center justify-between gap-3">
-          <span className="text-xs text-[#A8B3A5]">
-            {config.enabled ? (
-              <span className="text-[#6BEA45] font-semibold">
-                🛡️ {selectedCount} {selectedCount === 1 ? 'app' : 'apps'} will be blocked
-              </span>
-            ) : (
-              'Blocker disabled'
-            )}
-          </span>
+        {/* Bottom Sheet Footer Actions */}
+        <div className="p-4 border-t border-[#293329] bg-[#0B0F0C] flex items-center justify-between gap-3">
+          <div className="text-xs text-[#A8B3A5] pl-2">
+            <span>{selectedCount} apps selected</span>
+          </div>
 
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onClose}
-              className="h-9 px-4 rounded-xl text-xs font-semibold text-[#A8B3A5] hover:text-white hover:bg-[#202920] cursor-pointer"
+              className="rounded-xl text-xs font-semibold border-[#293329] bg-[#161D16] text-[#A8B3A5] hover:text-white cursor-pointer min-h-[44px] px-5"
             >
               Cancel
             </Button>
             <Button
               size="sm"
-              onClick={handleSave}
-              className="h-9 px-5 rounded-xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-bold text-xs shadow-md cursor-pointer"
+              onClick={onClose}
+              className="rounded-xl text-xs font-bold bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-6 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer min-h-[44px]"
             >
-              Apply Settings
+              Done ( {selectedCount} )
             </Button>
           </div>
         </div>

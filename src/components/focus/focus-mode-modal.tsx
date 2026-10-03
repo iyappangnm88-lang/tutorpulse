@@ -11,9 +11,18 @@ import {
   X,
   Flame,
   Settings2,
+  ShieldAlert,
+  ChevronRight,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import type { FocusMode } from '@/lib/focus/types'
+import { loadAppBlockerConfig, type AppBlockerConfig } from '@/lib/focus/app-blocker-config'
+
+const AppBlockerModal = dynamic(
+  () => import('./app-blocker-modal').then((m) => m.AppBlockerModal),
+  { ssr: false }
+)
 
 const TIMER_PRESETS = [5, 10, 15, 25, 30, 45, 60]
 const BREAK_PRESETS = [0, 1, 2, 3, 4]
@@ -59,6 +68,8 @@ export function FocusModeModal({
   const [longBreakMin, setLongBreakMin] = useState<number>(longBreakDurationMin)
   const [longInterval, setLongInterval] = useState<number>(longBreakInterval)
   const [swTargetMin, setSwTargetMin] = useState<number | null>(stopwatchTargetMin)
+  const [blockerConfig, setBlockerConfig] = useState<AppBlockerConfig>(loadAppBlockerConfig)
+  const [isBlockerSheetOpen, setIsBlockerSheetOpen] = useState(false)
 
   if (!isOpen) return null
 
@@ -357,25 +368,68 @@ export function FocusModeModal({
           </div>
         )}
 
+        {/* 4. BLOCKED APPS CONFIGURATION (INSIDE ROUND TIMER) */}
+        <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center border border-[#6BEA45]/40 shrink-0">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-white">Blocked Apps</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-black bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40 shadow-xs">
+                  ( {blockerConfig.selectedPackages.length} )
+                </span>
+              </div>
+              <p className="text-[11px] text-[#A8B3A5] truncate">
+                {blockerConfig.enabled && blockerConfig.selectedPackages.length > 0
+                  ? `${blockerConfig.selectedPackages.length} ${
+                      blockerConfig.selectedPackages.length === 1 ? 'app' : 'apps'
+                    } shielded during focus`
+                  : 'Prevent access to distracting apps'}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsBlockerSheetOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-[#1C261C] hover:bg-[#253325] border border-[#293329] text-xs font-bold text-[#6BEA45] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 min-h-[38px] shadow-xs"
+          >
+            <span>Select</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
         {/* Footer Actions */}
         <div className="pt-2 border-t border-[#293329] flex items-center justify-end gap-2.5">
           <Button
             variant="outline"
             size="sm"
             onClick={onClose}
-            className="rounded-xl text-xs font-semibold border-[#293329] bg-[#1C261C] text-[#A8B3A5] hover:text-white cursor-pointer"
+            className="rounded-xl text-xs font-semibold border-[#293329] bg-[#1C261C] text-[#A8B3A5] hover:text-white cursor-pointer min-h-[40px] px-4"
           >
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={handleSave}
-            className="rounded-xl text-xs font-bold bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-5 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer"
+            className="rounded-xl text-xs font-bold bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-5 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer min-h-[40px]"
           >
             Apply Settings
           </Button>
         </div>
       </div>
+
+      {/* Blocked Apps Expansion Bottom Sheet */}
+      <AppBlockerModal
+        isOpen={isBlockerSheetOpen}
+        onClose={() => {
+          setIsBlockerSheetOpen(false)
+          setBlockerConfig(loadAppBlockerConfig())
+        }}
+        onConfigChange={(cfg) => setBlockerConfig(cfg)}
+      />
     </div>
   )
-}
+}
