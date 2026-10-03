@@ -150,19 +150,19 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
         </div>
 
         {/* Header with Dynamic Count Indicator */}
-        <div className="px-6 py-4 border-b border-[#293329] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center border border-[#6BEA45]/40 shrink-0">
-              <ShieldAlert className="h-5 w-5" />
+        <div className="px-6 py-4.5 border-b border-[#293329] flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center border border-[#6BEA45]/40 shrink-0">
+              <ShieldAlert className="h-5.5 w-5.5" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base font-bold text-white tracking-tight">Blocked Apps</h3>
+                <h3 className="text-base sm:text-lg font-black text-white tracking-tight">Blocked Apps</h3>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40 shadow-xs">
                   ( {selectedCount} )
                 </span>
               </div>
-              <p className="text-xs text-[#A8B3A5]">
+              <p className="text-xs sm:text-sm text-[#A8B3A5]">
                 {selectedCount > 0
                   ? `${selectedCount} distracting ${selectedCount === 1 ? 'app' : 'apps'} selected`
                   : 'Shield your Focus session from interruptions'}
@@ -175,27 +175,27 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
             className="h-9 w-9 rounded-xl bg-[#1C261C] text-[#A8B3A5] hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-[#293329]"
             title="Close"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4.5 w-4.5" />
           </button>
         </div>
 
         {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto space-y-5 flex-1">
           {/* Main Activation Banner / Toggle */}
-          <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="p-4.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-4 min-h-[64px]">
+            <div className="flex items-center gap-3.5">
               <div
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors ${
+                className={`h-10 w-10 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
                   config.enabled ? 'bg-[#6BEA45]/20 text-[#6BEA45]' : 'bg-[#1C261C] text-[#A8B3A5]'
                 }`}
               >
-                <Lock className="h-4 w-4" />
+                <Lock className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs font-bold text-white block">
+                <span className="text-sm sm:text-base font-bold text-white block">
                   Enable Distraction Blocking
                 </span>
-                <span className="text-[11px] text-[#A8B3A5]">
+                <span className="text-xs text-[#A8B3A5]">
                   {config.enabled
                     ? 'Active during Focus sessions'
                     : 'Turn on to prevent app switching'}
@@ -206,13 +206,13 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
             <button
               type="button"
               onClick={() => handleToggleGlobal(!config.enabled)}
-              className={`w-12 h-6.5 rounded-full transition-colors relative cursor-pointer focus:outline-hidden ${
+              className={`w-13 h-7.5 rounded-full transition-colors relative cursor-pointer focus:outline-hidden shrink-0 ${
                 config.enabled ? 'bg-[#6BEA45]' : 'bg-[#293329]'
               }`}
             >
               <div
-                className={`w-5 h-5 rounded-full bg-white transition-transform transform absolute top-0.5 ${
-                  config.enabled ? 'translate-x-6' : 'translate-x-1'
+                className={`w-6 h-6 rounded-full bg-white transition-transform transform absolute top-0.5 ${
+                  config.enabled ? 'translate-x-6.5' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -220,12 +220,12 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
 
           {/* Android Usage Stats Permission Alert (if on Android without permission) */}
           {isAndroid && !hasPermission && (
-            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex items-center justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <Info className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="p-4.5 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex items-center justify-between gap-3.5">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-xs font-bold text-amber-200">Android Permission Needed</h4>
-                  <p className="text-[11px] text-amber-300/80 leading-relaxed mt-0.5">
+                  <h4 className="text-xs sm:text-sm font-bold text-amber-200">Android Permission Needed</h4>
+                  <p className="text-xs text-amber-300/80 leading-relaxed mt-0.5">
                     Enable Usage Access so NUZIGO can detect and shield chosen apps.
                   </p>
                 </div>
@@ -233,7 +233,7 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
               <Button
                 size="sm"
                 onClick={() => requestUsageAccessPermission()}
-                className="bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold shrink-0 min-h-[36px] rounded-xl px-3 cursor-pointer"
+                className="bg-amber-500 hover:bg-amber-600 text-black text-xs sm:text-sm font-bold shrink-0 min-h-[40px] rounded-xl px-4 cursor-pointer"
               >
                 Grant
               </Button>
@@ -242,8 +242,8 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
 
           {/* Web Mode Disclaimer */}
           {!isAndroid && (
-            <div className="p-3.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center gap-2.5 text-xs text-[#A8B3A5]">
-              <Smartphone className="h-4 w-4 text-[#6BEA45] shrink-0" />
+            <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center gap-3 text-xs sm:text-sm text-[#A8B3A5]">
+              <Smartphone className="h-5 w-5 text-[#6BEA45] shrink-0" />
               <span>
                 App Blocking operates natively on the <strong>NUZIGO Android App</strong>. Your selected preferences sync across devices.
               </span>
@@ -251,28 +251,28 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
           )}
 
           {/* Search Bar & Fast Actions */}
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <div className="relative">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#A8B3A5]" />
+              <Search className="absolute left-4 top-3.5 h-4.5 w-4.5 text-[#A8B3A5]" />
               <input
                 type="text"
                 placeholder="Search distracting apps..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 h-10 rounded-xl bg-[#0B0F0C] border border-[#293329] text-xs text-white placeholder:text-[#A8B3A5]/60 focus:border-[#6BEA45] focus:outline-hidden transition-colors"
+                className="w-full pl-11 pr-4 h-12 rounded-2xl bg-[#0B0F0C] border border-[#293329] text-sm text-white placeholder:text-[#A8B3A5]/60 focus:border-[#6BEA45] focus:outline-hidden transition-colors"
               />
             </div>
 
             {/* Category Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 min-h-[34px] ${
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 min-h-[38px] ${
                     activeCategory === cat
-                      ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-xs'
+                      ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-xs font-black'
                       : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                   }`}
                 >
@@ -282,15 +282,15 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
             </div>
           </div>
 
-          {/* App List (Comfortable Touch Targets, Min 52px Per Row) */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-[#A8B3A5] px-1">
+          {/* App List (Comfortable Touch Targets, Min 60px Per Row) */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[#A8B3A5] px-1">
               <span>Installed & Popular Apps</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={handleSelectAllDefaults}
-                  className="text-[11px] text-[#6BEA45] hover:underline cursor-pointer font-bold"
+                  className="text-xs text-[#6BEA45] hover:underline cursor-pointer font-bold"
                 >
                   Select Defaults
                 </button>
@@ -298,48 +298,48 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="text-[11px] text-red-400 hover:underline cursor-pointer"
+                  className="text-xs text-red-400 hover:underline cursor-pointer font-bold"
                 >
                   Clear All
                 </button>
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {displayedApps.map((app: BlockedApp) => {
                 const isSelected = config.selectedPackages.includes(app.packageName)
                 return (
                   <div
                     key={app.packageName}
                     onClick={() => handleToggleApp(app.packageName)}
-                    className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer select-none min-h-[52px] ${
+                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer select-none min-h-[60px] ${
                       isSelected
-                        ? 'bg-[#1C261C] border-[#6BEA45]/50 shadow-xs'
+                        ? 'bg-[#1C261C] border-[#6BEA45]/60 shadow-xs'
                         : 'bg-[#0B0F0C] border-[#293329] hover:border-white/20'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-xl bg-[#161D16] border border-[#293329] flex items-center justify-center text-lg shrink-0">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="h-11 w-11 rounded-2xl bg-[#161D16] border border-[#293329] flex items-center justify-center text-xl shrink-0">
                         {app.iconEmoji || '📱'}
                       </div>
                       <div className="min-w-0">
-                        <span className="text-xs font-bold text-white block truncate">
+                        <span className="text-sm sm:text-base font-bold text-white block truncate">
                           {app.appName}
                         </span>
-                        <span className="text-[10px] text-[#A8B3A5] block truncate font-mono">
+                        <span className="text-xs text-[#A8B3A5] block truncate font-mono">
                           {app.packageName}
                         </span>
                       </div>
                     </div>
 
                     <div
-                      className={`h-6 w-6 rounded-lg flex items-center justify-center transition-colors shrink-0 ml-3 ${
+                      className={`h-7 w-7 rounded-xl flex items-center justify-center transition-colors shrink-0 ml-3 ${
                         isSelected
                           ? 'bg-[#6BEA45] text-[#0B0F0C]'
                           : 'border-2 border-[#293329] bg-[#161D16]'
                       }`}
                     >
-                      {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                      {isSelected && <Check className="h-4 w-4 stroke-[3]" />}
                     </div>
                   </div>
                 )
@@ -349,24 +349,24 @@ export function AppBlockerModal({ isOpen, onClose, onConfigChange }: AppBlockerM
         </div>
 
         {/* Bottom Sheet Footer Actions */}
-        <div className="p-4 border-t border-[#293329] bg-[#0B0F0C] flex items-center justify-between gap-3">
-          <div className="text-xs text-[#A8B3A5] pl-2">
+        <div className="p-4.5 border-t border-[#293329] bg-[#0B0F0C] flex items-center justify-between gap-3">
+          <div className="text-xs sm:text-sm text-[#A8B3A5] pl-2 font-semibold">
             <span>{selectedCount} apps selected</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Button
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="rounded-xl text-xs font-semibold border-[#293329] bg-[#161D16] text-[#A8B3A5] hover:text-white cursor-pointer min-h-[44px] px-5"
+              className="rounded-xl text-xs sm:text-sm font-bold border-[#293329] bg-[#161D16] text-[#A8B3A5] hover:text-white cursor-pointer min-h-[48px] px-5"
             >
               Cancel
             </Button>
             <Button
               size="sm"
               onClick={onClose}
-              className="rounded-xl text-xs font-bold bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-6 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer min-h-[44px]"
+              className="rounded-xl text-xs sm:text-sm font-black bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-7 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer min-h-[48px]"
             >
               Done ( {selectedCount} )
             </Button>

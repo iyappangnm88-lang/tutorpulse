@@ -50,12 +50,12 @@ export function StudentMarketplaceClient({
       {/* Dual Discovery Hero Banner */}
       <div className="rounded-3xl border border-gray-200 dark:border-[#293329] bg-gradient-to-br from-[#FAFBEF] via-white to-violet-50/70 dark:from-[#161D16] dark:via-[#111711] dark:to-[#162414] p-5 sm:p-8 shadow-xs transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832]/20 px-3 py-1 text-xs font-semibold text-[#172B4D] dark:text-[#6BEA45]">
-              <Compass className="h-3.5 w-3.5 text-[#318A25] dark:text-[#6BEA45]" />
+          <div className="space-y-2.5 max-w-xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#55C832]/20 px-3.5 py-1 text-xs font-bold text-[#172B4D] dark:text-[#6BEA45]">
+              <Compass className="h-4 w-4 text-[#318A25] dark:text-[#6BEA45]" />
               <span>Tutor Directory & Marketplace</span>
             </span>
-            <h1 className="text-xl sm:text-2xl font-black text-gray-950 dark:text-[#F4F7F2] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-950 dark:text-[#F4F7F2] tracking-tight">
               Discover Expert Educators & Cohorts
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-[#A8B3A5] leading-relaxed">
@@ -63,22 +63,22 @@ export function StudentMarketplaceClient({
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             <Button
               onClick={() => setJoinModalOpen(true)}
-              className="bg-[#55C832] hover:bg-[#318A25] text-xs font-bold text-[#0B0F0C] gap-2 shadow-xs min-h-[44px] px-5 rounded-xl cursor-pointer"
+              className="bg-[#55C832] hover:bg-[#318A25] text-xs sm:text-sm font-black text-[#0B0F0C] gap-2 shadow-xs min-h-[48px] px-6 rounded-2xl cursor-pointer"
             >
-              <UserPlus className="h-4 w-4" />
+              <UserPlus className="h-4.5 w-4.5" />
               <span>Enter Invite Code</span>
             </Button>
 
             <Link href="/tutors" className="w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="w-full text-xs font-semibold gap-1.5 border-gray-200 dark:border-[#293329] dark:bg-[#1C261C] dark:text-[#F4F7F2] dark:hover:bg-[#253325] min-h-[44px] px-4 rounded-xl cursor-pointer"
+                className="w-full text-xs sm:text-sm font-bold gap-2 border-gray-200 dark:border-[#293329] dark:bg-[#1C261C] dark:text-[#F4F7F2] dark:hover:bg-[#253325] min-h-[48px] px-5 rounded-2xl cursor-pointer"
               >
                 <span>Full Directory</span>
-                <ExternalLink className="h-3.5 w-3.5 text-gray-400 dark:text-[#A8B3A5]" />
+                <ExternalLink className="h-4 w-4 text-gray-400 dark:text-[#A8B3A5]" />
               </Button>
             </Link>
           </div>
@@ -86,19 +86,19 @@ export function StudentMarketplaceClient({
       </div>
 
       {/* In-Portal Tutor Search */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-gray-400 dark:text-[#A8B3A5]" />
+          <Search className="absolute left-4 top-3.5 h-4.5 w-4.5 text-gray-400 dark:text-[#A8B3A5]" />
           <Input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by subject, teacher name, or city..."
-            className="pl-10 h-11 text-xs rounded-xl bg-white dark:bg-[#161D16] border-gray-200 dark:border-[#293329] text-gray-900 dark:text-[#F4F7F2] placeholder:text-gray-400 dark:placeholder:text-[#A8B3A5]/60"
+            className="pl-11 h-12 text-sm rounded-2xl bg-white dark:bg-[#161D16] border-gray-200 dark:border-[#293329] text-gray-900 dark:text-[#F4F7F2] placeholder:text-gray-400 dark:placeholder:text-[#A8B3A5]/60"
           />
         </div>
 
-        <div className="text-xs text-gray-500 dark:text-[#A8B3A5]">
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-[#A8B3A5]">
           Showing <span className="font-bold text-gray-900 dark:text-[#F4F7F2]">{filteredTutors.length}</span>{' '}
           {filteredTutors.length === 1 ? 'tutor' : 'tutors'}
         </div>
@@ -120,31 +120,31 @@ export function StudentMarketplaceClient({
                 key={tutor.id}
                 className="flex flex-col justify-between hover:shadow-md transition-shadow border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16] rounded-2xl overflow-hidden"
               >
-                <CardBody className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                  <div className="space-y-3">
+                <CardBody className="p-5 sm:p-6 space-y-4 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3.5">
                     <div className="flex items-start justify-between gap-3">
                       <Link
                         href={`/tutors/${encodeURIComponent(tutor.profileSlug || tutor.id)}`}
-                        className="flex items-center gap-3 group min-w-0"
+                        className="flex items-center gap-3.5 group min-w-0"
                       >
                         {tutor.avatarUrl ? (
                           <img
                             src={tutor.avatarUrl}
                             alt={tutor.fullName}
-                            className="h-11 w-11 rounded-2xl object-cover border border-gray-200 dark:border-[#293329] shrink-0"
+                            className="h-13 w-13 rounded-2xl object-cover border border-gray-200 dark:border-[#293329] shrink-0"
                           />
                         ) : (
-                          <div className="h-11 w-11 rounded-2xl bg-[#FAFBEF] dark:bg-[#0B0F0C] text-[#318A25] dark:text-[#6BEA45] font-black text-sm flex items-center justify-center border border-gray-200 dark:border-[#293329] shrink-0">
+                          <div className="h-13 w-13 rounded-2xl bg-[#FAFBEF] dark:bg-[#0B0F0C] text-[#318A25] dark:text-[#6BEA45] font-black text-base flex items-center justify-center border border-gray-200 dark:border-[#293329] shrink-0">
                             {initials}
                           </div>
                         )}
                         <div className="min-w-0">
-                          <h3 className="text-sm font-bold text-gray-900 dark:text-[#F4F7F2] leading-snug group-hover:text-[#318A25] dark:group-hover:text-[#6BEA45] transition-colors truncate">
+                          <h3 className="text-base font-bold text-gray-900 dark:text-[#F4F7F2] leading-snug group-hover:text-[#318A25] dark:group-hover:text-[#6BEA45] transition-colors truncate">
                             {tutor.fullName}
                           </h3>
                           {tutor.locationRegion && (
-                            <p className="text-[11px] text-gray-500 dark:text-[#A8B3A5] flex items-center gap-1 mt-0.5 truncate">
-                              <MapPin className="h-3 w-3 text-gray-400 dark:text-[#A8B3A5] shrink-0" />
+                            <p className="text-xs text-gray-500 dark:text-[#A8B3A5] flex items-center gap-1 mt-0.5 truncate">
+                              <MapPin className="h-3.5 w-3.5 text-gray-400 dark:text-[#A8B3A5] shrink-0" />
                               <span className="truncate">{tutor.locationRegion}</span>
                             </p>
                           )}
@@ -159,14 +159,14 @@ export function StudentMarketplaceClient({
                             ? 'default'
                             : 'success'
                         }
-                        className="text-[10px] capitalize shrink-0 font-bold"
+                        className="text-xs capitalize shrink-0 font-bold px-2.5 py-1"
                       >
                         {tutor.teachingMode === 'both' ? 'Online + Offline' : tutor.teachingMode}
                       </Badge>
                     </div>
 
                     {tutor.headline && (
-                      <p className="text-xs text-gray-700 dark:text-[#A8B3A5] font-medium line-clamp-2">
+                      <p className="text-xs sm:text-sm text-gray-700 dark:text-[#A8B3A5] font-medium line-clamp-2 leading-relaxed">
                         {tutor.headline}
                       </p>
                     )}
@@ -176,7 +176,7 @@ export function StudentMarketplaceClient({
                         {tutor.primarySubjects.slice(0, 3).map((sub) => (
                           <span
                             key={sub}
-                            className="px-2.5 py-0.5 rounded-lg bg-[#FAFBEF] dark:bg-[#0B0F0C] text-[#318A25] dark:text-[#6BEA45] font-bold text-[10px] border border-gray-200 dark:border-[#293329]"
+                            className="px-3 py-1 rounded-xl bg-[#FAFBEF] dark:bg-[#0B0F0C] text-[#318A25] dark:text-[#6BEA45] font-bold text-xs border border-gray-200 dark:border-[#293329]"
                           >
                             {sub}
                           </span>
@@ -185,8 +185,8 @@ export function StudentMarketplaceClient({
                     )}
                   </div>
 
-                  <div className="pt-3.5 border-t border-gray-100 dark:border-[#293329] flex items-center justify-between gap-3">
-                    <span className="text-[11px] font-bold text-emerald-700 dark:text-[#6BEA45]">
+                  <div className="pt-4 border-t border-gray-100 dark:border-[#293329] flex items-center justify-between gap-3">
+                    <span className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-[#6BEA45]">
                       {tutor.publicOfferingCount > 0
                         ? `${tutor.publicOfferingCount} ${
                             tutor.publicOfferingCount === 1 ? 'batch open' : 'batches open'
@@ -195,9 +195,9 @@ export function StudentMarketplaceClient({
                     </span>
 
                     <Link href={`/tutors/${encodeURIComponent(tutor.profileSlug || tutor.id)}`}>
-                      <Button size="sm" className="text-xs gap-1.5 bg-[#55C832] hover:bg-[#318A25] text-[#0B0F0C] font-bold rounded-xl min-h-[38px] px-3.5 cursor-pointer shadow-2xs">
+                      <Button size="sm" className="text-xs sm:text-sm gap-1.5 bg-[#55C832] hover:bg-[#318A25] text-[#0B0F0C] font-bold rounded-xl min-h-[42px] px-4 cursor-pointer shadow-2xs">
                         <span>View Classes</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
+                        <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>
                   </div>
@@ -207,14 +207,14 @@ export function StudentMarketplaceClient({
           })}
         </div>
       ) : (
-        <div className="rounded-3xl border border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16] p-8 sm:p-10 text-center space-y-3 shadow-2xs transition-colors">
-          <div className="h-12 w-12 rounded-2xl bg-gray-50 dark:bg-[#0B0F0C] text-gray-400 dark:text-[#A8B3A5] flex items-center justify-center mx-auto border border-gray-100 dark:border-[#293329]">
-            <Compass className="h-6 w-6" />
+        <div className="rounded-3xl border border-gray-200 dark:border-[#293329] bg-white dark:bg-[#161D16] p-8 sm:p-10 text-center space-y-3.5 shadow-2xs transition-colors">
+          <div className="h-14 w-14 rounded-2xl bg-gray-50 dark:bg-[#0B0F0C] text-gray-400 dark:text-[#A8B3A5] flex items-center justify-center mx-auto border border-gray-100 dark:border-[#293329]">
+            <Compass className="h-7 w-7" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900 dark:text-[#F4F7F2]">
+          <h3 className="text-base font-bold text-gray-900 dark:text-[#F4F7F2]">
             {searchQuery ? 'No tutors match your search' : 'No Public Tutors Listed Yet'}
           </h3>
-          <p className="text-xs text-gray-500 dark:text-[#A8B3A5] max-w-sm mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-[#A8B3A5] max-w-sm mx-auto leading-relaxed">
             {searchQuery
               ? 'Try searching for another subject or teacher name.'
               : 'If you already have a 6-character invite code from your teacher, click below to join their classroom directly.'}
@@ -223,9 +223,9 @@ export function StudentMarketplaceClient({
             <Button
               onClick={() => setJoinModalOpen(true)}
               size="sm"
-              className="bg-[#55C832] hover:bg-[#318A25] text-xs font-bold text-[#0B0F0C] gap-1.5 min-h-[44px] px-5 rounded-xl cursor-pointer"
+              className="bg-[#55C832] hover:bg-[#318A25] text-xs sm:text-sm font-bold text-[#0B0F0C] gap-2 min-h-[48px] px-6 rounded-2xl cursor-pointer"
             >
-              <UserPlus className="h-4 w-4" />
+              <UserPlus className="h-4.5 w-4.5" />
               <span>Enter Invite Code</span>
             </Button>
           </div>

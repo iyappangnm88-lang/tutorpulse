@@ -127,30 +127,30 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/70 pointer-events-none" />
 
       {/* 2. Top Minimal Bar */}
-      <div className="relative z-10 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-lg">
-          <Flame className="w-4 h-4 text-[#6BEA45] fill-current animate-pulse" />
+      <div className="relative z-10 flex items-center justify-between flex-wrap gap-2.5">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-semibold shadow-lg min-h-[42px]">
+          <Flame className="w-4.5 h-4.5 text-[#6BEA45] fill-current animate-pulse" />
           <span>Focus Environment</span>
         </div>
 
         {/* Top Control Chips: Music & Theme */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {/* Music Button */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full backdrop-blur-md border text-xs font-semibold transition-all cursor-pointer shadow-lg group ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-lg group min-h-[42px] ${
               isMusicPlaying
                 ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white'
-                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white hover:border-[#6BEA45]/50'
+                : 'bg-black/45 hover:bg-black/65 border-white/20 text-white hover:border-[#6BEA45]/50'
             }`}
             title="Focus Music Player"
           >
-            <Headphones className={`w-3.5 h-3.5 ${isMusicPlaying ? 'text-[#6BEA45] animate-pulse' : 'text-[#6BEA45]'}`} />
+            <Headphones className={`w-4 h-4 ${isMusicPlaying ? 'text-[#6BEA45] animate-pulse' : 'text-[#6BEA45]'}`} />
             <span>{isMusicPlaying && currentTrack ? currentTrack.title : 'Music'}</span>
             {isMusicPlaying && (
-              <span className="flex items-end gap-0.5 h-2.5">
+              <span className="flex items-end gap-0.5 h-3">
                 <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce [animation-delay:-0.3s] h-2" />
-                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce [animation-delay:-0.15s] h-2.5" />
+                <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce [animation-delay:-0.15s] h-3" />
                 <span className="w-0.5 bg-[#6BEA45] rounded-full animate-bounce h-1.5" />
               </span>
             )}
@@ -159,48 +159,48 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
           {/* Theme Button */}
           <button
             onClick={() => setIsBgSelectorOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer shadow-lg hover:border-[#6BEA45]/50 group"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-lg hover:border-[#6BEA45]/50 group min-h-[42px]"
             title="Customize Theme"
           >
-            <Palette className="w-3.5 h-3.5 text-[#6BEA45] group-hover:rotate-12 transition-transform" />
+            <Palette className="w-4 h-4 text-[#6BEA45] group-hover:rotate-12 transition-transform" />
             <span>Theme: {currentBg.name}</span>
           </button>
         </div>
       </div>
 
       {/* 3. Central Dominant Focus Circle & Primary Triggers */}
-      <div className="relative z-10 flex flex-col items-center justify-center my-auto space-y-6">
+      <div className="relative z-10 flex flex-col items-center justify-center my-auto space-y-7">
         {/* Interactive Central Circle */}
         <div
           onClick={() => setIsModeModalOpen(true)}
-          className="group relative w-64 h-64 sm:w-80 sm:h-80 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-[0_0_60px_rgba(0,0,0,0.5)]"
+          className="group relative w-72 h-72 sm:w-88 sm:h-88 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-[0_0_70px_rgba(0,0,0,0.55)]"
         >
           {/* Glowing Animated Outer Border Ring */}
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#6BEA45]/40 via-emerald-400/20 to-[#6BEA45]/60 animate-spin-slow blur-xs" />
           
           {/* Inner Frosted Lens */}
-          <div className="absolute inset-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/30 group-hover:border-[#6BEA45] transition-colors" />
+          <div className="absolute inset-2 rounded-full bg-black/45 backdrop-blur-xl border border-white/30 group-hover:border-[#6BEA45] transition-colors" />
 
           {/* Time & Mode Label */}
           <div className="relative z-10 flex flex-col items-center text-center px-4">
-            <span className="text-6xl sm:text-7xl font-black text-white tracking-tighter font-mono drop-shadow-md">
+            <span className="text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tighter font-mono drop-shadow-lg">
               {getDisplayTime()}
             </span>
 
-            <div className="mt-2 flex items-center gap-2 flex-wrap justify-center">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6BEA45]/20 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold shadow-xs">
+            <div className="mt-3 flex items-center gap-2 flex-wrap justify-center">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#6BEA45]/20 border border-[#6BEA45]/40 text-[#6BEA45] text-xs sm:text-sm font-bold shadow-xs">
                 <span>{getModeBadge()}</span>
-                <Settings2 className="w-3 h-3 group-hover:rotate-45 transition-transform" />
+                <Settings2 className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
               </div>
               {blockerConfig.enabled && blockerConfig.selectedPackages.length > 0 && (
-                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/50 border border-[#6BEA45]/40 text-[#6BEA45] text-[11px] font-bold">
-                  <ShieldAlert className="w-3 h-3" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold">
+                  <ShieldAlert className="w-3.5 h-3.5" />
                   <span>Blocked Apps ( {blockerConfig.selectedPackages.length} )</span>
                 </div>
               )}
             </div>
 
-            <span className="text-[11px] text-white/70 mt-2">
+            <span className="text-xs sm:text-sm text-white/80 font-medium mt-3">
               Tap circle to customize mode, breaks & blocked apps
             </span>
           </div>
@@ -210,23 +210,23 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
         <Button
           size="lg"
           onClick={handleStart}
-          className="h-14 px-12 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-lg shadow-[0_0_35px_rgba(107,234,69,0.45)] hover:shadow-[0_0_50px_rgba(107,234,69,0.6)] transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+          className="h-16 px-14 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-lg sm:text-xl shadow-[0_0_40px_rgba(107,234,69,0.5)] hover:shadow-[0_0_55px_rgba(107,234,69,0.65)] transition-all transform hover:scale-105 active:scale-95 cursor-pointer min-h-[60px]"
         >
           <span>START FOCUSING</span>
-          <ChevronRight className="ml-2 h-5 w-5 stroke-[3]" />
+          <ChevronRight className="ml-2 h-6 w-6 stroke-[3]" />
         </Button>
       </div>
 
       {/* 4. Bottom Controls: Subject Picker & Stats Overview */}
       <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/20 text-white">
         {/* Subject Selector */}
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/20">
-          <BookOpen className="w-4 h-4 text-[#6BEA45]" />
-          <span className="text-xs text-white/80 font-medium">Subject:</span>
+        <div className="flex items-center gap-2.5 bg-black/45 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 min-h-[46px]">
+          <BookOpen className="w-4.5 h-4.5 text-[#6BEA45]" />
+          <span className="text-xs sm:text-sm text-white/90 font-bold">Subject:</span>
           <select
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="bg-transparent text-xs font-bold text-white focus:outline-hidden cursor-pointer"
+            className="bg-transparent text-xs sm:text-sm font-bold text-white focus:outline-hidden cursor-pointer"
           >
             {SUBJECTS.map((s) => (
               <option key={s} value={s} className="bg-[#161D16] text-white">
@@ -238,14 +238,14 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
 
         {/* Mini Stats Indicator */}
         {focusStats && (
-          <div className="flex items-center gap-4 text-xs text-white/80">
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#6BEA45]" />
-              <span>Today: <strong className="text-white">{focusStats.todayMinutes}m</strong></span>
+          <div className="flex items-center gap-5 text-xs sm:text-sm text-white/90 font-medium">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#6BEA45]" />
+              <span>Today: <strong className="text-white font-black">{focusStats.todayMinutes}m</strong></span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Flame className="w-3.5 h-3.5 text-amber-400" />
-              <span>Sessions: <strong className="text-white">{focusStats.todaySessionsCount}</strong></span>
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-amber-400" />
+              <span>Sessions: <strong className="text-white font-black">{focusStats.todaySessionsCount}</strong></span>
             </div>
           </div>
         )}

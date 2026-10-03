@@ -448,31 +448,31 @@ export function ActiveFocusView({
       }`} />
 
       {/* 2. Top Header Status Bar */}
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="relative z-10 flex items-center justify-between flex-wrap gap-2.5">
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
             isBreak ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40'
           }`}>
-            {isBreak ? <Coffee className="w-5 h-5 animate-pulse" /> : <Flame className="w-5 h-5 animate-pulse fill-current" />}
+            {isBreak ? <Coffee className="w-6 h-6 animate-pulse" /> : <Flame className="w-6 h-6 animate-pulse fill-current" />}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                 isBreak ? 'bg-amber-500 text-[#0B0F0C]' : 'bg-[#6BEA45] text-[#0B0F0C]'
               }`}>
                 {isBreak ? (currentSession.phase === 'long_break' ? 'LONG BREAK' : 'BREAK') : 'FOCUS'}
               </span>
-              <span className="text-xs font-semibold text-white/90">
+              <span className="text-sm sm:text-base font-bold text-white/95">
                 {currentSession.subject}
               </span>
               {currentSession.groupId && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#6BEA45] bg-black/40 px-2.5 py-0.5 rounded-full border border-[#6BEA45]/30 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#6BEA45] bg-black/50 px-3 py-1 rounded-full border border-[#6BEA45]/30 backdrop-blur-md">
                   <span>👥</span>
                   <span>{currentSession.groupName || 'Study Group'}</span>
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-white/70 mt-0.5">
+            <p className="text-xs text-white/75 mt-0.5">
               {currentSession.mode === 'pomodoro'
                 ? 'Pomodoro Cycle ' + currentSession.currentCycle + ' of ' + currentSession.totalCycles
                 : currentSession.totalCycles > 1
@@ -482,18 +482,18 @@ export function ActiveFocusView({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Music Player Button in Active Mode */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
-            className={`h-9 px-3 rounded-xl backdrop-blur-md border flex items-center gap-1.5 transition-all cursor-pointer text-xs font-bold ${
+            className={`h-11 px-3.5 rounded-2xl backdrop-blur-md border flex items-center gap-2 transition-all cursor-pointer text-xs sm:text-sm font-bold min-h-[44px] ${
               isMusicPlaying
                 ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white shadow-[0_0_15px_rgba(107,234,69,0.3)]'
-                : 'bg-black/40 hover:bg-black/60 border-white/20 text-white'
+                : 'bg-black/45 hover:bg-black/65 border-white/20 text-white'
             }`}
             title="Focus Music Player"
           >
-            <Headphones className={`w-3.5 h-3.5 ${isMusicPlaying ? 'text-[#6BEA45] animate-pulse' : 'text-[#6BEA45]'}`} />
+            <Headphones className={`w-4 h-4 ${isMusicPlaying ? 'text-[#6BEA45] animate-pulse' : 'text-[#6BEA45]'}`} />
             <span className="hidden sm:inline">
               {isMusicPlaying && currentTrack ? currentTrack.title : 'Music'}
             </span>
@@ -509,29 +509,29 @@ export function ActiveFocusView({
           {/* Theme Selector Button in Active Mode */}
           <button
             onClick={() => setIsThemeModalOpen(true)}
-            className="h-9 px-3 rounded-xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center gap-1.5 transition-all cursor-pointer text-xs font-bold"
+            className="h-11 px-3.5 rounded-2xl bg-black/45 hover:bg-black/65 backdrop-blur-md border border-white/20 text-white flex items-center gap-2 transition-all cursor-pointer text-xs sm:text-sm font-bold min-h-[44px]"
             title="Change Focus Theme"
           >
-            <Palette className="w-3.5 h-3.5 text-[#6BEA45]" />
+            <Palette className="w-4 h-4 text-[#6BEA45]" />
             <span className="hidden sm:inline">Theme</span>
           </button>
 
           {/* Mute Audio Button */}
           <button
             onClick={toggleMute}
-            className="h-9 w-9 rounded-xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
+            className="h-11 w-11 rounded-2xl bg-black/45 hover:bg-black/65 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer min-h-[44px] min-w-[44px]"
             title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
           >
-            {isMuted ? <VolumeX className="w-4 h-4 text-red-300" /> : <Volume2 className="w-4 h-4" />}
+            {isMuted ? <VolumeX className="w-4.5 h-4.5 text-red-300" /> : <Volume2 className="w-4.5 h-4.5" />}
           </button>
 
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className="h-9 w-9 rounded-xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
+            className="h-11 w-11 rounded-2xl bg-black/45 hover:bg-black/65 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer min-h-[44px] min-w-[44px]"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="w-4.5 h-4.5" /> : <Maximize2 className="w-4.5 h-4.5" />}
           </button>
         </div>
       </div>
@@ -539,8 +539,8 @@ export function ActiveFocusView({
       {/* Blocked App Intercept Banner */}
       {blockedNotice && (
         <div className="relative z-20 mx-auto -mt-2 mb-2 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/90 text-[#0B0F0C] font-bold text-xs shadow-2xl backdrop-blur-md border border-amber-300/40">
-            <ShieldAlert className="h-4 w-4 shrink-0" />
+          <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-amber-500/95 text-[#0B0F0C] font-bold text-xs sm:text-sm shadow-2xl backdrop-blur-md border border-amber-300/40">
+            <ShieldAlert className="h-5 w-5 shrink-0" />
             <span>{blockedNotice}</span>
           </div>
         </div>
@@ -548,9 +548,9 @@ export function ActiveFocusView({
 
       {/* 3. Center Dominant Countdown / Countup Circle */}
       <div className="relative z-10 flex flex-col items-center justify-center my-auto">
-        <div className="relative w-64 h-64 sm:w-84 sm:h-84 rounded-full flex flex-col items-center justify-center shadow-[0_0_80px_rgba(0,0,0,0.6)]">
+        <div className="relative w-72 h-72 sm:w-88 sm:h-88 rounded-full flex flex-col items-center justify-center shadow-[0_0_80px_rgba(0,0,0,0.6)]">
           {/* Frosted Inner Backdrop */}
-          <div className="absolute inset-0 rounded-full bg-black/40 backdrop-blur-xl border border-white/25" />
+          <div className="absolute inset-0 rounded-full bg-black/45 backdrop-blur-xl border border-white/25" />
 
           {/* Animated Radial Track */}
           <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
@@ -575,10 +575,10 @@ export function ActiveFocusView({
 
           {/* Live Timer Text Inside */}
           <div className="relative z-10 flex flex-col items-center justify-center text-center">
-            <span className="text-5xl sm:text-6xl font-black tracking-tighter font-mono drop-shadow-md">
+            <span className="text-6xl sm:text-7xl font-black tracking-tighter font-mono drop-shadow-lg">
               {formattedTime}
             </span>
-            <span className={`text-xs uppercase tracking-widest font-black mt-2 drop-shadow-xs ${
+            <span className={`text-xs sm:text-sm uppercase tracking-widest font-black mt-3 drop-shadow-xs ${
               isBreak ? 'text-amber-300' : 'text-[#6BEA45]'
             }`}>
               {isPaused ? 'PAUSED' : isBreak ? 'BREAK IN PROGRESS' : 'FOCUSING'}
@@ -587,24 +587,24 @@ export function ActiveFocusView({
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mt-8">
+        <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4 mt-8">
           {/* Primary Action Button: Pause or Resume */}
           <Button
             size="lg"
             onClick={handleTogglePause}
-            className={`h-14 px-9 rounded-2xl font-black text-base transition-all transform hover:scale-105 active:scale-95 cursor-pointer ${
+            className={`h-16 px-12 rounded-2xl font-black text-lg sm:text-xl transition-all transform hover:scale-105 active:scale-95 cursor-pointer min-h-[60px] ${
               isPaused
                 ? 'bg-amber-400 hover:bg-amber-500 text-[#0B0F0C] shadow-[0_0_35px_rgba(251,191,36,0.4)]'
-                : 'bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] shadow-[0_0_35px_rgba(107,234,69,0.45)]'
+                : 'bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] shadow-[0_0_40px_rgba(107,234,69,0.5)]'
             }`}
           >
             {isPaused ? (
               <>
-                <Play className="w-5 h-5 mr-2 fill-current" /> Resume
+                <Play className="w-6 h-6 mr-2 fill-current" /> Resume
               </>
             ) : (
               <>
-                <Pause className="w-5 h-5 mr-2" /> Pause
+                <Pause className="w-6 h-6 mr-2" /> Pause
               </>
             )}
           </Button>
@@ -615,9 +615,9 @@ export function ActiveFocusView({
               size="lg"
               variant="outline"
               onClick={() => setIsEndingConfirmOpen(true)}
-              className="h-14 px-6 rounded-2xl border-red-500/40 bg-red-950/40 hover:bg-red-900/60 text-red-200 hover:text-white font-bold text-sm backdrop-blur-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300"
+              className="h-16 px-8 rounded-2xl border-red-500/40 bg-red-950/50 hover:bg-red-900/70 text-red-200 hover:text-white font-black text-base backdrop-blur-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-[60px]"
             >
-              <Square className="w-4 h-4 fill-current text-red-400" />
+              <Square className="w-5 h-5 fill-current text-red-400" />
               <span>End Focus</span>
             </Button>
           )}
@@ -678,14 +678,14 @@ export function ActiveFocusView({
             </div>
 
             {/* Action Options in Exact Specified Order: 1. Continue Focusing (Primary), 2. Stop Focusing (Protected) */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-3.5 pt-2">
               {/* Option 1: Continue Focusing (Visually Highlighted / Primary Option) */}
               <Button
                 size="lg"
                 onClick={() => setIsEndingConfirmOpen(false)}
-                className="w-full h-13 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm shadow-[0_0_25px_rgba(107,234,69,0.35)] transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full h-14 sm:h-15 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm sm:text-base shadow-[0_0_25px_rgba(107,234,69,0.35)] transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5 min-h-[56px]"
               >
-                <Play className="h-4 w-4 fill-current" />
+                <Play className="h-5 w-5 fill-current" />
                 <span>Continue Focusing</span>
               </Button>
 
@@ -695,26 +695,26 @@ export function ActiveFocusView({
                   type="button"
                   onClick={handleConfirmEnd}
                   disabled={!isStopUnlocked || isProcessing}
-                  className={`relative w-full h-13 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden select-none ${
+                  className={`relative w-full h-14 sm:h-15 rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2.5 overflow-hidden select-none min-h-[56px] ${
                     isStopUnlocked
                       ? 'bg-red-950/80 hover:bg-red-900 border border-red-500/60 text-red-200 hover:text-white shadow-[0_0_20px_rgba(239,68,68,0.25)] cursor-pointer transform hover:scale-[1.01] active:scale-[0.99]'
                       : 'bg-[#111711] border border-[#293329] text-[#71806F] cursor-not-allowed'
                   }`}
                 >
                   {isProcessing ? (
-                    <span className="flex items-center gap-2 text-white">
+                    <span className="flex items-center gap-2.5 text-white">
                       <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       <span>Ending Session...</span>
                     </span>
                   ) : isStopUnlocked ? (
                     <>
-                      <Square className="h-4 w-4 fill-current text-red-400" />
-                      <span className="text-red-200">Stop Focusing</span>
+                      <Square className="h-4.5 w-4.5 fill-current text-red-400" />
+                      <span className="text-red-200 font-black">Stop Focusing</span>
                     </>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <Lock className="h-3.5 w-3.5 text-[#A8B3A5]" />
-                      <span className="text-xs">Stop Focusing (Hold on...)</span>
+                    <div className="flex items-center gap-2.5">
+                      <Lock className="h-4 w-4 text-[#A8B3A5]" />
+                      <span className="text-xs sm:text-sm font-semibold">Stop Focusing (Hold on...)</span>
                     </div>
                   )}
 
@@ -722,12 +722,12 @@ export function ActiveFocusView({
                   {!isStopUnlocked && (
                     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
                       <div
-                        className="absolute inset-y-0 right-0 bg-gradient-to-l from-[#192419] via-[#213021] to-[#2B3D2B] border-l-2 border-[#6BEA45] flex items-center justify-end px-3 transition-all ease-linear"
+                        className="absolute inset-y-0 right-0 bg-gradient-to-l from-[#192419] via-[#213021] to-[#2B3D2B] border-l-2 border-[#6BEA45] flex items-center justify-end px-3.5 transition-all ease-linear"
                         style={{
                           width: `${100 - unlockProgress}%`,
                         }}
                       >
-                        <span className="text-[10px] font-mono font-bold text-[#6BEA45] tracking-wider opacity-80 mr-1">
+                        <span className="text-xs font-mono font-black text-[#6BEA45] tracking-wider opacity-90 mr-1">
                           {Math.max(1, Math.ceil((2.2 * (100 - unlockProgress)) / 100))}s
                         </span>
                       </div>

@@ -91,61 +91,61 @@ export function FocusModeModal({
       <div className="bg-[#161D16] border border-[#293329] text-[#F4F7F2] max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#293329] pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center shrink-0">
               <Settings2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold">Focus Mode & Break Settings</h3>
-              <p className="text-xs text-[#A8B3A5]">Choose how you want to track your study session</p>
+              <h3 className="text-base sm:text-lg font-black text-white">Focus Mode & Break Settings</h3>
+              <p className="text-xs sm:text-sm text-[#A8B3A5]">Choose how you want to track your study session</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-8 w-8 rounded-xl bg-[#1C261C] text-[#A8B3A5] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="h-9 w-9 rounded-xl bg-[#1C261C] text-[#A8B3A5] hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-[#293329]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Mode Selector Tabs (3 Primary Options: Timer, Stopwatch, Pomodoro) */}
-        <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-[#0B0F0C] border border-[#293329]">
+        <div className="grid grid-cols-3 gap-2 p-2 rounded-2xl bg-[#0B0F0C] border border-[#293329]">
           <button
             type="button"
             onClick={() => setMode('timer')}
-            className={'flex flex-col items-center py-2.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+            className={'flex flex-col items-center py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[52px] ' + (
               mode === 'timer'
-                ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-md'
+                ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-md font-black'
                 : 'text-[#A8B3A5] hover:text-white'
             )}
           >
-            <Timer className="h-4 w-4 mb-1" />
+            <Timer className="h-4.5 w-4.5 mb-1" />
             <span>Timer</span>
           </button>
 
           <button
             type="button"
             onClick={() => setMode('stopwatch')}
-            className={'flex flex-col items-center py-2.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+            className={'flex flex-col items-center py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[52px] ' + (
               mode === 'stopwatch'
-                ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-md'
+                ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-md font-black'
                 : 'text-[#A8B3A5] hover:text-white'
             )}
           >
-            <TimerReset className="h-4 w-4 mb-1" />
+            <TimerReset className="h-4.5 w-4.5 mb-1" />
             <span>Stopwatch</span>
           </button>
 
           <button
             type="button"
             onClick={() => setMode('pomodoro')}
-            className={'flex flex-col items-center py-2.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+            className={'flex flex-col items-center py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[52px] ' + (
               mode === 'pomodoro'
-                ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-md'
+                ? 'bg-[#6BEA45] text-[#0B0F0C] shadow-md font-black'
                 : 'text-[#A8B3A5] hover:text-white'
             )}
           >
-            <Flame className="h-4 w-4 mb-1 fill-current" />
+            <Flame className="h-4.5 w-4.5 mb-1 fill-current" />
             <span>Pomodoro</span>
           </button>
         </div>
@@ -154,8 +154,8 @@ export function FocusModeModal({
         {mode === 'timer' && (
           <div className="space-y-4 pt-1 animate-in fade-in">
             {/* Focus Duration */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#A8B3A5] uppercase tracking-wider flex items-center justify-between">
+            <div className="space-y-2.5">
+              <label className="text-xs sm:text-sm font-bold text-[#A8B3A5] uppercase tracking-wider flex items-center justify-between">
                 <span>Focus Duration</span>
                 <span className="text-[#6BEA45] font-black">{focusMin} min</span>
               </label>
@@ -165,9 +165,9 @@ export function FocusModeModal({
                     key={m}
                     type="button"
                     onClick={() => setFocusMin(m)}
-                    className={'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+                    className={'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[42px] ' + (
                       focusMin === m
-                        ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                        ? 'bg-[#6BEA45] text-[#0B0F0C] font-black shadow-xs'
                         : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                     )}
                   >
@@ -178,13 +178,13 @@ export function FocusModeModal({
             </div>
 
             {/* Break Configuration */}
-            <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] space-y-3">
+            <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] space-y-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Coffee className="h-3.5 w-3.5 text-[#6BEA45]" />
+                <span className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                  <Coffee className="h-4 w-4 text-[#6BEA45]" />
                   <span>Number of Breaks</span>
                 </span>
-                <span className="text-xs text-[#A8B3A5] font-semibold">{breaks === 0 ? 'No breaks' : breaks + ' breaks'}</span>
+                <span className="text-xs sm:text-sm text-[#A8B3A5] font-bold">{breaks === 0 ? 'No breaks' : breaks + ' breaks'}</span>
               </div>
               <div className="flex items-center gap-2">
                 {BREAK_PRESETS.map((b) => (
@@ -192,9 +192,9 @@ export function FocusModeModal({
                     key={b}
                     type="button"
                     onClick={() => setBreaks(b)}
-                    className={'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+                    className={'flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[42px] ' + (
                       breaks === b
-                        ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                        ? 'bg-[#6BEA45] text-[#0B0F0C] font-black shadow-xs'
                         : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                     )}
                   >
@@ -204,17 +204,17 @@ export function FocusModeModal({
               </div>
 
               {breaks > 0 && (
-                <div className="pt-2 border-t border-[#293329] space-y-2 animate-in fade-in">
-                  <label className="text-xs font-semibold text-[#A8B3A5]">Break Duration</label>
+                <div className="pt-2.5 border-t border-[#293329] space-y-2.5 animate-in fade-in">
+                  <label className="text-xs sm:text-sm font-bold text-[#A8B3A5]">Break Duration</label>
                   <div className="flex items-center gap-2">
                     {BREAK_DURATIONS.map((d) => (
                       <button
                         key={d}
                         type="button"
                         onClick={() => setBreakMin(d)}
-                        className={'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+                        className={'flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[42px] ' + (
                           breakMin === d
-                            ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                            ? 'bg-[#6BEA45] text-[#0B0F0C] font-black shadow-xs'
                             : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                         )}
                       >
@@ -231,8 +231,8 @@ export function FocusModeModal({
         {/* 2. STOPWATCH MODE CONFIGURATION */}
         {mode === 'stopwatch' && (
           <div className="space-y-4 pt-1 animate-in fade-in">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#A8B3A5] uppercase tracking-wider flex items-center justify-between">
+            <div className="space-y-2.5">
+              <label className="text-xs sm:text-sm font-bold text-[#A8B3A5] uppercase tracking-wider flex items-center justify-between">
                 <span>Target Focus Duration</span>
                 <span className="text-[#6BEA45] font-black">{swTargetMin ? swTargetMin + ' min' : 'No Limit'}</span>
               </label>
@@ -240,9 +240,9 @@ export function FocusModeModal({
                 <button
                   type="button"
                   onClick={() => setSwTargetMin(null)}
-                  className={'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+                  className={'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[42px] ' + (
                     swTargetMin === null
-                      ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                      ? 'bg-[#6BEA45] text-[#0B0F0C] font-black'
                       : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                   )}
                 >
@@ -253,9 +253,9 @@ export function FocusModeModal({
                     key={t}
                     type="button"
                     onClick={() => setSwTargetMin(t)}
-                    className={'px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+                    className={'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[42px] ' + (
                       swTargetMin === t
-                        ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                        ? 'bg-[#6BEA45] text-[#0B0F0C] font-black shadow-xs'
                         : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                     )}
                   >
@@ -267,13 +267,13 @@ export function FocusModeModal({
 
             {/* Optional Stopwatch Break Structure */}
             {swTargetMin && (
-              <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] space-y-3">
+              <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Coffee className="h-3.5 w-3.5 text-[#6BEA45]" />
+                  <span className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                    <Coffee className="h-4 w-4 text-[#6BEA45]" />
                     <span>Mid-Session Breaks</span>
                   </span>
-                  <span className="text-xs text-[#A8B3A5]">{breaks === 0 ? 'Continuous' : breaks + ' breaks'}</span>
+                  <span className="text-xs sm:text-sm text-[#A8B3A5] font-bold">{breaks === 0 ? 'Continuous' : breaks + ' breaks'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {[0, 1, 2, 3].map((b) => (
@@ -281,9 +281,9 @@ export function FocusModeModal({
                       key={b}
                       type="button"
                       onClick={() => setBreaks(b)}
-                      className={'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+                      className={'flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[42px] ' + (
                         breaks === b
-                          ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                          ? 'bg-[#6BEA45] text-[#0B0F0C] font-black shadow-xs'
                           : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                       )}
                     >
@@ -300,8 +300,8 @@ export function FocusModeModal({
         {mode === 'pomodoro' && (
           <div className="space-y-4 pt-1 animate-in fade-in">
             {/* Focus length */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#A8B3A5] uppercase tracking-wider flex items-center justify-between">
+            <div className="space-y-2.5">
+              <label className="text-xs sm:text-sm font-bold text-[#A8B3A5] uppercase tracking-wider flex items-center justify-between">
                 <span>Pomodoro Focus Block</span>
                 <span className="text-[#6BEA45] font-black">{focusMin} min</span>
               </label>
@@ -311,9 +311,9 @@ export function FocusModeModal({
                     key={m}
                     type="button"
                     onClick={() => setFocusMin(m)}
-                    className={'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' + (
+                    className={'flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[42px] ' + (
                       focusMin === m
-                        ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                        ? 'bg-[#6BEA45] text-[#0B0F0C] font-black shadow-xs'
                         : 'bg-[#1C261C] border border-[#293329] text-[#A8B3A5] hover:text-white'
                     )}
                   >
@@ -324,18 +324,18 @@ export function FocusModeModal({
             </div>
 
             {/* Short & Long Break */}
-            <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329]">
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-white block">Short Break</span>
-                <div className="flex gap-1.5">
+            <div className="grid grid-cols-2 gap-3.5 p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329]">
+              <div className="space-y-2.5">
+                <span className="text-xs sm:text-sm font-bold text-white block">Short Break</span>
+                <div className="flex gap-2">
                   {[3, 5, 10].map((sb) => (
                     <button
                       key={sb}
                       type="button"
                       onClick={() => setBreakMin(sb)}
-                      className={'flex-1 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ' + (
+                      className={'flex-1 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[38px] ' + (
                         breakMin === sb
-                          ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                          ? 'bg-[#6BEA45] text-[#0B0F0C] font-black'
                           : 'bg-[#1C261C] text-[#A8B3A5]'
                       )}
                     >
@@ -345,17 +345,17 @@ export function FocusModeModal({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-white block">Long Break</span>
-                <div className="flex gap-1.5">
+              <div className="space-y-2.5">
+                <span className="text-xs sm:text-sm font-bold text-white block">Long Break</span>
+                <div className="flex gap-2">
                   {[15, 20, 30].map((lb) => (
                     <button
                       key={lb}
                       type="button"
                       onClick={() => setLongBreakMin(lb)}
-                      className={'flex-1 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ' + (
+                      className={'flex-1 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[38px] ' + (
                         longBreakMin === lb
-                          ? 'bg-[#6BEA45] text-[#0B0F0C]'
+                          ? 'bg-[#6BEA45] text-[#0B0F0C] font-black'
                           : 'bg-[#1C261C] text-[#A8B3A5]'
                       )}
                     >
@@ -369,19 +369,19 @@ export function FocusModeModal({
         )}
 
         {/* 4. BLOCKED APPS CONFIGURATION (INSIDE ROUND TIMER) */}
-        <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="h-10 w-10 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center border border-[#6BEA45]/40 shrink-0">
-              <ShieldAlert className="h-5 w-5" />
+        <div className="p-4.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3.5">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="h-11 w-11 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center border border-[#6BEA45]/40 shrink-0">
+              <ShieldAlert className="h-5.5 w-5.5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold text-white">Blocked Apps</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-black bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40 shadow-xs">
+                <span className="text-sm sm:text-base font-bold text-white">Blocked Apps</span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40 shadow-xs">
                   ( {blockerConfig.selectedPackages.length} )
                 </span>
               </div>
-              <p className="text-[11px] text-[#A8B3A5] truncate">
+              <p className="text-xs text-[#A8B3A5] truncate mt-0.5">
                 {blockerConfig.enabled && blockerConfig.selectedPackages.length > 0
                   ? `${blockerConfig.selectedPackages.length} ${
                       blockerConfig.selectedPackages.length === 1 ? 'app' : 'apps'
@@ -394,27 +394,27 @@ export function FocusModeModal({
           <button
             type="button"
             onClick={() => setIsBlockerSheetOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-[#1C261C] hover:bg-[#253325] border border-[#293329] text-xs font-bold text-[#6BEA45] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 min-h-[38px] shadow-xs"
+            className="px-4 py-2.5 rounded-xl bg-[#1C261C] hover:bg-[#253325] border border-[#293329] text-xs sm:text-sm font-bold text-[#6BEA45] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 min-h-[44px] shadow-xs"
           >
             <span>Select</span>
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-2 border-t border-[#293329] flex items-center justify-end gap-2.5">
+        <div className="pt-3 border-t border-[#293329] flex items-center justify-end gap-3">
           <Button
             variant="outline"
             size="sm"
             onClick={onClose}
-            className="rounded-xl text-xs font-semibold border-[#293329] bg-[#1C261C] text-[#A8B3A5] hover:text-white cursor-pointer min-h-[40px] px-4"
+            className="rounded-xl text-xs sm:text-sm font-bold border-[#293329] bg-[#1C261C] text-[#A8B3A5] hover:text-white cursor-pointer min-h-[46px] px-5"
           >
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={handleSave}
-            className="rounded-xl text-xs font-bold bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-5 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer min-h-[40px]"
+            className="rounded-xl text-xs sm:text-sm font-black bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-6 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer min-h-[46px]"
           >
             Apply Settings
           </Button>
