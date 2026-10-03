@@ -15,10 +15,16 @@ export function CapacitorSplashHandler() {
   useEffect(() => {
     // Dismiss after next animation frame to ensure the DOM is painted
     const frameId = requestAnimationFrame(() => {
-      hideNativeSplashScreen(250)
+      hideNativeSplashScreen(200)
     })
+    const timer = setTimeout(() => {
+      hideNativeSplashScreen(200)
+    }, 150)
 
-    return () => cancelAnimationFrame(frameId)
+    return () => {
+      cancelAnimationFrame(frameId)
+      clearTimeout(timer)
+    }
   }, [pathname])
 
   return null

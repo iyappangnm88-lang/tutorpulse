@@ -15,8 +15,10 @@ export async function hideNativeSplashScreen(fadeOutDuration = 250): Promise<voi
     const { SplashScreen } = await import('@capacitor/splash-screen')
     await SplashScreen.hide({ fadeOutDuration })
     hasHiddenSplash = true
+    console.log('[STARTUP] Native splash hide requested and completed')
   } catch (err) {
     // Ignore splash errors if already dismissed or not available
-    console.warn('[SplashScreen] Failed to hide native splash screen:', err)
+    console.warn('[STARTUP] Native splash screen hide warning:', err)
   }
 }
+
