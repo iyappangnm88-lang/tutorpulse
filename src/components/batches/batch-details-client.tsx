@@ -399,7 +399,11 @@ export function BatchDetailsClient({
                     </>
                   ) : (
                     <Link
-                      href={`/dashboard/marketplace/batches/${batch.id}/edit`}
+                      href={
+                        batch.is_public
+                          ? `/dashboard/marketplace/batches/${batch.id}/edit`
+                          : `/dashboard/batches/${batch.id}/edit`
+                      }
                       className="text-amber-600 font-semibold hover:underline"
                     >
                       Teaching fee: Not set
@@ -772,7 +776,7 @@ export function BatchDetailsClient({
               <CardHeader className="border-b border-gray-100">
                 <h3 className="text-sm font-bold text-[#172B4D] flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-[#318A25]" />
-                  <span>Batch Fee & Marketplace Offering</span>
+                  <span>{batch.is_public ? 'Batch Fee & Marketplace Offering' : 'Batch Fee & Details'}</span>
                 </h3>
               </CardHeader>
               <CardBody className="p-4 space-y-3 text-xs">
@@ -783,7 +787,11 @@ export function BatchDetailsClient({
                       <span className="text-[#318A25] font-bold">₹{feeRate} /{feeUnit} (✓ Set)</span>
                     ) : (
                       <Link
-                        href={`/dashboard/marketplace/batches/${batch.id}/edit`}
+                        href={
+                          batch.is_public
+                            ? `/dashboard/marketplace/batches/${batch.id}/edit`
+                            : `/dashboard/batches/${batch.id}/edit`
+                        }
                         className="text-amber-600 font-bold hover:underline"
                       >
                         Teaching fee: Not set
@@ -799,8 +807,8 @@ export function BatchDetailsClient({
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-gray-100">
                   <span className="text-gray-500">Discovery Status</span>
-                  <span className="font-bold text-[#318A25]">
-                    {batch.is_public ? '● Listed in Marketplace' : 'Private Draft'}
+                  <span className={batch.is_public ? 'font-bold text-[#318A25]' : 'font-medium text-gray-600'}>
+                    {batch.is_public ? '● Listed in Marketplace' : 'Private Batch'}
                   </span>
                 </div>
                 <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100">
@@ -817,18 +825,29 @@ export function BatchDetailsClient({
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <Link
-                      href="/dashboard/settings"
-                      className="text-xs text-gray-600 hover:text-gray-900 font-semibold"
-                    >
-                      Edit Profile
-                    </Link>
-                    <Link
-                      href={`/dashboard/marketplace/batches/${batch.id}/edit`}
-                      className="text-xs font-bold text-[#318A25] hover:underline"
-                    >
-                      Edit Offering & Fee →
-                    </Link>
+                    {batch.is_public ? (
+                      <>
+                        <Link
+                          href="/dashboard/settings"
+                          className="text-xs text-gray-600 hover:text-gray-900 font-semibold"
+                        >
+                          Edit Profile
+                        </Link>
+                        <Link
+                          href={`/dashboard/marketplace/batches/${batch.id}/edit`}
+                          className="text-xs font-bold text-[#318A25] hover:underline"
+                        >
+                          Edit Offering & Fee →
+                        </Link>
+                      </>
+                    ) : (
+                      <Link
+                        href={`/dashboard/batches/${batch.id}/edit`}
+                        className="text-xs font-bold text-[#318A25] hover:underline"
+                      >
+                        Edit Batch & Fee →
+                      </Link>
+                    )}
                   </div>
                 </div>
               </CardBody>
@@ -1208,25 +1227,29 @@ export function BatchDetailsClient({
       {/* TAB 7: FEES (Batch-Centric Fees & Enrolled Student Payment Tracking) */}
       {activeTab === 'fees' && (
         <div className="space-y-6">
-          {/* Marketplace Batch Fee & Payment Tracking Overview */}
+          {/* Batch Teaching Fee & Payment Tracking Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Marketplace Batch Fee Card */}
+            {/* Batch Fee Card */}
             <Card className="border-2 border-[#55C832]/40 bg-[#FAFBEF]/80 dark:bg-[#1C261C] dark:border-[#55C832]/30">
               <CardBody className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] uppercase font-bold tracking-wider text-[#318A25] dark:text-[#55C832] bg-white dark:bg-[#161D16] px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60">
-                    Marketplace Batch Fee
+                    {batch.is_public ? 'Marketplace Batch Fee' : 'Batch Teaching Fee'}
                   </span>
                   <Link
-                    href={`/dashboard/marketplace/batches/${batch.id}/edit`}
+                    href={
+                      batch.is_public
+                        ? `/dashboard/marketplace/batches/${batch.id}/edit`
+                        : `/dashboard/batches/${batch.id}/edit`
+                    }
                     className="text-xs font-bold text-[#318A25] dark:text-[#55C832] hover:underline flex items-center gap-1"
                   >
-                    <span>Edit in Marketplace</span>
+                    <span>{batch.is_public ? 'Edit in Marketplace' : 'Edit Batch Fee'}</span>
                     <Edit2 className="h-3 w-3" />
                   </Link>
                 </div>
                 <h4 className="text-xs font-bold text-gray-500 dark:text-[#A8B3A5]">
-                  Authoritative Batch Teaching Fee
+                  {batch.is_public ? 'Authoritative Marketplace Batch Fee' : 'Authoritative Batch Teaching Fee'}
                 </h4>
                 <div className="text-xl font-black text-[#172B4D] dark:text-[#F4F7F2]">
                   {feeRate != null ? (
@@ -1242,13 +1265,28 @@ export function BatchDetailsClient({
                     <div className="space-y-1.5">
                       <span className="text-sm font-bold text-amber-600 dark:text-amber-400">Teaching fee: Not set</span>
                       <p className="text-xs font-medium text-gray-500 dark:text-[#A8B3A5]">
-                        Teaching fee not set. <Link href={`/dashboard/marketplace/batches/${batch.id}/edit`} className="text-[#318A25] dark:text-[#55C832] underline font-bold">Set the batch fee in Marketplace.</Link>
+                        Teaching fee not set.{' '}
+                        <Link
+                          href={
+                            batch.is_public
+                              ? `/dashboard/marketplace/batches/${batch.id}/edit`
+                              : `/dashboard/batches/${batch.id}/edit`
+                          }
+                          className="text-[#318A25] dark:text-[#55C832] underline font-bold"
+                        >
+                          {batch.is_public
+                            ? 'Set the batch fee in Marketplace.'
+                            : 'Set the batch fee in Batch Settings.'}
+                        </Link>
                       </p>
                     </div>
                   )}
                 </div>
                 <p className="text-[11px] text-gray-600 dark:text-[#A8B3A5]">
-                  {feeDescription || 'Every enrolled student in this cohort automatically follows the batch teaching fee.'}
+                  {feeDescription ||
+                    (batch.is_public
+                      ? 'Every enrolled student in this cohort automatically follows the marketplace batch teaching fee.'
+                      : 'Every enrolled student in this cohort automatically follows the batch teaching fee.')}
                 </p>
               </CardBody>
             </Card>
@@ -1293,7 +1331,9 @@ export function BatchDetailsClient({
                 <p className="text-xs text-gray-500 dark:text-[#A8B3A5] mt-0.5">
                   {feeRate != null
                     ? `Every enrolled student automatically follows the batch's ₹${feeRate}/${feeUnit} fee.`
-                    : 'Configure the batch fee in Marketplace to enable payment tracking.'}
+                    : batch.is_public
+                    ? 'Configure the batch fee in Marketplace to enable payment tracking.'
+                    : 'Configure the batch fee in Batch Settings to enable payment tracking.'}
                 </p>
               </div>
             </CardHeader>
@@ -1359,7 +1399,13 @@ export function BatchDetailsClient({
                             disabled={feeRate == null}
                             onClick={() => {
                               if (feeRate == null) {
-                                toast('error', 'Fee Not Set', 'Set the batch fee in Marketplace before recording payments.')
+                                toast(
+                                  'error',
+                                  'Fee Not Set',
+                                  batch.is_public
+                                    ? 'Set the batch fee in Marketplace before recording payments.'
+                                    : 'Set the batch fee in Batch Settings before recording payments.'
+                                )
                                 return
                               }
                               setSelectedStudentForPayment(enrolledItem)
@@ -1474,14 +1520,24 @@ export function BatchDetailsClient({
           </CardHeader>
           <CardBody className="p-5 space-y-4 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
-                <p className="font-bold text-[#172B4D]">Marketplace Listing & Pricing</p>
-                <p className="text-gray-500">
-                  Configure fee amount, currency, and discoverability on the public student marketplace.
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#1C261C] border border-gray-200 dark:border-[#293329] space-y-2">
+                <p className="font-bold text-[#172B4D] dark:text-[#F4F7F2]">
+                  {batch.is_public ? 'Marketplace Listing & Pricing' : 'Batch Fee & Pricing'}
                 </p>
-                <Link href={`/dashboard/marketplace/batches/${batch.id}/edit`}>
+                <p className="text-gray-500 dark:text-[#A8B3A5]">
+                  {batch.is_public
+                    ? 'Configure fee amount, currency, and discoverability on the public student marketplace.'
+                    : 'Configure fee amount, currency, and payment details in batch settings.'}
+                </p>
+                <Link
+                  href={
+                    batch.is_public
+                      ? `/dashboard/marketplace/batches/${batch.id}/edit`
+                      : `/dashboard/batches/${batch.id}/edit`
+                  }
+                >
                   <Button size="sm" variant="outline" className="text-xs">
-                    Edit Marketplace Offering & Fee
+                    {batch.is_public ? 'Edit Marketplace Offering & Fee' : 'Edit Batch Fee & Details'}
                   </Button>
                 </Link>
               </div>
@@ -1503,7 +1559,7 @@ export function BatchDetailsClient({
       )}
 
       {/* TAB: MARKETPLACE & STUDENT REQUESTS */}
-      {activeTab === 'marketplace' && (
+      {activeTab === 'marketplace' && batch.is_public && (
         <div className="space-y-6">
           {/* Marketplace Status Summary Card */}
           <Card className="border border-sky-200/80 dark:border-sky-800/40 bg-gradient-to-br from-sky-50/50 via-white to-sky-50/30 dark:from-sky-950/20 dark:via-[#161D16] dark:to-sky-950/10 shadow-xs">

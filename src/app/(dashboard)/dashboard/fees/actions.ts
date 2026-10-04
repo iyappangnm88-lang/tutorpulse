@@ -398,7 +398,12 @@ export async function recordBatchStudentPaymentAction(input: {
     }
 
     if (authoritativeRate == null || authoritativeRate <= 0) {
-      return { success: false, error: 'Batch does not have a teaching fee configured. Please set the fee in Marketplace first.' }
+      return {
+        success: false,
+        error: batch.is_public
+          ? 'Batch does not have a teaching fee configured. Please set the fee in Marketplace first.'
+          : 'Batch does not have a teaching fee configured. Please set the fee in Batch Settings first.',
+      }
     }
 
     // 2. Fetch student to verify ownership and get workspace_id
