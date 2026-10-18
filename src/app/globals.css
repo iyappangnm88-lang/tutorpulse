@@ -108,46 +108,46 @@
 
 .dark,
 [data-theme='dark'] {
-  /* DARK MODE (Nuzigo Obsidian + Electric Green) */
-  --bg-primary: #0B0F0C;
-  --bg-secondary: #111711;
-  --bg-tertiary: #161D16;
-  --bg-card: #161D16;
-  --bg-elevated: #1C261C;
-  --bg-hover: #1C261C;
-  --bg-active: #232F23;
+  /* DARK MODE (Nuzigo Dark Palette) */
+  --bg-primary: #111411;
+  --bg-secondary: #171C18;
+  --bg-tertiary: #1D241F;
+  --bg-card: #1D241F;
+  --bg-elevated: #1D241F;
+  --bg-hover: #252E28;
+  --bg-active: #2F3B33;
 
-  --text-primary: #F4F7F2;
-  --text-secondary: #A8B3A5;
-  --text-muted: #6C7A6A;
-  --text-inverse: #0B0F0C;
+  --text-primary: #F2F5F2;
+  --text-secondary: #B3BDB5;
+  --text-muted: #89958C;
+  --text-inverse: #111411;
 
-  --brand-primary: #6BEA45;
-  --brand-primary-hover: #5DD838;
-  --brand-primary-active: #3FB82F;
-  --brand-primary-light: #162414;
-  --brand-primary-foreground: #0B0F0C;
-  --brand-navy: #F4F7F2;
-  --brand-cream: #111711;
+  --brand-primary: #55C832;
+  --brand-primary-hover: #6BEA45;
+  --brand-primary-active: #318A25;
+  --brand-primary-light: #1A261C;
+  --brand-primary-foreground: #FFFFFF;
+  --brand-navy: #F2F5F2;
+  --brand-cream: #171C18;
   --brand-yellow: #FFD84A;
   --brand-orange: #FF9F43;
   --brand-red: #F05252;
 
-  --border-subtle: #1C261C;
-  --border-default: #293329;
-  --border-strong: #384638;
+  --border-subtle: #232C25;
+  --border-default: #303A32;
+  --border-strong: #3F4C41;
 
   --color-reward: #FFD84A;
   --color-accent: #FF9F43;
   --color-error: #F05252;
-  --color-success: #6BEA45;
+  --color-success: #55C832;
 
-  --input-bg: #111711;
-  --input-border: #293329;
-  --input-focus-border: #6BEA45;
+  --input-bg: #171C18;
+  --input-border: #303A32;
+  --input-focus-border: #55C832;
 
-  --sidebar-bg: #111711;
-  --sidebar-border: #293329;
+  --sidebar-bg: #171C18;
+  --sidebar-border: #303A32;
 }
 
 /* Nuzigo Tactical & Playful Buttons & Cards */

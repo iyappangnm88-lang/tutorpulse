@@ -52,7 +52,7 @@ export function PageLoader({ label = 'Loading...' }: { label?: string }) {
 export function SkeletonLine({ className }: { className?: string }) {
   return (
     <div
-      className={cn('animate-pulse rounded bg-gray-200', className)}
+      className={cn('animate-pulse rounded bg-gray-200 dark:bg-[#252E28]', className)}
       aria-hidden="true"
     />
   )
@@ -60,7 +60,7 @@ export function SkeletonLine({ className }: { className?: string }) {
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+    <div className="rounded-xl border border-gray-200 dark:border-[#303A32] bg-white dark:bg-[#1D241F] p-5 space-y-3">
       <SkeletonLine className="h-4 w-1/3" />
       <SkeletonLine className="h-8 w-1/2" />
       <SkeletonLine className="h-3 w-2/3" />

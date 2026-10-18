@@ -72,15 +72,15 @@ function MetricCard({
 }) {
   return (
     <Link href={href} className="block group">
-      <Card className="h-full group-hover:border-emerald-200 group-hover:shadow-sm transition-all duration-200">
+      <Card className="h-full group-hover:border-emerald-200 dark:group-hover:border-[#3F4C41] group-hover:shadow-sm transition-all duration-200">
         <CardBody className="p-4 sm:p-5 flex items-center gap-4">
           <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${iconBg} transition-transform group-hover:scale-105 duration-200`}>
             <Icon className={`h-5 w-5 ${iconColor}`} aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
-            <p className="text-2xl font-bold text-gray-900 tracking-tight mt-0.5 truncate">{value}</p>
-            {sub && <p className="text-[11px] text-gray-400 mt-0.5 truncate">{sub}</p>}
+            <p className="text-xs font-semibold text-gray-500 dark:text-[#89958C] uppercase tracking-wider">{label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-[#F2F5F2] tracking-tight mt-0.5 truncate">{value}</p>
+            {sub && <p className="text-[11px] text-gray-400 dark:text-[#89958C] mt-0.5 truncate">{sub}</p>}
           </div>
         </CardBody>
       </Card>
@@ -102,16 +102,16 @@ function QuickActionButton({
   return (
     <Link
       href={href}
-      className="group flex flex-col items-start gap-2 rounded-2xl border border-gray-200/80 bg-white p-4 text-left transition-all duration-200 hover:border-emerald-300 hover:shadow-sm active:scale-[0.98] w-full"
+      className="group flex flex-col items-start gap-2 rounded-2xl border border-gray-200/80 dark:border-[#303A32] bg-white dark:bg-[#1D241F] p-4 text-left transition-all duration-200 hover:border-emerald-300 dark:hover:border-[#6BEA45]/40 hover:shadow-sm active:scale-[0.98] w-full"
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-[#318A25] group-hover:bg-[#55C832] group-hover:text-white transition-colors duration-200">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 dark:bg-[#252E28] text-[#318A25] dark:text-[#6BEA45] group-hover:bg-[#55C832] group-hover:text-white dark:group-hover:text-[#111411] transition-colors duration-200">
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
       <div>
-        <p className="text-xs font-bold text-gray-900 group-hover:text-[#318A25] transition-colors">
+        <p className="text-xs font-bold text-gray-900 dark:text-[#F2F5F2] group-hover:text-[#318A25] dark:group-hover:text-[#6BEA45] transition-colors">
           {label}
         </p>
-        <p className="text-[11px] text-gray-500 mt-0.5">{description}</p>
+        <p className="text-[11px] text-gray-500 dark:text-[#89958C] mt-0.5">{description}</p>
       </div>
     </Link>
   )
