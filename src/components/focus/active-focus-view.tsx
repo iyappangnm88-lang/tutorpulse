@@ -50,7 +50,9 @@ import {
   stopNativeAppBlocking,
   onAppBlocked,
   checkMultiWindowMode,
+  returnToFocus,
   onMultiWindowModeChanged,
+  onAppStateResume,
   isAndroidNative,
 } from '@/lib/focus/android-capabilities'
 import {
@@ -107,6 +109,9 @@ export function ActiveFocusView({
 
   // Upgraded Focus Controls: Split-Screen & Strict Mode state
   const [isSplitScreenDetected, setIsSplitScreenDetected] = useState<boolean>(false)
+  const [isVerifyingSplitScreen, setIsVerifyingSplitScreen] = useState<boolean>(false)
+  const [splitScreenWarningError, setSplitScreenWarningError] = useState<string | null>(null)
+  const [restoredBanner, setRestoredBanner] = useState<string | null>(null)
   const [isNativeAndroid, setIsNativeAndroid] = useState<boolean>(false)
   const [isStrictLockedNoticeOpen, setIsStrictLockedNoticeOpen] = useState<boolean>(false)
   const [isEmergencyExitOpen, setIsEmergencyExitOpen] = useState<boolean>(false)
@@ -142,37 +147,126 @@ export function ActiveFocusView({
 
   // Android Split-Screen / Multi-Window Mode Detection & Enforcement
   useEffect(() => {
-    if (!currentSession.blockSplitScreen || isCompletedRef.current) return
+    if (!currentSession.blockSplitScreen || isCompletedRef.current) {
+      setIsSplitScreenDetected(false)
+      setSplitScreenWarningError(null)
+      return
+    }
+
     const native = isAndroidNative()
     setIsNativeAndroid(native)
 
     if (native) {
-      // 1. Initial check
-      checkMultiWindowMode().then((res) => {
-        if (res.inMultiWindow) {
-          setIsSplitScreenDetected(true)
+      let isMounted = true
+
+      const syncMultiWindowState = async () => {
+        try {
+          const res = await checkMultiWindowMode()
+          if (!isMounted) return
+          setIsSplitScreenDetected((prev) => {
+            if (prev && !res.inMultiWindow) {
+              setSplitScreenWarningError(null)
+            }
+            return res.inMultiWindow
+          })
+        } catch (err) {
+          console.warn('[Focus] Failed to sync multi-window state:', err)
+        }
+      }
+
+      // 1. Immediate initial check
+      syncMultiWindowState()
+
+      // 2. Real-time native Activity OS multi-window change event
+      const unsubMulti = onMultiWindowModeChanged((inMultiWindow) => {
+        if (!isMounted) return
+        setIsSplitScreenDetected(inMultiWindow)
+        if (!inMultiWindow) {
+          setSplitScreenWarningError(null)
         }
       })
 
-      // 2. Real-time Android Activity OS event listener
-      const unsubMulti = onMultiWindowModeChanged((inMultiWindow) => {
-        setIsSplitScreenDetected(inMultiWindow)
+      // 3. Native App State resume (returning from background or recent apps overview)
+      const unsubResume = onAppStateResume(() => {
+        syncMultiWindowState()
       })
 
-      // 3. Resize event fallback check
-      const handleResize = () => {
-        checkMultiWindowMode().then((res) => {
-          setIsSplitScreenDetected(res.inMultiWindow)
-        })
+      // 4. Web visibility and window focus/resize fallback listeners
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          syncMultiWindowState()
+        }
       }
+      const handleFocus = () => syncMultiWindowState()
+      const handleResize = () => syncMultiWindowState()
+
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+      window.addEventListener('focus', handleFocus)
       window.addEventListener('resize', handleResize)
 
       return () => {
+        isMounted = false
         unsubMulti()
+        unsubResume()
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        window.removeEventListener('focus', handleFocus)
         window.removeEventListener('resize', handleResize)
       }
+    } else {
+      setIsSplitScreenDetected(false)
     }
   }, [currentSession.blockSplitScreen])
+
+  // Active recovery poll: while split-screen is detected and setting is enabled,
+  // automatically clear the warning as soon as the user drags the divider to full-screen.
+  useEffect(() => {
+    if (!isSplitScreenDetected || !currentSession.blockSplitScreen || isCompletedRef.current) return
+
+    const pollTimer = setInterval(async () => {
+      const res = await checkMultiWindowMode()
+      if (!res.inMultiWindow) {
+        setIsSplitScreenDetected(false)
+        setSplitScreenWarningError(null)
+      }
+    }, 1000)
+
+    return () => clearInterval(pollTimer)
+  }, [isSplitScreenDetected, currentSession.blockSplitScreen])
+
+  // Return to Full-Screen Focus Action Handler
+  const handleReturnToFocus = async () => {
+    if (isVerifyingSplitScreen) return
+    setIsVerifyingSplitScreen(true)
+    setSplitScreenWarningError(null)
+
+    try {
+      const res = await returnToFocus()
+
+      if (!res.inMultiWindow) {
+        setIsSplitScreenDetected(false)
+        setSplitScreenWarningError(null)
+        setRestoredBanner('Full-screen focus restored! Stay locked in.')
+        setTimeout(() => setRestoredBanner(null), 3500)
+      } else {
+        setSplitScreenWarningError(
+          'Split-screen is still active. Android requires dragging the dividing bar to the top or bottom edge to exit split-screen mode.'
+        )
+      }
+    } catch (err) {
+      console.warn('[Focus] Error returning to focus:', err)
+      const res = await checkMultiWindowMode()
+      if (!res.inMultiWindow) {
+        setIsSplitScreenDetected(false)
+        setSplitScreenWarningError(null)
+      } else {
+        setSplitScreenWarningError(
+          'Split-screen is still active. Please drag the divider to the edge of your screen.'
+        )
+      }
+    } finally {
+      setIsVerifyingSplitScreen(false)
+    }
+  }
 
   // Strict Mode Accidental Page Close / Refresh Prevention
   useEffect(() => {
@@ -995,51 +1089,104 @@ export function ActiveFocusView({
         </div>
       )}
 
+      {/* Restored Full-Screen Toast Banner */}
+      {restoredBanner && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-[#161D16]/95 border border-[#6BEA45]/50 text-white font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2.5 animate-in fade-in slide-in-from-top-4 duration-300">
+          <Sparkles className="h-4 w-4 text-[#6BEA45]" />
+          <span>{restoredBanner}</span>
+        </div>
+      )}
+
       {/* Split-Screen Warning Overlay Modal */}
-      {isSplitScreenDetected && (
-        <div className="fixed inset-0 z-50 bg-[#0B0F0C]/95 backdrop-blur-xl flex items-center justify-center p-6 text-center select-none animate-in fade-in duration-300">
-          <div className="max-w-md w-full p-8 rounded-3xl bg-[#161D16] border border-[#6BEA45]/40 shadow-2xl space-y-6 text-[#F4F7F2]">
-            <div className="h-20 w-20 rounded-3xl bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/50 flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(107,234,69,0.3)] animate-pulse">
-              <Columns2 className="h-10 w-10" />
+      {isSplitScreenDetected && currentSession.blockSplitScreen && (
+        <div className="fixed inset-0 z-50 bg-[#0B0F0C]/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6 text-center select-none animate-in fade-in duration-300 overflow-y-auto">
+          <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-[#161D16] border border-[#6BEA45]/40 shadow-2xl space-y-5 text-[#F4F7F2] my-auto">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/50 flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(107,234,69,0.3)] animate-pulse">
+              <Columns2 className="h-8 w-8 sm:h-10 sm:w-10" />
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Split-Screen Detected</h2>
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">Full Screen Required</h2>
               <p className="text-xs sm:text-sm text-[#A8B3A5] leading-relaxed">
-                You enabled <strong className="text-white">Block Split-Screen</strong> to eliminate multitasking distractions. Focus Mode is designed to be experienced full-screen.
+                You enabled <strong className="text-white">Block Split-Screen</strong> to stay completely focused. NUZIGO requires full-screen immersion without side-by-side app multitasking.
               </p>
             </div>
 
+            {/* Android User-Guided Recovery Guidance */}
             <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] text-xs text-[#A8B3A5] space-y-2 text-left">
-              <p className="font-semibold text-white">How to return to your session:</p>
-              <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>Drag the split-screen divider down to expand NUZIGO to full screen.</li>
-                <li>Close other running split-screen apps.</li>
-              </ul>
+              <p className="font-semibold text-white flex items-center gap-1.5">
+                <span>📱</span>
+                <span>How to restore full screen on Android:</span>
+              </p>
+              <ol className="list-decimal list-inside space-y-1.5 text-xs text-[#C5D1C3]">
+                <li>Locate the dividing line between NUZIGO and the second app.</li>
+                <li>Drag the divider completely to the top or bottom edge to dismiss the other app.</li>
+                <li>NUZIGO will automatically resume once full screen is restored (or tap below).</li>
+              </ol>
             </div>
 
-            <div className="space-y-3 pt-2">
+            {/* Inline Error/Alert when still in Split-Screen */}
+            {splitScreenWarningError && (
+              <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs font-medium leading-relaxed flex items-start gap-2.5 text-left animate-in fade-in duration-200">
+                <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>{splitScreenWarningError}</span>
+              </div>
+            )}
+
+            <div className="space-y-3 pt-1">
               <Button
                 size="lg"
-                onClick={async () => {
-                  const res = await checkMultiWindowMode()
-                  if (!res.inMultiWindow) {
-                    setIsSplitScreenDetected(false)
-                  }
-                }}
-                className="w-full h-14 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm sm:text-base shadow-[0_0_25px_rgba(107,234,69,0.35)] cursor-pointer"
+                disabled={isVerifyingSplitScreen}
+                onClick={handleReturnToFocus}
+                className="w-full h-14 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm sm:text-base shadow-[0_0_25px_rgba(107,234,69,0.35)] cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>I&apos;m Full Screen Now</span>
+                {isVerifyingSplitScreen ? (
+                  <span className="flex items-center gap-2 text-[#0B0F0C]">
+                    <span className="h-4 w-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    <span>Verifying Full Screen...</span>
+                  </span>
+                ) : (
+                  <>
+                    <Maximize2 className="h-4 w-4" />
+                    <span>Return to Full-Screen Focus</span>
+                  </>
+                )}
               </Button>
 
-              {!isNativeAndroid && (
-                <button
-                  onClick={() => setIsSplitScreenDetected(false)}
-                  className="text-xs text-white/50 hover:text-white/90 underline cursor-pointer"
-                >
-                  Dismiss (Browser / Device Unsupported)
-                </button>
-              )}
+              {/* Accessible Emergency / Early Exit Option */}
+              <div className="pt-1 flex flex-col items-center gap-1.5">
+                {currentSession.isStrict ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEmergencyExitOpen(true)}
+                    className="text-xs text-red-400/80 hover:text-red-300 underline cursor-pointer flex items-center gap-1.5 py-1"
+                  >
+                    <LifeBuoy className="h-3.5 w-3.5" />
+                    <span>Urgent emergency? Open Emergency Exit</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsEndingConfirmOpen(true)}
+                    className="text-xs text-white/50 hover:text-white/80 underline cursor-pointer py-1"
+                  >
+                    <span>Need to stop study session early?</span>
+                  </button>
+                )}
+
+                {!isNativeAndroid && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSplitScreenDetected(false)
+                      setSplitScreenWarningError(null)
+                    }}
+                    className="text-xs text-white/40 hover:text-white/70 underline cursor-pointer pt-1"
+                  >
+                    Dismiss (Browser / Device Unsupported)
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

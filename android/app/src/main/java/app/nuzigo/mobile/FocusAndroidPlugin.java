@@ -1,6 +1,7 @@
 package app.nuzigo.mobile;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AppOpsManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -67,6 +68,14 @@ public class FocusAndroidPlugin extends Plugin {
     }
 
     @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && getActivity() != null) {
+            notifyMultiWindowModeChanged(getActivity().isInMultiWindowMode());
+        }
+    }
+
+    @Override
     protected void handleOnDestroy() {
         if (instance == this) {
             instance = null;
@@ -78,8 +87,14 @@ public class FocusAndroidPlugin extends Plugin {
         super.handleOnDestroy();
     }
 
+    private static Boolean lastInMultiWindow = null;
+
     public static void notifyMultiWindowModeChanged(boolean inMultiWindow) {
         if (instance != null) {
+            if (lastInMultiWindow != null && lastInMultiWindow == inMultiWindow) {
+                return;
+            }
+            lastInMultiWindow = inMultiWindow;
             JSObject event = new JSObject();
             event.put("inMultiWindow", inMultiWindow);
             instance.notifyListeners("multiWindowModeChanged", event);
@@ -280,6 +295,34 @@ public class FocusAndroidPlugin extends Plugin {
         if (supported && getActivity() != null) {
             inMultiWindow = getActivity().isInMultiWindowMode();
         }
+        lastInMultiWindow = inMultiWindow;
+        JSObject ret = new JSObject();
+        ret.put("supported", supported);
+        ret.put("inMultiWindow", inMultiWindow);
+        call.resolve(ret);
+    }
+
+    /**
+     * Brings NUZIGO's activity to the foreground task focus and returns the current multi-window status.
+     */
+    @PluginMethod
+    public void returnToFocus(PluginCall call) {
+        boolean supported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+        boolean inMultiWindow = false;
+        try {
+            Activity activity = getActivity();
+            if (activity != null) {
+                Intent intent = new Intent(activity, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                activity.startActivity(intent);
+                if (supported) {
+                    inMultiWindow = activity.isInMultiWindowMode();
+                }
+            }
+        } catch (Exception e) {
+            // Fallback gracefully without crash
+        }
+        lastInMultiWindow = inMultiWindow;
         JSObject ret = new JSObject();
         ret.put("supported", supported);
         ret.put("inMultiWindow", inMultiWindow);

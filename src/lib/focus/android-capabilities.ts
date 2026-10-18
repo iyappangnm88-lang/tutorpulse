@@ -28,6 +28,7 @@ interface FocusAndroidNativePlugin {
   stopAppBlocking(): Promise<{ success: boolean }>
   isAppBlockingActive(): Promise<{ active: boolean; count: number }>
   isInMultiWindowMode(): Promise<{ supported: boolean; inMultiWindow: boolean }>
+  returnToFocus(): Promise<{ supported: boolean; inMultiWindow: boolean }>
   addListener(
     eventName: 'appBlocked',
     listenerFunc: (event: { blockedPackage: string; timestamp: number }) => void
@@ -362,18 +363,30 @@ export function onAppBlocked(callback: (event: { blockedPackage: string; timesta
     return () => {}
   }
 
+  let isCleanedUp = false
   let handle: PluginListenerHandle | null = null
-  FocusAndroid.addListener('appBlocked', callback)
+
+  FocusAndroid.addListener('appBlocked', (event) => {
+    if (!isCleanedUp) {
+      callback(event)
+    }
+  })
     .then((h) => {
-      handle = h
+      if (isCleanedUp) {
+        h.remove().catch(() => {})
+      } else {
+        handle = h
+      }
     })
     .catch((err) => {
       console.warn('[FocusAndroid] Failed to add appBlocked listener:', err)
     })
 
   return () => {
+    isCleanedUp = true
     if (handle) {
       handle.remove().catch(() => {})
+      handle = null
     }
   }
 }
@@ -389,12 +402,32 @@ export async function checkMultiWindowMode(): Promise<{ supported: boolean; inMu
   try {
     const res = await FocusAndroid.isInMultiWindowMode()
     return {
-      supported: Boolean(res.supported),
-      inMultiWindow: Boolean(res.inMultiWindow),
+      supported: Boolean(res?.supported),
+      inMultiWindow: Boolean(res?.inMultiWindow),
     }
   } catch (err) {
     console.warn('[FocusAndroid] checkMultiWindowMode error:', err)
     return { supported: false, inMultiWindow: false }
+  }
+}
+
+/**
+ * Brings NUZIGO to foreground focus and returns the current multi-window status.
+ */
+export async function returnToFocus(): Promise<{ supported: boolean; inMultiWindow: boolean }> {
+  if (!isAndroidNative()) {
+    return { supported: false, inMultiWindow: false }
+  }
+
+  try {
+    const res = await FocusAndroid.returnToFocus()
+    return {
+      supported: Boolean(res?.supported),
+      inMultiWindow: Boolean(res?.inMultiWindow),
+    }
+  } catch (err) {
+    console.warn('[FocusAndroid] returnToFocus error:', err)
+    return checkMultiWindowMode()
   }
 }
 
@@ -406,20 +439,72 @@ export function onMultiWindowModeChanged(callback: (inMultiWindow: boolean) => v
     return () => {}
   }
 
+  let isCleanedUp = false
   let handle: PluginListenerHandle | null = null
+
   FocusAndroid.addListener('multiWindowModeChanged', (event) => {
-    callback(Boolean(event.inMultiWindow))
+    if (!isCleanedUp) {
+      callback(Boolean(event?.inMultiWindow))
+    }
   })
     .then((h) => {
-      handle = h
+      if (isCleanedUp) {
+        h.remove().catch(() => {})
+      } else {
+        handle = h
+      }
     })
     .catch((err) => {
       console.warn('[FocusAndroid] Failed to add multiWindowModeChanged listener:', err)
     })
 
   return () => {
+    isCleanedUp = true
     if (handle) {
       handle.remove().catch(() => {})
+      handle = null
+    }
+  }
+}
+
+/**
+ * Subscribes to app resume lifecycle transitions (e.g. returning to foreground from system tray or recents).
+ */
+export function onAppStateResume(callback: () => void): () => void {
+  if (!isAndroidNative()) {
+    return () => {}
+  }
+
+  let isCleanedUp = false
+  let handle: PluginListenerHandle | null = null
+
+  import('@capacitor/app')
+    .then(({ App }) => {
+      if (isCleanedUp) return
+      return App.addListener('appStateChange', (state) => {
+        if (!isCleanedUp && state.isActive) {
+          callback()
+        }
+      })
+    })
+    .then((h) => {
+      if (h) {
+        if (isCleanedUp) {
+          h.remove().catch(() => {})
+        } else {
+          handle = h
+        }
+      }
+    })
+    .catch((err) => {
+      console.warn('[FocusAndroid] Failed to listen to appStateChange:', err)
+    })
+
+  return () => {
+    isCleanedUp = true
+    if (handle) {
+      handle.remove().catch(() => {})
+      handle = null
     }
   }
 }
