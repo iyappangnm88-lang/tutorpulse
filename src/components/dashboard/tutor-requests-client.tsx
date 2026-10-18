@@ -23,6 +23,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/contexts/toast-context'
 import { respondJoinRequestAction } from '@/app/tutors/actions'
+import { StudentAvatar } from '@/components/ui/student-avatar'
 import type { JoinRequestWithDetails } from '@/lib/marketplace-utils'
 
 interface TutorRequestsClientProps {
@@ -146,9 +147,12 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
                 <CardBody className="p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex items-start gap-3.5">
-                      <div className="h-10 w-10 rounded-xl bg-[#FAFBEF] dark:bg-[#252E28] text-[#318A25] dark:text-[#6BEA45] font-bold text-sm flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#303A32]">
-                        {req.studentName.slice(0, 2).toUpperCase()}
-                      </div>
+                      <StudentAvatar
+                        name={req.studentName}
+                        avatarUrl={req.studentAvatarUrl}
+                        size="lg"
+                        className="h-10 w-10 text-sm rounded-xl border border-gray-200 dark:border-[#303A32]"
+                      />
 
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -251,8 +255,16 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
                 className="p-4 rounded-xl border border-gray-100 dark:border-[#303A32] bg-white dark:bg-[#1D241F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#6BEA45] flex items-center justify-center font-bold text-xs shrink-0">
-                    <CheckCircle2 className="h-5 w-5" />
+                  <div className="relative shrink-0">
+                    <StudentAvatar
+                      name={req.studentName}
+                      avatarUrl={req.studentAvatarUrl}
+                      size="md"
+                      className="h-9 w-9 text-xs rounded-lg border border-gray-200 dark:border-[#303A32]"
+                    />
+                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xs">
+                      <CheckCircle2 className="h-3 w-3" />
+                    </span>
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-gray-900 dark:text-[#F2F5F2]">{req.studentName}</h4>
@@ -296,8 +308,16 @@ export function TutorRequestsClient({ initialData, tutorId }: TutorRequestsClien
                 className="p-4 rounded-xl border border-gray-100 dark:border-[#303A32] bg-white dark:bg-[#1D241F] flex items-center justify-between gap-3 shadow-2xs"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-gray-50 dark:bg-[#252E28] text-gray-400 dark:text-[#89958C] flex items-center justify-center font-bold text-xs shrink-0">
-                    <XCircle className="h-5 w-5" />
+                  <div className="relative shrink-0">
+                    <StudentAvatar
+                      name={req.studentName}
+                      avatarUrl={req.studentAvatarUrl}
+                      size="md"
+                      className="h-9 w-9 text-xs rounded-lg border border-gray-200 dark:border-[#303A32]"
+                    />
+                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gray-400 text-white shadow-xs">
+                      <XCircle className="h-3 w-3" />
+                    </span>
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-gray-900 dark:text-[#F2F5F2]">{req.studentName}</h4>

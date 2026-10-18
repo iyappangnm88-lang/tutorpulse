@@ -564,3 +564,113 @@ export async function getStudyGroupDetails(
   }
 }
 
+export interface FocusActivityStudent {
+  userId: string
+  name: string
+  avatarUrl: string | null
+  minutes: number
+  isFocusing: boolean
+  subject?: string
+}
+
+export interface StudyGroupFocusActivityResponse {
+  focusing: FocusActivityStudent[]
+  idle: FocusActivityStudent[]
+  totalMembers: number
+}
+
+/**
+ * Loads real-time group focus activity partitioned into focusing (sorted ascending by minutes)
+ * and idle non-focusing members with zero ranking pollution.
+ */
+export async function getStudyGroupFocusActivityData(
+  groupId: string,
+  currentUserId: string
+): Promise<StudyGroupFocusActivityResponse> {
+  const emptyRes: StudyGroupFocusActivityResponse = { focusing: [], idle: [], totalMembers: 0 }
+  try {
+    const supabase = await createClient()
+
+    // 1. Fetch all members of this study group
+    const { data: membersRaw, error: membersError } = await supabase
+      .from('study_group_members')
+      .select('user_id')
+      .eq('group_id', groupId)
+
+    if (membersError || !membersRaw || membersRaw.length === 0) {
+      return emptyRes
+    }
+
+    const memberUserIds = Array.from(new Set(membersRaw.map((m: { user_id: string }) => m.user_id)))
+
+    // 2. Fetch active live focus records (not paused, heartbeat within 2 minutes)
+    const activeHeartbeatThreshold = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+    const { data: liveRaw } = await supabase
+      .from('study_group_live_focus')
+      .select('id, user_id, subject, started_at, last_heartbeat, is_paused')
+      .eq('group_id', groupId)
+      .eq('is_paused', false)
+      .gte('last_heartbeat', activeHeartbeatThreshold)
+
+    const liveList: any[] = liveRaw || []
+    const liveUserMap = new Map<string, any>()
+    for (const l of liveList) {
+      if (l?.user_id) liveUserMap.set(l.user_id, l)
+    }
+
+    // 3. Resolve student profiles across profiles & student_profiles
+    const profilesMap = await resolveUserProfiles(supabase, memberUserIds, currentUserId)
+
+    const now = Date.now()
+    const focusing: FocusActivityStudent[] = []
+    const idle: FocusActivityStudent[] = []
+
+    for (const uid of memberUserIds) {
+      const p = profilesMap.get(uid)
+      const name = p?.full_name || (uid === currentUserId ? 'You' : 'Student')
+      const avatarUrl = p?.avatar_url || null
+
+      const liveRecord = liveUserMap.get(uid)
+      if (liveRecord) {
+        const startMs = liveRecord.started_at ? new Date(liveRecord.started_at).getTime() : now
+        const elapsedSec = Math.max(0, Math.floor((now - startMs) / 1000))
+        const minutes = Math.floor(elapsedSec / 60)
+
+        focusing.push({
+          userId: uid,
+          name,
+          avatarUrl,
+          minutes,
+          isFocusing: true,
+          subject: liveRecord.subject || 'General Focus',
+        })
+      } else {
+        idle.push({
+          userId: uid,
+          name,
+          avatarUrl,
+          minutes: 0,
+          isFocusing: false,
+        })
+      }
+    }
+
+    // Sort active focusing students in ASCENDING order of elapsed focus minutes
+    // (least minutes first, most minutes later; secondary alphabetical by name)
+    focusing.sort((a, b) => a.minutes - b.minutes || a.name.localeCompare(b.name))
+
+    // Sort idle students alphabetically by name
+    idle.sort((a, b) => a.name.localeCompare(b.name))
+
+    return {
+      focusing,
+      idle,
+      totalMembers: memberUserIds.length,
+    }
+  } catch (err) {
+    console.error('Error fetching group focus activity:', err)
+    return emptyRes
+  }
+}
+
+

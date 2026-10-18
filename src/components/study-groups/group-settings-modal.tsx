@@ -16,6 +16,7 @@ import type {
   StudyGroupMember,
   StudyGroupJoinRequest,
 } from '@/lib/types/study-groups'
+import { StudentAvatar } from '@/components/ui/student-avatar'
 import {
   updateStudyGroupAction,
   updateMemberRoleAction,
@@ -234,9 +235,12 @@ export function GroupSettingsModal({
                     className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#111711] border border-gray-100 dark:border-[#202920]"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[#318A25] text-xs font-bold">
-                        {initial}
-                      </div>
+                      <StudentAvatar
+                        name={displayName}
+                        avatarUrl={member.user?.avatar_url}
+                        size="md"
+                        className="h-8 w-8 text-xs bg-emerald-100 dark:bg-emerald-950 text-[#318A25] dark:text-[#6BEA45]"
+                      />
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#172B4D] dark:text-[#F4F7F2] truncate">
                           {displayName}
@@ -308,13 +312,21 @@ export function GroupSettingsModal({
                     key={req.id}
                     className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#111711] border border-gray-100 dark:border-[#202920]"
                   >
-                    <div>
-                      <p className="text-xs font-bold text-[#172B4D] dark:text-[#F4F7F2]">
-                        {req.user?.full_name || 'Anonymous User'}
-                      </p>
-                      {req.user?.grade_level && (
-                        <p className="text-[10px] text-gray-500">{req.user.grade_level}</p>
-                      )}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <StudentAvatar
+                        name={req.user?.full_name || 'Student'}
+                        avatarUrl={req.user?.avatar_url}
+                        size="md"
+                        className="h-8 w-8 text-xs bg-emerald-100 dark:bg-emerald-950 text-[#318A25] dark:text-[#6BEA45]"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-[#172B4D] dark:text-[#F4F7F2] truncate">
+                          {req.user?.full_name || 'Anonymous User'}
+                        </p>
+                        {req.user?.grade_level && (
+                          <p className="text-[10px] text-gray-500">{req.user.grade_level}</p>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button

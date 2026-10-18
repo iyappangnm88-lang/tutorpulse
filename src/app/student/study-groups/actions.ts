@@ -2,7 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { getStartOfDay } from '@/lib/study-groups'
+import {
+  getStartOfDay,
+  getStudyGroupFocusActivityData,
+  type StudyGroupFocusActivityResponse,
+} from '@/lib/study-groups'
 
 interface ActionResponse<T = unknown> {
   success: boolean
@@ -664,3 +668,28 @@ export async function leaveStudyGroupLiveFocusAction(groupId: string): Promise<A
     return { success: false, error: 'Failed to leave live focus' }
   }
 }
+
+/**
+ * Fetches real-time member focus activity for a study group.
+ */
+export async function getStudyGroupFocusActivityAction(
+  groupId: string
+): Promise<ActionResponse<StudyGroupFocusActivityResponse>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Authentication required.' }
+    }
+
+    const activity = await getStudyGroupFocusActivityData(groupId, user.id)
+    return { success: true, data: activity }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error fetching focus activity.'
+    return { success: false, error: message }
+  }
+}
+

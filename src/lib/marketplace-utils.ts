@@ -62,6 +62,7 @@ export interface JoinRequestWithDetails {
   id: string
   studentUserId: string
   studentName: string
+  studentAvatarUrl?: string | null
   studentEmail: string
   studentGrade: string | null
   tutorId: string

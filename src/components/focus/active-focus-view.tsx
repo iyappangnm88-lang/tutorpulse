@@ -72,6 +72,10 @@ const FocusMusicModal = dynamic(
   () => import('./focus-music-modal').then((m) => m.FocusMusicModal),
   { ssr: false }
 )
+const LiveFocusActivityModal = dynamic(
+  () => import('./live-focus-activity-modal').then((m) => m.LiveFocusActivityModal),
+  { ssr: false }
+)
 
 interface ActiveFocusViewProps {
   session: FocusSessionState
@@ -117,6 +121,7 @@ export function ActiveFocusView({
   const [isEmergencyExitOpen, setIsEmergencyExitOpen] = useState<boolean>(false)
   const [emergencyUnlockProgress, setEmergencyUnlockProgress] = useState<number>(0)
   const [isEmergencyUnlocked, setIsEmergencyUnlocked] = useState<boolean>(false)
+  const [isFocusActivityOpen, setIsFocusActivityOpen] = useState<boolean>(false)
 
   const { isPlaying: isMusicPlaying, currentTrack, toggleMute, isMuted, stop: stopMusic } = useFocusMusic()
 
@@ -678,11 +683,31 @@ export function ActiveFocusView({
               <span className="text-sm sm:text-base font-bold text-white/95">
                 {currentSession.subject}
               </span>
-              {currentSession.groupId && (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#6BEA45] bg-black/50 px-3 py-1 rounded-full border border-[#6BEA45]/30 backdrop-blur-md">
+              {currentSession.groupId ? (
+                <button
+                  type="button"
+                  onClick={() => setIsFocusActivityOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6BEA45] bg-black/60 hover:bg-black/80 px-3 py-1 rounded-full border border-[#6BEA45]/40 hover:border-[#6BEA45] backdrop-blur-md transition-all cursor-pointer shadow-xs active:scale-95 group"
+                  title="View Live Group Focus Activity"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6BEA45] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6BEA45]" />
+                  </span>
                   <span>👥</span>
                   <span>{currentSession.groupName || 'Study Group'}</span>
-                </span>
+                  <span className="text-[10px] text-[#6BEA45]/80 group-hover:text-white font-medium">• Activity</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsFocusActivityOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-white/70 hover:text-white bg-black/40 hover:bg-black/60 px-2.5 py-1 rounded-full border border-white/20 hover:border-white/40 backdrop-blur-md transition-all cursor-pointer shadow-xs active:scale-95"
+                  title="Focus Activity Details"
+                >
+                  <span>👤</span>
+                  <span>Solo Focus</span>
+                </button>
               )}
               {currentSession.isStrict && (
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-[#6BEA45] bg-black/60 px-3 py-1 rounded-full border border-[#6BEA45]/40 shadow-xs">
@@ -906,6 +931,16 @@ export function ActiveFocusView({
           setCurrentSession(updated)
           onUpdateSession(updated)
         }}
+      />
+
+      {/* Live Group Focus Activity Card-Free Overlay */}
+      <LiveFocusActivityModal
+        isOpen={isFocusActivityOpen}
+        onClose={() => setIsFocusActivityOpen(false)}
+        groupId={currentSession.groupId}
+        groupName={currentSession.groupName}
+        currentElapsedSeconds={calculatePhaseProgress(currentSession).totalElapsedFocusSec}
+        isSessionRunning={currentSession.status === 'running'}
       />
 
       {/* Deliberate Confirmation Dialog on End Focus */}

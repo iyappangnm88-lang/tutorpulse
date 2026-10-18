@@ -1,6 +1,7 @@
 import React from 'react'
 import { Flame, Clock, Radio } from 'lucide-react'
 import { type StudyGroupLiveUser, formatDuration } from '@/lib/types/study-groups'
+import { StudentAvatar } from '@/components/ui/student-avatar'
 
 interface LiveNowSectionProps {
   liveUsers: StudyGroupLiveUser[]
@@ -67,10 +68,13 @@ export function LiveNowSection({ liveUsers, onStartFocus }: LiveNowSectionProps)
                 className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100/80 dark:border-emerald-900/30 transition-all hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="relative">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#318A25] to-[#55C832] text-white text-xs font-bold shadow-2xs">
-                      {initial}
-                    </div>
+                  <div className="relative shrink-0">
+                    <StudentAvatar
+                      name={name}
+                      avatarUrl={liveUser.user?.avatar_url}
+                      size="md"
+                      className="h-8 w-8 text-xs bg-gradient-to-tr from-[#318A25] to-[#55C832] text-white shadow-2xs"
+                    />
                     <span className="absolute -bottom-0.5 -right-0.5 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#161D16]" />
                   </div>
 

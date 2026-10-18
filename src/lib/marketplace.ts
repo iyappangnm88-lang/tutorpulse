@@ -284,8 +284,8 @@ export async function getTutorJoinRequests(tutorId: string): Promise<{
   // Fetch student profiles for these users
   const studentUserIds = Array.from(new Set(requests.map((r) => r.student_user_id)))
   const [profilesRes, studentProfilesRes] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, email').in('id', studentUserIds),
-    supabase.from('student_profiles').select('id, full_name, grade_level').in('id', studentUserIds),
+    supabase.from('profiles').select('id, full_name, email, avatar_url').in('id', studentUserIds),
+    supabase.from('student_profiles').select('id, full_name, grade_level, avatar_url').in('id', studentUserIds),
   ])
 
   const profileMap = new Map((profilesRes.data || []).map((p) => [p.id, p]))
@@ -298,6 +298,7 @@ export async function getTutorJoinRequests(tutorId: string): Promise<{
       id: r.id,
       studentUserId: r.student_user_id,
       studentName: sprof?.full_name || prof?.full_name || 'Student',
+      studentAvatarUrl: sprof?.avatar_url || prof?.avatar_url || null,
       studentEmail: prof?.email || '',
       studentGrade: sprof?.grade_level || null,
       tutorId: r.tutor_id,

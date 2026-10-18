@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Send, MessageSquare, Sparkles, AlertCircle } from 'lucide-react'
 import type { StudyGroupMessage } from '@/lib/types/study-groups'
 import { sendStudyGroupMessageAction } from '@/app/student/study-groups/actions'
+import { StudentAvatar } from '@/components/ui/student-avatar'
 
 interface GroupChatProps {
   groupId: string
@@ -124,9 +125,12 @@ export function GroupChat({
                 className={`flex items-start gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
               >
                 {!isMe && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#318A25] dark:text-[#6BEA45] text-[10px] font-bold">
-                    {initial}
-                  </div>
+                  <StudentAvatar
+                    name={msg.user.full_name}
+                    avatarUrl={msg.user.avatar_url}
+                    size="sm"
+                    className="h-7 w-7 text-[10px] bg-emerald-100 dark:bg-emerald-950 text-[#318A25] dark:text-[#6BEA45]"
+                  />
                 )}
 
                 <div className={`max-w-[80%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>

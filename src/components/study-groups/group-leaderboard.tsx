@@ -5,6 +5,7 @@ import {
   type StudyGroupMember,
   formatDuration,
 } from '@/lib/types/study-groups'
+import { StudentAvatar } from '@/components/ui/student-avatar'
 
 interface GroupLeaderboardProps {
   tiers: GroupLeaderboardTier[]
@@ -81,9 +82,12 @@ export function GroupLeaderboard({ tiers, rankedMembers, currentUserId }: GroupL
                           {member.rank}
                         </span>
 
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] font-bold">
-                          {initial}
-                        </div>
+                        <StudentAvatar
+                          name={displayName}
+                          avatarUrl={member.user?.avatar_url}
+                          size="sm"
+                          className="h-6 w-6 text-[10px] bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        />
 
                         <span className="text-gray-800 dark:text-[#F4F7F2] truncate font-medium">
                           {displayName}

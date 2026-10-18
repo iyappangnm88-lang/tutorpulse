@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Plus, Search, Users, Sparkles } from 'lucide-react'
 import type { StudyGroup } from '@/lib/types/study-groups'
 import { StudyGroupCard } from './study-group-card'
+import { StudyGroupRow } from './study-group-row'
 import { joinStudyGroupAction } from '@/app/student/study-groups/actions'
 import { useRouter } from 'next/navigation'
 
@@ -179,9 +180,9 @@ export function StudyGroupsHomeClient({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-2.5">
             {filteredDiscover.map((group) => (
-              <StudyGroupCard
+              <StudyGroupRow
                 key={group.id}
                 group={group}
                 onJoin={handleJoinGroup}
