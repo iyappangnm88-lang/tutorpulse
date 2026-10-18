@@ -53,6 +53,7 @@ public class FocusAndroidPlugin extends Plugin {
 
     public static final String FOCUS_NOTIFICATION_CHANNEL_ID = "nuzigo_focus_channel";
 
+    private static FocusAndroidPlugin instance;
     private final Set<String> blockedPackages = Collections.synchronizedSet(new HashSet<String>());
     private volatile boolean isBlockingActive = false;
     private Handler blockingHandler;
@@ -61,16 +62,28 @@ public class FocusAndroidPlugin extends Plugin {
     @Override
     public void load() {
         super.load();
+        instance = this;
         createFocusNotificationChannel();
     }
 
     @Override
     protected void handleOnDestroy() {
+        if (instance == this) {
+            instance = null;
+        }
         isBlockingActive = false;
         if (blockingHandler != null && blockingRunnable != null) {
             blockingHandler.removeCallbacks(blockingRunnable);
         }
         super.handleOnDestroy();
+    }
+
+    public static void notifyMultiWindowModeChanged(boolean inMultiWindow) {
+        if (instance != null) {
+            JSObject event = new JSObject();
+            event.put("inMultiWindow", inMultiWindow);
+            instance.notifyListeners("multiWindowModeChanged", event);
+        }
     }
 
     private void createFocusNotificationChannel() {
@@ -258,6 +271,22 @@ public class FocusAndroidPlugin extends Plugin {
     }
 
     /**
+     * Checks whether the activity is currently in Android multi-window / split-screen mode.
+     */
+    @PluginMethod
+    public void isInMultiWindowMode(PluginCall call) {
+        boolean supported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+        boolean inMultiWindow = false;
+        if (supported && getActivity() != null) {
+            inMultiWindow = getActivity().isInMultiWindowMode();
+        }
+        JSObject ret = new JSObject();
+        ret.put("supported", supported);
+        ret.put("inMultiWindow", inMultiWindow);
+        call.resolve(ret);
+    }
+
+    /**
      * Returns a summary of native Focus capabilities on this Android device.
      */
     @PluginMethod
@@ -268,6 +297,7 @@ public class FocusAndroidPlugin extends Plugin {
         ret.put("canOverlay", Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
         ret.put("canUsageStats", Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
         ret.put("needsRuntimeNotificationPermission", Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU);
+        ret.put("canDetectMultiWindow", Build.VERSION.SDK_INT >= Build.VERSION_CODES.N);
         call.resolve(ret);
     }
 

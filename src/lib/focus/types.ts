@@ -34,6 +34,10 @@ export interface FocusSessionState {
   completedAtTimestamp: number | null
   xpAwarded?: number
   coinsAwarded?: number
+
+  // Upgraded Focus Mode Controls
+  isStrict?: boolean
+  blockSplitScreen?: boolean
 }
 
 export interface FocusBackground {
@@ -133,6 +137,12 @@ export interface FocusCapabilities {
   canUsageStats: boolean
   canNotify: boolean
   needsRuntimeNotificationPermission: boolean
+  canDetectMultiWindow: boolean
+}
+
+export interface FocusPreferences {
+  strictMode: boolean
+  blockSplitScreen: boolean
 }
 
 export interface PermissionStatus {

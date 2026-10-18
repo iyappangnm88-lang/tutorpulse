@@ -24,6 +24,8 @@ import {
   Square,
   WifiOff,
   ShieldAlert,
+  Columns2,
+  LifeBuoy,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -47,6 +49,9 @@ import {
   startNativeAppBlocking,
   stopNativeAppBlocking,
   onAppBlocked,
+  checkMultiWindowMode,
+  onMultiWindowModeChanged,
+  isAndroidNative,
 } from '@/lib/focus/android-capabilities'
 import {
   pauseFocusSessionAction,
@@ -100,6 +105,14 @@ export function ActiveFocusView({
   const [unlockProgress, setUnlockProgress] = useState(0) // 0 to 100
   const [isStopUnlocked, setIsStopUnlocked] = useState(false)
 
+  // Upgraded Focus Controls: Split-Screen & Strict Mode state
+  const [isSplitScreenDetected, setIsSplitScreenDetected] = useState<boolean>(false)
+  const [isNativeAndroid, setIsNativeAndroid] = useState<boolean>(false)
+  const [isStrictLockedNoticeOpen, setIsStrictLockedNoticeOpen] = useState<boolean>(false)
+  const [isEmergencyExitOpen, setIsEmergencyExitOpen] = useState<boolean>(false)
+  const [emergencyUnlockProgress, setEmergencyUnlockProgress] = useState<number>(0)
+  const [isEmergencyUnlocked, setIsEmergencyUnlocked] = useState<boolean>(false)
+
   const { isPlaying: isMusicPlaying, currentTrack, toggleMute, isMuted, stop: stopMusic } = useFocusMusic()
 
   const isCompletedRef = useRef(isCompletedState)
@@ -126,6 +139,82 @@ export function ActiveFocusView({
       unsubBlock()
     }
   }, [])
+
+  // Android Split-Screen / Multi-Window Mode Detection & Enforcement
+  useEffect(() => {
+    if (!currentSession.blockSplitScreen || isCompletedRef.current) return
+    const native = isAndroidNative()
+    setIsNativeAndroid(native)
+
+    if (native) {
+      // 1. Initial check
+      checkMultiWindowMode().then((res) => {
+        if (res.inMultiWindow) {
+          setIsSplitScreenDetected(true)
+        }
+      })
+
+      // 2. Real-time Android Activity OS event listener
+      const unsubMulti = onMultiWindowModeChanged((inMultiWindow) => {
+        setIsSplitScreenDetected(inMultiWindow)
+      })
+
+      // 3. Resize event fallback check
+      const handleResize = () => {
+        checkMultiWindowMode().then((res) => {
+          setIsSplitScreenDetected(res.inMultiWindow)
+        })
+      }
+      window.addEventListener('resize', handleResize)
+
+      return () => {
+        unsubMulti()
+        window.removeEventListener('resize', handleResize)
+      }
+    }
+  }, [currentSession.blockSplitScreen])
+
+  // Strict Mode Accidental Page Close / Refresh Prevention
+  useEffect(() => {
+    if (!currentSession.isStrict || isCompletedRef.current) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = 'Strict Focus session is currently active. Leaving now will interrupt your progress.'
+      return e.returnValue
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [currentSession.isStrict])
+
+  // Deliberate Emergency Exit Protective Delay Loop (3 seconds deliberate delay)
+  useEffect(() => {
+    if (!isEmergencyExitOpen) {
+      setEmergencyUnlockProgress(0)
+      setIsEmergencyUnlocked(false)
+      return
+    }
+
+    setEmergencyUnlockProgress(0)
+    setIsEmergencyUnlocked(false)
+
+    const durationMs = 3000
+    const startTime = Date.now()
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(100, (elapsed / durationMs) * 100)
+      setEmergencyUnlockProgress(progress)
+
+      if (progress >= 100) {
+        setIsEmergencyUnlocked(true)
+        clearInterval(interval)
+      }
+    }, 25)
+
+    return () => clearInterval(interval)
+  }, [isEmergencyExitOpen])
 
   // Right-to-left protective cover animation loop when confirmation dialog opens
   useEffect(() => {
@@ -344,6 +433,36 @@ export function ActiveFocusView({
     setIsEndingConfirmOpen(false)
   }
 
+  // Emergency Exit Handler for Strict Mode (Offline Resilient, 0 Completion Rewards)
+  const handleEmergencyExit = async () => {
+    if (!isEmergencyUnlocked || isProcessing) return
+
+    setIsProcessing(true)
+
+    // 1. Immediately clean up local native blockers and audio
+    stopNativeAppBlocking().catch(() => {})
+    stopMusic()
+
+    // 2. Clear active session state without awarding completion-only rewards
+    endFocusSession(currentSession, false, 0, 0)
+
+    // 3. Inform server of abandoned session (if session has db ID)
+    if (currentSession.dbSessionId) {
+      endFocusSessionAction({
+        sessionId: currentSession.dbSessionId,
+        groupId: currentSession.groupId,
+        subject: currentSession.subject,
+        plannedDurationSec: currentSession.focusDurationSec,
+        actualDurationSec: 0,
+      }).catch(() => {})
+    }
+
+    onUpdateSession(null)
+    onExitFocusMode()
+    setIsProcessing(false)
+    setIsEmergencyExitOpen(false)
+  }
+
   // Fullscreen Handler
   const toggleFullscreen = async () => {
     try {
@@ -471,6 +590,18 @@ export function ActiveFocusView({
                   <span>{currentSession.groupName || 'Study Group'}</span>
                 </span>
               )}
+              {currentSession.isStrict && (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#6BEA45] bg-black/60 px-3 py-1 rounded-full border border-[#6BEA45]/40 shadow-xs">
+                  <Lock className="w-3 h-3 text-[#6BEA45]" />
+                  <span>Strict Mode</span>
+                </span>
+              )}
+              {currentSession.blockSplitScreen && (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#6BEA45] bg-black/60 px-3 py-1 rounded-full border border-[#6BEA45]/40 shadow-xs">
+                  <Columns2 className="w-3 h-3 text-[#6BEA45]" />
+                  <span>Split Guard</span>
+                </span>
+              )}
             </div>
             <p className="text-xs text-white/75 mt-0.5">
               {currentSession.mode === 'pomodoro'
@@ -483,6 +614,17 @@ export function ActiveFocusView({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Emergency Exit Button for Strict Mode */}
+          {currentSession.isStrict && (
+            <button
+              onClick={() => setIsEmergencyExitOpen(true)}
+              className="h-11 px-3.5 rounded-2xl bg-red-950/40 hover:bg-red-900/60 border border-red-500/40 text-red-200 hover:text-white flex items-center gap-1.5 transition-all cursor-pointer text-xs sm:text-sm font-bold min-h-[44px]"
+              title="Discreet Emergency Exit"
+            >
+              <LifeBuoy className="w-4 h-4 text-red-400" />
+              <span>Emergency Exit</span>
+            </button>
+          )}
           {/* Music Player Button in Active Mode */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
@@ -611,15 +753,27 @@ export function ActiveFocusView({
 
           {/* End Focus Button beside controls (Visible ONLY while paused) */}
           {isPaused && (
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => setIsEndingConfirmOpen(true)}
-              className="h-14 sm:h-16 px-6 sm:px-8 rounded-2xl border-red-500/40 bg-red-950/50 hover:bg-red-900/70 text-red-200 hover:text-white font-black text-sm sm:text-base backdrop-blur-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-[54px] sm:min-h-[60px]"
-            >
-              <Square className="w-4.5 h-4.5 sm:w-5 sm:h-5 fill-current text-red-400" />
-              <span>End Focus</span>
-            </Button>
+            currentSession.isStrict ? (
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => setIsStrictLockedNoticeOpen(true)}
+                className="h-14 sm:h-16 px-6 sm:px-8 rounded-2xl border-white/20 bg-black/50 hover:bg-black/70 text-white/90 font-bold text-sm sm:text-base backdrop-blur-md transition-all cursor-pointer gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-[54px] sm:min-h-[60px]"
+              >
+                <Lock className="w-4.5 h-4.5 text-[#6BEA45]" />
+                <span>Session Locked</span>
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => setIsEndingConfirmOpen(true)}
+                className="h-14 sm:h-16 px-6 sm:px-8 rounded-2xl border-red-500/40 bg-red-950/50 hover:bg-red-900/70 text-red-200 hover:text-white font-black text-sm sm:text-base backdrop-blur-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-[54px] sm:min-h-[60px]"
+              >
+                <Square className="w-4.5 h-4.5 sm:w-5 sm:h-5 fill-current text-red-400" />
+                <span>End Focus</span>
+              </Button>
+            )
           )}
         </div>
       </div>
@@ -735,6 +889,157 @@ export function ActiveFocusView({
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Strict Mode Locked Notice Modal */}
+      {isStrictLockedNoticeOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="max-w-md w-full p-6 sm:p-7 rounded-3xl bg-[#161D16] border border-[#293329] shadow-2xl space-y-4 text-white text-center">
+            <div className="h-12 w-12 rounded-2xl bg-[#6BEA45]/20 border border-[#6BEA45]/40 text-[#6BEA45] flex items-center justify-center mx-auto mb-2">
+              <Lock className="h-6 w-6" />
+            </div>
+            <h3 className="text-xl font-black text-white">Strict Mode Active</h3>
+            <p className="text-xs sm:text-sm text-[#A8B3A5] leading-relaxed">
+              You committed to a strict focus session. The standard End Session action is locked until your timer of <strong className="text-white">{formattedTime}</strong> finishes.
+            </p>
+            <p className="text-xs text-white/60">
+              Need to leave for an urgent medical or critical matter? Use the discreet <strong className="text-white">Emergency Exit</strong> button in the top bar.
+            </p>
+            <Button
+              size="lg"
+              onClick={() => setIsStrictLockedNoticeOpen(false)}
+              className="w-full h-12 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer mt-2"
+            >
+              Got it, Continue Focusing
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Emergency Exit Confirmation Modal (Offline Resilient, Non-Shaming) */}
+      {isEmergencyExitOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="max-w-md w-full p-6 sm:p-7 rounded-3xl bg-[#161D16] border border-red-500/40 shadow-2xl space-y-5 text-white flex flex-col">
+            <div className="space-y-2 text-center">
+              <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto mb-3">
+                <LifeBuoy className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Emergency Exit
+              </h3>
+              <p className="text-xs sm:text-sm text-[#A8B3A5] leading-relaxed">
+                Need to step away? We understand genuine urgent situations happen. Exiting now will terminate your strict session immediately.
+              </p>
+              <div className="p-3 rounded-xl bg-black/40 border border-[#293329] text-xs text-amber-300">
+                Notice: Completion rewards (XP, coins, streaks) are not awarded for early exits.
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              {/* Option 1: Stay in session */}
+              <Button
+                size="lg"
+                onClick={() => setIsEmergencyExitOpen(false)}
+                className="w-full h-14 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm sm:text-base shadow-[0_0_25px_rgba(107,234,69,0.35)] cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                <span>Stay in Focus Session</span>
+              </Button>
+
+              {/* Option 2: Confirm Emergency Exit (Deliberate protective release) */}
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  onClick={handleEmergencyExit}
+                  disabled={!isEmergencyUnlocked || isProcessing}
+                  className={`relative w-full h-14 rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2.5 overflow-hidden select-none ${
+                    isEmergencyUnlocked
+                      ? 'bg-red-950/80 hover:bg-red-900 border border-red-500 text-red-100 hover:text-white shadow-[0_0_20px_rgba(239,68,68,0.3)] cursor-pointer'
+                      : 'bg-[#111711] border border-[#293329] text-[#71806F] cursor-not-allowed'
+                  }`}
+                >
+                  {isProcessing ? (
+                    <span className="flex items-center gap-2 text-white">
+                      <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Exiting...</span>
+                    </span>
+                  ) : isEmergencyUnlocked ? (
+                    <>
+                      <X className="h-4 w-4 text-red-400" />
+                      <span className="text-red-200 font-black">Exit Session Now</span>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-[#A8B3A5]" />
+                      <span className="text-xs sm:text-sm font-semibold">Hold on ({Math.max(1, Math.ceil((3.0 * (100 - emergencyUnlockProgress)) / 100))}s)...</span>
+                    </div>
+                  )}
+
+                  {!isEmergencyUnlocked && (
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+                      <div
+                        className="absolute inset-y-0 right-0 bg-gradient-to-l from-[#192419] via-[#213021] to-[#2B3D2B] border-l-2 border-red-500/80 flex items-center justify-end px-3.5 transition-all ease-linear"
+                        style={{
+                          width: `${100 - emergencyUnlockProgress}%`,
+                        }}
+                      />
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Split-Screen Warning Overlay Modal */}
+      {isSplitScreenDetected && (
+        <div className="fixed inset-0 z-50 bg-[#0B0F0C]/95 backdrop-blur-xl flex items-center justify-center p-6 text-center select-none animate-in fade-in duration-300">
+          <div className="max-w-md w-full p-8 rounded-3xl bg-[#161D16] border border-[#6BEA45]/40 shadow-2xl space-y-6 text-[#F4F7F2]">
+            <div className="h-20 w-20 rounded-3xl bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/50 flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(107,234,69,0.3)] animate-pulse">
+              <Columns2 className="h-10 w-10" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Split-Screen Detected</h2>
+              <p className="text-xs sm:text-sm text-[#A8B3A5] leading-relaxed">
+                You enabled <strong className="text-white">Block Split-Screen</strong> to eliminate multitasking distractions. Focus Mode is designed to be experienced full-screen.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] text-xs text-[#A8B3A5] space-y-2 text-left">
+              <p className="font-semibold text-white">How to return to your session:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li>Drag the split-screen divider down to expand NUZIGO to full screen.</li>
+                <li>Close other running split-screen apps.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Button
+                size="lg"
+                onClick={async () => {
+                  const res = await checkMultiWindowMode()
+                  if (!res.inMultiWindow) {
+                    setIsSplitScreenDetected(false)
+                  }
+                }}
+                className="w-full h-14 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm sm:text-base shadow-[0_0_25px_rgba(107,234,69,0.35)] cursor-pointer"
+              >
+                <span>I&apos;m Full Screen Now</span>
+              </Button>
+
+              {!isNativeAndroid && (
+                <button
+                  onClick={() => setIsSplitScreenDetected(false)}
+                  className="text-xs text-white/50 hover:text-white/90 underline cursor-pointer"
+                >
+                  Dismiss (Browser / Device Unsupported)
+                </button>
+              )}
             </div>
           </div>
         </div>

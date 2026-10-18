@@ -13,11 +13,16 @@ import {
   Headphones,
   Music,
   ShieldAlert,
+  Lock,
+  Columns2,
+  AlertTriangle,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FOCUS_BACKGROUNDS, type FocusMode, type FocusStats } from '@/lib/focus/types'
 import { loadSavedBackgroundId, saveSelectedBackgroundId } from '@/lib/focus/focus-timer'
 import { loadAppBlockerConfig } from '@/lib/focus/app-blocker-config'
+import { loadFocusPreferences, saveFocusPreferences } from '@/lib/focus/focus-settings'
 import { useFocusMusic } from '@/contexts/focus-music-context'
 
 const FocusModeModal = dynamic(
@@ -59,6 +64,8 @@ interface FocusSetupViewProps {
     stopwatchTargetMin: number | null
     subject: string
     backgroundId: string
+    isStrict?: boolean
+    blockSplitScreen?: boolean
   }) => void
   focusStats?: FocusStats
 }
@@ -73,6 +80,11 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
   const [longInterval, setLongInterval] = useState<number>(4)
   const [swTargetMin, setSwTargetMin] = useState<number | null>(60)
   const [subject, setSubject] = useState<string>('General Focus')
+
+  // Upgraded Focus Settings: Strict Mode & Split-Screen
+  const [strictMode, setStrictMode] = useState<boolean>(() => loadFocusPreferences().strictMode)
+  const [blockSplitScreen, setBlockSplitScreen] = useState<boolean>(() => loadFocusPreferences().blockSplitScreen)
+  const [isStrictModeConfirmOpen, setIsStrictModeConfirmOpen] = useState(false)
 
   const [isModeModalOpen, setIsModeModalOpen] = useState(false)
   const [isBgSelectorOpen, setIsBgSelectorOpen] = useState(false)
@@ -98,7 +110,8 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
     return 'Pomodoro (' + focusMin + 'm / ' + breakMin + 'm)'
   }
 
-  const handleStart = () => {
+  const triggerSessionStart = () => {
+    setIsStrictModeConfirmOpen(false)
     onStartFocus({
       mode,
       focusDurationMin: focusMin,
@@ -109,7 +122,17 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
       stopwatchTargetMin: swTargetMin,
       subject,
       backgroundId,
+      isStrict: strictMode,
+      blockSplitScreen,
     })
+  }
+
+  const handleStart = () => {
+    if (strictMode) {
+      setIsStrictModeConfirmOpen(true)
+    } else {
+      triggerSessionStart()
+    }
   }
 
   return (
@@ -198,6 +221,18 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
                   <span>Blocked ( {blockerConfig.selectedPackages.length} )</span>
                 </div>
               )}
+              {strictMode && (
+                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold">
+                  <Lock className="w-3 h-3" />
+                  <span>Strict</span>
+                </div>
+              )}
+              {blockSplitScreen && (
+                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold">
+                  <Columns2 className="w-3 h-3" />
+                  <span>No Split</span>
+                </div>
+              )}
             </div>
 
             <span className="text-[11px] sm:text-xs text-white/80 font-medium mt-2 text-center px-2 max-w-[200px]">
@@ -262,6 +297,8 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
         longBreakDurationMin={longBreakMin}
         longBreakInterval={longInterval}
         stopwatchTargetMin={swTargetMin}
+        initialStrictMode={strictMode}
+        initialBlockSplitScreen={blockSplitScreen}
         onApply={(cfg) => {
           setMode(cfg.mode)
           setFocusMin(cfg.focusDurationMin)
@@ -270,6 +307,8 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
           setLongBreakMin(cfg.longBreakDurationMin)
           setLongInterval(cfg.longBreakInterval)
           setSwTargetMin(cfg.stopwatchTargetMin)
+          if (cfg.strictMode !== undefined) setStrictMode(cfg.strictMode)
+          if (cfg.blockSplitScreen !== undefined) setBlockSplitScreen(cfg.blockSplitScreen)
         }}
       />
 
@@ -293,6 +332,81 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
         onClose={() => setIsBlockerModalOpen(false)}
         onConfigChange={(cfg) => setBlockerConfig(cfg)}
       />
+
+      {/* Strict Mode Pre-Session Confirmation Dialog */}
+      {isStrictModeConfirmOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#161D16] border border-[#293329] text-[#F4F7F2] max-w-md w-full rounded-3xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-[#293329] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center shrink-0 border border-[#6BEA45]/40">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-white">Strict Mode Commitment</h3>
+                  <p className="text-xs text-[#A8B3A5]">Confirm your uninterrupted focus session</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsStrictModeConfirmOpen(false)}
+                className="h-9 w-9 rounded-xl bg-[#1C261C] text-[#A8B3A5] hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-[#293329]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#A8B3A5] uppercase tracking-wider">Session Goal</span>
+                <span className="text-xs font-mono font-black text-[#6BEA45] bg-[#6BEA45]/20 px-2.5 py-0.5 rounded-full border border-[#6BEA45]/40">
+                  {getDisplayTime()}
+                </span>
+              </div>
+              <div className="text-sm font-bold text-white flex items-center gap-2">
+                <span>{subject}</span>
+                <span className="text-xs text-[#A8B3A5] font-normal">({getModeBadge()})</span>
+              </div>
+            </div>
+
+            <div className="space-y-2.5 text-xs text-[#A8B3A5] leading-relaxed">
+              <div className="flex items-start gap-2.5">
+                <div className="h-5 w-5 rounded-full bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-xs font-black">1</span>
+                </div>
+                <p className="text-[#F4F7F2]">
+                  <strong>Locked End Session:</strong> The normal End Session action is disabled until your {getDisplayTime()} timer reaches zero.
+                </p>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <div className="h-5 w-5 rounded-full bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-xs font-black">2</span>
+                </div>
+                <p className="text-[#F4F7F2]">
+                  <strong>Emergency Exit Protected:</strong> If a real emergency happens, an emergency exit is always available offline without awarding completion rewards.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[#293329] flex items-center justify-end gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsStrictModeConfirmOpen(false)}
+                className="rounded-xl text-xs sm:text-sm font-bold border-[#293329] bg-[#1C261C] text-[#A8B3A5] hover:text-white cursor-pointer min-h-[46px] px-5"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={triggerSessionStart}
+                className="rounded-xl text-xs sm:text-sm font-black bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] px-6 shadow-[0_0_20px_rgba(107,234,69,0.3)] cursor-pointer min-h-[46px]"
+              >
+                I Commit & Start
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

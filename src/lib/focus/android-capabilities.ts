@@ -27,9 +27,14 @@ interface FocusAndroidNativePlugin {
   startAppBlocking(options: { packages: string[] }): Promise<{ success: boolean; count: number }>
   stopAppBlocking(): Promise<{ success: boolean }>
   isAppBlockingActive(): Promise<{ active: boolean; count: number }>
+  isInMultiWindowMode(): Promise<{ supported: boolean; inMultiWindow: boolean }>
   addListener(
     eventName: 'appBlocked',
     listenerFunc: (event: { blockedPackage: string; timestamp: number }) => void
+  ): Promise<PluginListenerHandle>
+  addListener(
+    eventName: 'multiWindowModeChanged',
+    listenerFunc: (event: { inMultiWindow: boolean }) => void
   ): Promise<PluginListenerHandle>
 }
 
@@ -56,6 +61,7 @@ export async function getFocusCapabilities(): Promise<FocusCapabilities> {
       canUsageStats: false,
       canNotify: isBrowserNotificationSupported,
       needsRuntimeNotificationPermission: false,
+      canDetectMultiWindow: false,
     }
   }
 
@@ -68,6 +74,7 @@ export async function getFocusCapabilities(): Promise<FocusCapabilities> {
       canUsageStats: caps.canUsageStats,
       canNotify: true,
       needsRuntimeNotificationPermission: caps.needsRuntimeNotificationPermission,
+      canDetectMultiWindow: true,
     }
   } catch (err) {
     console.warn('[FocusAndroid] Failed to get native capabilities:', err)
@@ -78,6 +85,7 @@ export async function getFocusCapabilities(): Promise<FocusCapabilities> {
       canUsageStats: true,
       canNotify: true,
       needsRuntimeNotificationPermission: false,
+      canDetectMultiWindow: true,
     }
   }
 }
@@ -361,6 +369,52 @@ export function onAppBlocked(callback: (event: { blockedPackage: string; timesta
     })
     .catch((err) => {
       console.warn('[FocusAndroid] Failed to add appBlocked listener:', err)
+    })
+
+  return () => {
+    if (handle) {
+      handle.remove().catch(() => {})
+    }
+  }
+}
+
+/**
+ * Checks whether the native Android app is currently displayed in split-screen / multi-window mode.
+ */
+export async function checkMultiWindowMode(): Promise<{ supported: boolean; inMultiWindow: boolean }> {
+  if (!isAndroidNative()) {
+    return { supported: false, inMultiWindow: false }
+  }
+
+  try {
+    const res = await FocusAndroid.isInMultiWindowMode()
+    return {
+      supported: Boolean(res.supported),
+      inMultiWindow: Boolean(res.inMultiWindow),
+    }
+  } catch (err) {
+    console.warn('[FocusAndroid] checkMultiWindowMode error:', err)
+    return { supported: false, inMultiWindow: false }
+  }
+}
+
+/**
+ * Subscribes to native Android multi-window / split-screen mode changes.
+ */
+export function onMultiWindowModeChanged(callback: (inMultiWindow: boolean) => void): () => void {
+  if (!isAndroidNative()) {
+    return () => {}
+  }
+
+  let handle: PluginListenerHandle | null = null
+  FocusAndroid.addListener('multiWindowModeChanged', (event) => {
+    callback(Boolean(event.inMultiWindow))
+  })
+    .then((h) => {
+      handle = h
+    })
+    .catch((err) => {
+      console.warn('[FocusAndroid] Failed to add multiWindowModeChanged listener:', err)
     })
 
   return () => {

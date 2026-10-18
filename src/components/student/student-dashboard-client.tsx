@@ -72,6 +72,8 @@ export function StudentDashboardClient({
     stopwatchTargetMin: number | null
     subject: string
     backgroundId: string
+    isStrict?: boolean
+    blockSplitScreen?: boolean
   }) => {
     const durationSec = config.focusDurationMin * 60
 
@@ -89,6 +91,8 @@ export function StudentDashboardClient({
       dbSessionId: null,
       groupId: queryGroupId,
       groupName: queryGroupName,
+      isStrict: config.isStrict,
+      blockSplitScreen: config.blockSplitScreen,
     })
 
     setActiveSession(session)

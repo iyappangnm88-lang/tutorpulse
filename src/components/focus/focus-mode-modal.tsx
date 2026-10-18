@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Timer,
   TimerReset,
@@ -13,11 +13,17 @@ import {
   Settings2,
   ShieldAlert,
   ChevronRight,
+  Lock,
+  Columns2,
+  Smartphone,
+  AlertCircle,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import type { FocusMode } from '@/lib/focus/types'
 import { loadAppBlockerConfig, type AppBlockerConfig } from '@/lib/focus/app-blocker-config'
+import { loadFocusPreferences, saveFocusPreferences } from '@/lib/focus/focus-settings'
+import { isAndroidNative } from '@/lib/focus/android-capabilities'
 
 const AppBlockerModal = dynamic(
   () => import('./app-blocker-modal').then((m) => m.AppBlockerModal),
@@ -38,6 +44,8 @@ interface FocusModeModalProps {
   longBreakDurationMin: number
   longBreakInterval: number
   stopwatchTargetMin: number | null
+  initialStrictMode?: boolean
+  initialBlockSplitScreen?: boolean
   onApply: (config: {
     mode: FocusMode
     focusDurationMin: number
@@ -46,6 +54,8 @@ interface FocusModeModalProps {
     longBreakDurationMin: number
     longBreakInterval: number
     stopwatchTargetMin: number | null
+    strictMode?: boolean
+    blockSplitScreen?: boolean
   }) => void
 }
 
@@ -59,6 +69,8 @@ export function FocusModeModal({
   longBreakDurationMin,
   longBreakInterval,
   stopwatchTargetMin,
+  initialStrictMode,
+  initialBlockSplitScreen,
   onApply,
 }: FocusModeModalProps) {
   const [mode, setMode] = useState<FocusMode>(initialMode)
@@ -71,9 +83,29 @@ export function FocusModeModal({
   const [blockerConfig, setBlockerConfig] = useState<AppBlockerConfig>(loadAppBlockerConfig)
   const [isBlockerSheetOpen, setIsBlockerSheetOpen] = useState(false)
 
+  // Focus Mode Upgrade: Strict Mode & Block Split-Screen state
+  const [strictMode, setStrictMode] = useState<boolean>(() => {
+    if (initialStrictMode !== undefined) return initialStrictMode
+    return loadFocusPreferences().strictMode
+  })
+  const [blockSplitScreen, setBlockSplitScreen] = useState<boolean>(() => {
+    if (initialBlockSplitScreen !== undefined) return initialBlockSplitScreen
+    return loadFocusPreferences().blockSplitScreen
+  })
+  const [isAndroid, setIsAndroid] = useState<boolean>(false)
+
+  useEffect(() => {
+    setIsAndroid(isAndroidNative())
+  }, [])
+
   if (!isOpen) return null
 
   const handleSave = () => {
+    saveFocusPreferences({
+      strictMode,
+      blockSplitScreen,
+    })
+
     onApply({
       mode,
       focusDurationMin: focusMin,
@@ -82,6 +114,8 @@ export function FocusModeModal({
       longBreakDurationMin: longBreakMin,
       longBreakInterval: longInterval,
       stopwatchTargetMin: swTargetMin,
+      strictMode,
+      blockSplitScreen,
     })
     onClose()
   }
@@ -398,6 +432,106 @@ export function FocusModeModal({
           >
             <span>Select</span>
             <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* 5. BLOCK SPLIT-SCREEN RESTRICTION */}
+        <div className="p-4.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3.5">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center border shrink-0 transition-colors ${
+              blockSplitScreen
+                ? 'bg-[#6BEA45]/20 text-[#6BEA45] border-[#6BEA45]/40'
+                : 'bg-[#1C261C] text-[#A8B3A5] border-[#293329]'
+            }`}>
+              <Columns2 className="h-5.5 w-5.5" />
+            </div>
+            <div className="min-w-0 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm sm:text-base font-bold text-white">Block Split-Screen</span>
+                {isAndroid ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40">
+                    Android Multi-Window
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#293329] text-[#A8B3A5] border border-white/10">
+                    Android Native App
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#A8B3A5] leading-relaxed">
+                Detects multi-window or split-screen usage during focus and guides you back to full screen to prevent side-by-side multitasking.
+              </p>
+              {!isAndroid && (
+                <p className="text-[11px] text-[#89958C] flex items-center gap-1 pt-0.5">
+                  <Smartphone className="h-3 w-3 shrink-0 text-[#6BEA45]" />
+                  <span>Enforced on NUZIGO Android. Standard web browsers cannot detect OS split-screen.</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={blockSplitScreen}
+            onClick={() => setBlockSplitScreen(!blockSplitScreen)}
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+              blockSplitScreen ? 'bg-[#6BEA45]' : 'bg-[#293329]'
+            }`}
+            title="Toggle Block Split-Screen"
+          >
+            <span
+              className={`pointer-events-none inline-block h-6 w-6 transform rounded-full shadow-md ring-0 transition duration-200 ease-in-out ${
+                blockSplitScreen ? 'translate-x-5 bg-[#0B0F0C]' : 'translate-x-0 bg-white/80'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* 6. STRICT FOCUS MODE */}
+        <div className="p-4.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3.5">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center border shrink-0 transition-colors ${
+              strictMode
+                ? 'bg-[#6BEA45]/20 text-[#6BEA45] border-[#6BEA45]/40'
+                : 'bg-[#1C261C] text-[#A8B3A5] border-[#293329]'
+            }`}>
+              <Lock className="h-5.5 w-5.5" />
+            </div>
+            <div className="min-w-0 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm sm:text-base font-bold text-white">Strict Focus Mode</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40">
+                  Locked Exit
+                </span>
+              </div>
+              <p className="text-xs text-[#A8B3A5] leading-relaxed">
+                Locks the normal End Session action until your timer completes. A discrete emergency exit is always preserved for urgent needs without awarding completion rewards.
+              </p>
+              {mode === 'stopwatch' && !swTargetMin && (
+                <p className="text-[11px] text-amber-300 flex items-center gap-1 pt-0.5">
+                  <AlertCircle className="h-3 w-3 shrink-0" />
+                  <span>Strict Mode requires a target duration so the finish line is clearly defined.</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={strictMode}
+            onClick={() => setStrictMode(!strictMode)}
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+              strictMode ? 'bg-[#6BEA45]' : 'bg-[#293329]'
+            }`}
+            title="Toggle Strict Focus Mode"
+          >
+            <span
+              className={`pointer-events-none inline-block h-6 w-6 transform rounded-full shadow-md ring-0 transition duration-200 ease-in-out ${
+                strictMode ? 'translate-x-5 bg-[#0B0F0C]' : 'translate-x-0 bg-white/80'
+              }`}
+            />
           </button>
         </div>
 

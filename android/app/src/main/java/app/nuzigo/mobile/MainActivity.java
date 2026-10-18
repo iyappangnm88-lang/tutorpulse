@@ -1,5 +1,6 @@
 package app.nuzigo.mobile;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import com.capacitorjs.plugins.app.AppPlugin;
 import com.capacitorjs.plugins.browser.BrowserPlugin;
@@ -18,5 +19,11 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(SplashScreenPlugin.class);
         registerPlugin(StatusBarPlugin.class);
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onMultiWindowModeChanged(boolean isInMultiWindowMode, Configuration newConfig) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig);
+        FocusAndroidPlugin.notifyMultiWindowModeChanged(isInMultiWindowMode);
     }
 }

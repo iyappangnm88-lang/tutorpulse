@@ -13,6 +13,8 @@ export {
   initFocusSyncListener,
 } from './focus-sync'
 export type { PendingFocusSession } from './focus-sync'
+export { loadFocusPreferences, saveFocusPreferences } from './focus-settings'
+export type { FocusPreferences } from './types'
 
 const FOCUS_STORAGE_KEY = 'nuzigo_active_focus_session'
 const FOCUS_BG_STORAGE_KEY = 'nuzigo_focus_background_id'
@@ -181,6 +183,8 @@ export function createMultiModeFocusSession(params: {
   dbSessionId?: string | null
   groupId?: string | null
   groupName?: string | null
+  isStrict?: boolean
+  blockSplitScreen?: boolean
 }): FocusSessionState {
   const mode = params.mode
   const focusDurationSec = Math.max(60, params.focusDurationMin * 60)
@@ -216,6 +220,8 @@ export function createMultiModeFocusSession(params: {
     completedFocusSec: 0,
     stopwatchTargetSec,
     completedAtTimestamp: null,
+    isStrict: Boolean(params.isStrict),
+    blockSplitScreen: Boolean(params.blockSplitScreen),
   }
 
   saveFocusSession(session)
