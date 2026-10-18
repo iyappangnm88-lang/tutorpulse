@@ -1,8 +1,12 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { getOAuthRedirectUrl } from '@/lib/auth-url'
+import { isCapacitorNative } from '@/lib/capacitor'
+
+export { getOAuthRedirectUrl }
 
 interface GoogleSignInButtonProps {
   onError?: (message: string) => void
@@ -36,10 +40,6 @@ export function GoogleIcon({ className = 'h-5 w-5' }: { className?: string }) {
   )
 }
 
-import { getOAuthRedirectUrl } from '@/lib/auth-url'
-import { isCapacitorNative } from '@/lib/capacitor'
-export { getOAuthRedirectUrl }
-
 export function GoogleSignInButton({
   onError,
   disabled = false,
@@ -49,6 +49,13 @@ export function GoogleSignInButton({
   next,
 }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false)
+  const browserListenerRef = useRef<{ remove: () => void } | null>(null)
+
+  useEffect(() => {
+    return () => {
+      browserListenerRef.current?.remove()
+    }
+  }, [])
 
   const handleGoogleSignIn = async () => {
     if (loading || disabled) return
@@ -66,7 +73,7 @@ export function GoogleSignInButton({
             JSON.stringify({ role, next, timestamp: Date.now() })
           )
         } catch {
-          // ignore localStorage failure
+          // ignore localStorage access issues
         }
 
         const redirectTo = 'app.nuzigo.mobile://auth/callback'
@@ -83,7 +90,7 @@ export function GoogleSignInButton({
         })
 
         if (error) {
-          console.error('Google OAuth native initialization error:', error)
+          console.error('Google OAuth native initialization error:', error.message)
           onError?.(error.message || 'Failed to initialize Google Sign-In.')
           setLoading(false)
           return
@@ -92,15 +99,26 @@ export function GoogleSignInButton({
         if (data?.url) {
           try {
             const { Browser } = await import('@capacitor/browser')
-            await Browser.open({ url: data.url, windowName: '_self' })
-          } catch (browserErr: any) {
+
+            // If the user dismisses the Chrome Custom Tab without completing sign-in, reset loading state
+            browserListenerRef.current?.remove()
+            browserListenerRef.current = await Browser.addListener('browserFinished', () => {
+              setLoading(false)
+              browserListenerRef.current?.remove()
+              browserListenerRef.current = null
+            })
+
+            await Browser.open({ url: data.url })
+          } catch (browserErr: unknown) {
+            browserListenerRef.current?.remove()
+            browserListenerRef.current = null
             console.warn('Capacitor Browser.open error, falling back to window.location:', browserErr)
             window.location.href = data.url
           }
         } else {
           onError?.('No authorization URL was returned by Google.')
+          setLoading(false)
         }
-        setLoading(false)
       } else {
         // Standard Web / PWA Flow
         const redirectTo = getOAuthRedirectUrl(undefined, { role, next })
@@ -117,15 +135,16 @@ export function GoogleSignInButton({
         })
 
         if (error) {
-          console.error('Google OAuth initialization error:', error)
+          console.error('Google OAuth initialization error:', error.message)
           onError?.(error.message || 'Failed to initialize Google Sign-In.')
           setLoading(false)
         }
-        // If successful, browser redirects automatically to Google
+        // Web browser automatically navigates to Google sign-in
       }
-    } catch (err: any) {
-      console.error('Google OAuth exception:', err)
-      onError?.(err.message || 'An unexpected error occurred during Google Sign-In.')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred during Google Sign-In.'
+      console.error('Google OAuth exception:', message)
+      onError?.(message)
       setLoading(false)
     }
   }

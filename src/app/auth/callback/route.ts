@@ -13,7 +13,71 @@ export async function GET(request: Request) {
 
   const baseUrl = getAppBaseUrl(request)
 
-  // Handle OAuth provider error (e.g. user cancelled Google sign-in)
+  const isNativeApp =
+    searchParams.get('native') === 'true' ||
+    searchParams.get('app') === '1' ||
+    searchParams.get('source') === 'android'
+
+  // If request originated from or targets the native Android app, forward to the custom scheme
+  if (isNativeApp) {
+    if (oauthError) {
+      const targetScheme = `app.nuzigo.mobile://auth/callback?error=${encodeURIComponent(oauthError)}&error_description=${encodeURIComponent(errorDescription || '')}`
+      return new Response(
+        `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Returning to Nuzigo App...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0;url=${targetScheme}">
+  <script>window.location.href = "${targetScheme}";</script>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding: 48px 20px; background-color: #FAFBEF; color: #172B4D;">
+  <h2>Authentication Status</h2>
+  <p style="color: #6B7280; font-size: 14px;">Returning to Nuzigo app...</p>
+  <p><a href="${targetScheme}" style="display: inline-block; padding: 12px 24px; background-color: #55C832; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: bold; margin-top: 16px;">Open Nuzigo App</a></p>
+</body>
+</html>`,
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Location': targetScheme,
+          },
+        }
+      )
+    }
+
+    if (code) {
+      const targetScheme = `app.nuzigo.mobile://auth/callback?code=${encodeURIComponent(code)}${next ? `&next=${encodeURIComponent(next)}` : ''}${rawRoleParam ? `&role=${encodeURIComponent(rawRoleParam)}` : ''}`
+      return new Response(
+        `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Returning to Nuzigo App...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0;url=${targetScheme}">
+  <script>window.location.href = "${targetScheme}";</script>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding: 48px 20px; background-color: #FAFBEF; color: #172B4D;">
+  <h2>Returning to Nuzigo App...</h2>
+  <p style="color: #6B7280; font-size: 14px;">Please wait while we complete your sign in...</p>
+  <p><a href="${targetScheme}" style="display: inline-block; padding: 12px 24px; background-color: #55C832; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: bold; margin-top: 16px;">Open Nuzigo App</a></p>
+</body>
+</html>`,
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Location': targetScheme,
+          },
+        }
+      )
+    }
+  }
+
+  // Handle OAuth provider error (e.g. user cancelled Google sign-in) for web visitors
   if (oauthError) {
     console.error('OAuth provider error in callback:', oauthError, errorDescription)
     const errMessage = encodeURIComponent(errorDescription || oauthError || 'Authentication was cancelled.')
