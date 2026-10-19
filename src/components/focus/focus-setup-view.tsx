@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import {
   Flame,
@@ -17,6 +18,11 @@ import {
   Columns2,
   AlertTriangle,
   X,
+  Users,
+  User,
+  ChevronDown,
+  Check,
+  ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FOCUS_BACKGROUNDS, type FocusMode, type FocusStats } from '@/lib/focus/types'
@@ -24,6 +30,7 @@ import { loadSavedBackgroundId, saveSelectedBackgroundId } from '@/lib/focus/foc
 import { loadAppBlockerConfig } from '@/lib/focus/app-blocker-config'
 import { loadFocusPreferences, saveFocusPreferences } from '@/lib/focus/focus-settings'
 import { useFocusMusic } from '@/contexts/focus-music-context'
+import type { StudyGroup } from '@/lib/types/study-groups'
 
 const FocusModeModal = dynamic(
   () => import('./focus-mode-modal').then((m) => m.FocusModeModal),
@@ -39,6 +46,10 @@ const FocusMusicModal = dynamic(
 )
 const AppBlockerModal = dynamic(
   () => import('./app-blocker-modal').then((m) => m.AppBlockerModal),
+  { ssr: false }
+)
+const LiveFocusActivityModal = dynamic(
+  () => import('./live-focus-activity-modal').then((m) => m.LiveFocusActivityModal),
   { ssr: false }
 )
 
@@ -68,9 +79,20 @@ interface FocusSetupViewProps {
     blockSplitScreen?: boolean
   }) => void
   focusStats?: FocusStats
+  myStudyGroups?: StudyGroup[]
+  selectedGroupId?: string | null
+  selectedGroupName?: string | null
+  onSelectGroup?: (groupId: string | null, groupName?: string | null) => void
 }
 
-export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps) {
+export function FocusSetupView({
+  onStartFocus,
+  focusStats,
+  myStudyGroups = [],
+  selectedGroupId = null,
+  selectedGroupName = null,
+  onSelectGroup,
+}: FocusSetupViewProps) {
   const [backgroundId, setBackgroundId] = useState<string>(loadSavedBackgroundId())
   const [mode, setMode] = useState<FocusMode>('timer')
   const [focusMin, setFocusMin] = useState<number>(25)
@@ -91,9 +113,12 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
   const [isMusicModalOpen, setIsMusicModalOpen] = useState(false)
   const [isBlockerModalOpen, setIsBlockerModalOpen] = useState(false)
   const [blockerConfig, setBlockerConfig] = useState(loadAppBlockerConfig)
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false)
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false)
 
   const { isPlaying: isMusicPlaying, currentTrack } = useFocusMusic()
 
+  const currentSelectedGroup = myStudyGroups.find((g) => g.id === selectedGroupId)
   const currentBg = FOCUS_BACKGROUNDS.find((b) => b.id === backgroundId) || FOCUS_BACKGROUNDS[0]
 
   // Formatted Center Circle Display
@@ -150,10 +175,159 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/70 pointer-events-none" />
 
       {/* 2. Top Minimal Bar */}
-      <div className="relative z-10 flex items-center justify-between flex-wrap gap-2.5">
-        <div className="flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-semibold shadow-lg min-h-[38px] sm:min-h-[42px]">
-          <Flame className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#6BEA45] fill-current animate-pulse" />
-          <span>Focus Environment</span>
+      <div className="relative z-20 flex items-center justify-between flex-wrap gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-semibold shadow-lg min-h-[38px] sm:min-h-[42px]">
+            <Flame className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#6BEA45] fill-current animate-pulse" />
+            <span>Focus Environment</span>
+          </div>
+
+          {/* Group Selector Dropdown / Pill */}
+          {myStudyGroups.length > 0 ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsGroupDropdownOpen((v) => !v)}
+                className={`flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full backdrop-blur-md border text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-lg min-h-[38px] sm:min-h-[42px] ${
+                  selectedGroupId
+                    ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white hover:bg-[#6BEA45]/30'
+                    : 'bg-black/45 hover:bg-black/65 border-white/20 text-white hover:border-[#6BEA45]/50'
+                }`}
+                title="Select Study Group to focus with"
+              >
+                {selectedGroupId ? (
+                  <>
+                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6BEA45]" />
+                    <span className="max-w-[120px] sm:max-w-[170px] truncate">
+                      {selectedGroupName || currentSelectedGroup?.name || 'Study Group'}
+                    </span>
+                    {currentSelectedGroup?.live_focus_count ? (
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#6BEA45] text-[#0B0F0C] text-[10px] font-black">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#0B0F0C] animate-ping" />
+                        {currentSelectedGroup.live_focus_count}
+                      </span>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
+                    <span>Solo Focus</span>
+                  </>
+                )}
+                <ChevronDown className="w-3.5 h-3.5 text-white/70 ml-0.5" />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isGroupDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsGroupDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 mt-2 z-50 w-72 rounded-2xl bg-[#0F1410] border border-white/20 shadow-2xl p-2 text-white animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-2.5 py-1.5 text-[11px] font-bold text-white/50 uppercase tracking-wider">
+                      Study Focus Mode
+                    </div>
+
+                    {/* Solo Option */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelectGroup?.(null, null)
+                        setIsGroupDropdownOpen(false)
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                        !selectedGroupId
+                          ? 'bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/30'
+                          : 'hover:bg-white/10 text-white/90'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        <span>Solo Focus</span>
+                      </div>
+                      {!selectedGroupId && <Check className="w-3.5 h-3.5 text-[#6BEA45]" />}
+                    </button>
+
+                    <div className="my-1.5 border-t border-white/10" />
+                    <div className="px-2.5 py-1 text-[11px] font-bold text-white/50 uppercase tracking-wider flex items-center justify-between">
+                      <span>My Study Groups</span>
+                      <Link
+                        href="/student/study-groups"
+                        className="text-[10px] text-[#6BEA45] hover:underline flex items-center gap-0.5"
+                      >
+                        All <ExternalLink className="w-2.5 h-2.5" />
+                      </Link>
+                    </div>
+
+                    <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                      {myStudyGroups.map((g) => {
+                        const isSelected = selectedGroupId === g.id
+                        return (
+                          <button
+                            key={g.id}
+                            type="button"
+                            onClick={() => {
+                              onSelectGroup?.(g.id, g.name)
+                              setIsGroupDropdownOpen(false)
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/30'
+                                : 'hover:bg-white/10 text-white/90'
+                            }`}
+                          >
+                            <div className="flex flex-col min-w-0 pr-2">
+                              <span className="font-bold truncate">{g.name}</span>
+                              <span className="text-[10px] text-white/60 truncate">
+                                {g.subject || 'General'} • {g.member_count} members
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {g.live_focus_count > 0 && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-[#6BEA45]/20 text-[#6BEA45] text-[10px] font-bold">
+                                  {g.live_focus_count} live
+                                </span>
+                              )}
+                              {isSelected && <Check className="w-3.5 h-3.5 text-[#6BEA45]" />}
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/student/study-groups"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md border border-white/20 hover:border-[#6BEA45]/50 text-white text-xs sm:text-sm font-semibold transition-all shadow-lg min-h-[38px] sm:min-h-[42px] group"
+              title="Join a Study Group to focus together"
+            >
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6BEA45] group-hover:scale-110 transition-transform" />
+              <span>Study with Peers</span>
+              <span className="text-[10px] text-[#6BEA45] bg-[#6BEA45]/15 px-1.5 py-0.5 rounded-full">
+                Join
+              </span>
+            </Link>
+          )}
+
+          {/* Clickable Live Room Activity Pill Button */}
+          {selectedGroupId && (
+            <button
+              type="button"
+              onClick={() => setIsActivityModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#6BEA45]/15 hover:bg-[#6BEA45]/25 border border-[#6BEA45]/40 text-[#6BEA45] text-xs font-bold transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95 min-h-[38px] sm:min-h-[42px]"
+              title="View Live Study Room Activity"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6BEA45] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6BEA45]" />
+              </span>
+              <span>Room Activity</span>
+            </button>
+          )}
         </div>
 
         {/* Top Control Chips: Music & Theme */}
@@ -407,6 +581,21 @@ export function FocusSetupView({ onStartFocus, focusStats }: FocusSetupViewProps
           </div>
         </div>
       )}
+
+      {/* Live Focus Activity & Shared Sprints Modal */}
+      <LiveFocusActivityModal
+        isOpen={isActivityModalOpen}
+        onClose={() => setIsActivityModalOpen(false)}
+        groupId={selectedGroupId}
+        groupName={selectedGroupName || currentSelectedGroup?.name}
+        currentElapsedSeconds={0}
+        isSessionRunning={false}
+        onJoinSharedSprint={(durationMin, sprintTitle) => {
+          setFocusMin(durationMin)
+          setSubject(sprintTitle || subject)
+          setIsActivityModalOpen(false)
+        }}
+      />
     </div>
   )
 }

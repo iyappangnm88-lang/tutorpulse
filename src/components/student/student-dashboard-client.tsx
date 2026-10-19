@@ -18,19 +18,68 @@ import {
 } from '@/lib/focus/focus-timer'
 import { startFocusSessionAction } from '@/app/student/actions'
 
+import type { StudyGroup } from '@/lib/types/study-groups'
+
 interface StudentDashboardClientProps {
   focusStats?: FocusStats
   data?: { focusStats?: FocusStats }
+  myStudyGroups?: StudyGroup[]
 }
+
+const STORAGE_KEY_SELECTED_GROUP = 'nuzigo_last_selected_focus_group_id'
 
 export function StudentDashboardClient({
   focusStats,
   data,
+  myStudyGroups = [],
 }: StudentDashboardClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const queryGroupId = searchParams.get('groupId')
   const queryGroupName = searchParams.get('groupName')
+
+  // Selected Group State with localStorage persistence & URL fallback
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
+    if (queryGroupId) return queryGroupId
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY_SELECTED_GROUP)
+      if (saved) return saved
+    }
+    return null
+  })
+
+  const [selectedGroupName, setSelectedGroupName] = useState<string | null>(() => {
+    if (queryGroupName) return queryGroupName
+    if (queryGroupId && myStudyGroups.length > 0) {
+      const found = myStudyGroups.find((g) => g.id === queryGroupId)
+      if (found) return found.name
+    }
+    return null
+  })
+
+  // Synchronize group name whenever myStudyGroups or selectedGroupId changes
+  useEffect(() => {
+    if (selectedGroupId && myStudyGroups.length > 0) {
+      const match = myStudyGroups.find((g) => g.id === selectedGroupId)
+      if (match) {
+        setSelectedGroupName(match.name)
+      }
+    } else if (!selectedGroupId) {
+      setSelectedGroupName(null)
+    }
+  }, [selectedGroupId, myStudyGroups])
+
+  const handleSelectGroup = useCallback((groupId: string | null, groupName?: string | null) => {
+    setSelectedGroupId(groupId)
+    setSelectedGroupName(groupName || null)
+    if (typeof window !== 'undefined') {
+      if (groupId) {
+        localStorage.setItem(STORAGE_KEY_SELECTED_GROUP, groupId)
+      } else {
+        localStorage.removeItem(STORAGE_KEY_SELECTED_GROUP)
+      }
+    }
+  }, [])
 
   const initialServerStats = focusStats || data?.focusStats
   const [stats, setStats] = useState<FocusStats | undefined>(() => {
@@ -89,8 +138,8 @@ export function StudentDashboardClient({
       subject: config.subject,
       backgroundId: config.backgroundId,
       dbSessionId: null,
-      groupId: queryGroupId,
-      groupName: queryGroupName,
+      groupId: selectedGroupId,
+      groupName: selectedGroupName,
       isStrict: config.isStrict,
       blockSplitScreen: config.blockSplitScreen,
     })
@@ -98,7 +147,7 @@ export function StudentDashboardClient({
     setActiveSession(session)
 
     // 2. Fire database session creation in background without blocking UI
-    startFocusSessionAction(durationSec, config.subject, queryGroupId)
+    startFocusSessionAction(durationSec, config.subject, selectedGroupId)
       .then((res) => {
         if (res.success && res.data?.sessionId) {
           const updatedSession: FocusSessionState = {
@@ -112,7 +161,7 @@ export function StudentDashboardClient({
       .catch(() => {
         // Ignored; local session will sync upon completion
       })
-  }, [queryGroupId, queryGroupName])
+  }, [selectedGroupId, selectedGroupName])
 
   // Handle session complete or exit
   const handleExitFocusMode = useCallback(() => {
@@ -134,6 +183,10 @@ export function StudentDashboardClient({
         <FocusSetupView
           onStartFocus={handleStartFocus}
           focusStats={stats}
+          myStudyGroups={myStudyGroups}
+          selectedGroupId={selectedGroupId}
+          selectedGroupName={selectedGroupName}
+          onSelectGroup={handleSelectGroup}
         />
       )}
     </FocusMusicProvider>

@@ -7,6 +7,8 @@ import {
   type StudyGroupLiveUser,
   type StudyGroupJoinRequest,
   type GroupLeaderboardTier,
+  type GroupGoalProgress,
+  type SharedFocusSession,
   getStartOfWeek,
   getStartOfDay,
   formatDuration,
@@ -20,6 +22,8 @@ export type {
   StudyGroupLiveUser,
   StudyGroupJoinRequest,
   GroupLeaderboardTier,
+  GroupGoalProgress,
+  SharedFocusSession,
 }
 
 export {
@@ -577,11 +581,13 @@ export interface StudyGroupFocusActivityResponse {
   focusing: FocusActivityStudent[]
   idle: FocusActivityStudent[]
   totalMembers: number
+  goalProgress?: GroupGoalProgress
+  sharedSessions?: SharedFocusSession[]
 }
 
 /**
- * Loads real-time group focus activity partitioned into focusing (sorted ascending by minutes)
- * and idle non-focusing members with zero ranking pollution.
+ * Loads real-time group focus activity partitioned into focusing (sorted ascending by minutes),
+ * idle non-focusing members, daily group study goal progress, and active shared focus sessions.
  */
 export async function getStudyGroupFocusActivityData(
   groupId: string,
@@ -662,10 +668,104 @@ export async function getStudyGroupFocusActivityData(
     // Sort idle students alphabetically by name
     idle.sort((a, b) => a.name.localeCompare(b.name))
 
+    // 4. Calculate Group Study Goal Progress for today (verified focus minutes)
+    let goalProgress: GroupGoalProgress | undefined
+    try {
+      const startOfDayIso = getStartOfDay().toISOString()
+      const [groupDataRes, groupFocusRes] = await Promise.all([
+        supabase
+          .from('study_groups')
+          .select('daily_goal_minutes, group_goal')
+          .eq('id', groupId)
+          .maybeSingle(),
+        supabase
+          .from('focus_sessions')
+          .select('student_user_id, actual_duration_sec')
+          .eq('group_id', groupId)
+          .gte('started_at', startOfDayIso),
+      ])
+
+      const dailyTargetMin = groupDataRes.data?.daily_goal_minutes || 120
+      const todaySessions = groupFocusRes.data || []
+      let totalSecToday = 0
+      const contributors = new Set<string>()
+
+      for (const s of todaySessions) {
+        if (s.actual_duration_sec && s.actual_duration_sec > 0) {
+          totalSecToday += s.actual_duration_sec
+          if (s.student_user_id) contributors.add(s.student_user_id)
+        }
+      }
+
+      const totalMinutesToday = Math.floor(totalSecToday / 60)
+      goalProgress = {
+        dailyGoalMinutes: dailyTargetMin,
+        totalMinutesToday,
+        remainingMinutes: Math.max(0, dailyTargetMin - totalMinutesToday),
+        percentage: Math.min(100, Math.round((totalMinutesToday / Math.max(1, dailyTargetMin)) * 100)),
+        isCompleted: totalMinutesToday >= dailyTargetMin,
+        contributorCount: contributors.size,
+      }
+    } catch {
+      // Fallback if goal cannot be calculated
+    }
+
+    // 5. Fetch Active or Upcoming Shared Focus Sessions
+    let sharedSessions: SharedFocusSession[] = []
+    try {
+      const { data: sharedRaw } = await supabase
+        .from('study_group_shared_sessions')
+        .select(`
+          id,
+          group_id,
+          created_by,
+          title,
+          duration_min,
+          scheduled_start,
+          status,
+          created_at
+        `)
+        .eq('group_id', groupId)
+        .in('status', ['active', 'scheduled'])
+        .order('scheduled_start', { ascending: true })
+        .limit(5)
+
+      if (sharedRaw && sharedRaw.length > 0) {
+        const sessionIds = sharedRaw.map((s: { id: string }) => s.id)
+        const { data: participantsRaw } = await supabase
+          .from('study_group_shared_session_participants')
+          .select('session_id, user_id')
+          .in('session_id', sessionIds)
+
+        const participantsBySession = new Map<string, string[]>()
+        ;(participantsRaw || []).forEach((p: { session_id: string; user_id: string }) => {
+          const list = participantsBySession.get(p.session_id) || []
+          list.push(p.user_id)
+          participantsBySession.set(p.session_id, list)
+        })
+
+        sharedSessions = sharedRaw.map((s: any) => {
+          const membersInSession = participantsBySession.get(s.id) || []
+          const creatorProfile = profilesMap.get(s.created_by)
+          return {
+            ...s,
+            participant_count: membersInSession.length,
+            is_joined_by_me: membersInSession.includes(currentUserId),
+            creator_name: creatorProfile?.full_name || 'Member',
+          }
+        })
+      }
+    } catch {
+      // Degrades gracefully if table not yet migrated
+      sharedSessions = []
+    }
+
     return {
       focusing,
       idle,
       totalMembers: memberUserIds.length,
+      goalProgress,
+      sharedSessions,
     }
   } catch (err) {
     console.error('Error fetching group focus activity:', err)

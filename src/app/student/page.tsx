@@ -2,6 +2,7 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getStudentFocusStats } from '@/lib/student-portal'
+import { getMyStudyGroups } from '@/lib/study-groups'
 import { StudentDashboardClient } from '@/components/student/student-dashboard-client'
 
 export const dynamic = 'force-dynamic'
@@ -16,8 +17,11 @@ export default async function StudentDashboardPage() {
     redirect('/login')
   }
 
-  const focusStats = await getStudentFocusStats(user.id)
+  const [focusStats, myStudyGroups] = await Promise.all([
+    getStudentFocusStats(user.id),
+    getMyStudyGroups(user.id),
+  ])
 
-  return <StudentDashboardClient focusStats={focusStats} />
+  return <StudentDashboardClient focusStats={focusStats} myStudyGroups={myStudyGroups} />
 }
 

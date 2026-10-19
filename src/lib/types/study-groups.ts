@@ -7,6 +7,7 @@ export interface StudyGroup {
   visibility: 'public' | 'private'
   max_members: number
   group_goal: string
+  daily_goal_minutes?: number
   group_image_url?: string | null
   created_by: string
   created_at: string
@@ -206,3 +207,41 @@ export function calculateLeaderboardTiers(members: StudyGroupMember[]): {
 
   return { rankedMembers, tiers }
 }
+
+export interface SharedFocusSession {
+  id: string
+  group_id: string
+  created_by: string
+  title: string
+  duration_min: number
+  scheduled_start: string
+  status: 'scheduled' | 'active' | 'completed' | 'cancelled'
+  created_at: string
+  participant_count?: number
+  is_joined_by_me?: boolean
+  creator_name?: string
+}
+
+export interface GroupGoalProgress {
+  dailyGoalMinutes: number
+  totalMinutesToday: number
+  remainingMinutes: number
+  percentage: number
+  isCompleted: boolean
+  contributorCount: number
+}
+
+export interface FocusEncouragementReaction {
+  id: string
+  emoji: string
+  label: string
+}
+
+export const ENCOURAGEMENT_REACTIONS: FocusEncouragementReaction[] = [
+  { id: 'clap', emoji: '👏', label: 'Keep going!' },
+  { id: 'fire', emoji: '🔥', label: 'Great focus!' },
+  { id: 'rocket', emoji: '🚀', label: 'You got this!' },
+  { id: 'zap', emoji: '⚡', label: 'High energy!' },
+  { id: 'brain', emoji: '🧠', label: 'Lock in!' },
+]
+

@@ -4,9 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import {
   getStartOfDay,
+  getMyStudyGroups,
   getStudyGroupFocusActivityData,
   type StudyGroupFocusActivityResponse,
 } from '@/lib/study-groups'
+import type { StudyGroup } from '@/lib/types/study-groups'
 
 interface ActionResponse<T = unknown> {
   success: boolean
@@ -692,4 +694,221 @@ export async function getStudyGroupFocusActivityAction(
     return { success: false, error: message }
   }
 }
+
+/**
+ * Fetches the user's joined study groups for the Focus group selector.
+ */
+export async function getMyJoinedStudyGroupsAction(): Promise<ActionResponse<StudyGroup[]>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Authentication required.' }
+    }
+
+    const groups = await getMyStudyGroups(user.id)
+    return { success: true, data: groups }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error fetching joined study groups.'
+    return { success: false, error: message }
+  }
+}
+
+/**
+ * Creates a shared focus sprint/session for a study group.
+ */
+export async function createSharedFocusSessionAction(params: {
+  groupId: string
+  title: string
+  durationMinutes: number
+  scheduledFor?: string
+}): Promise<ActionResponse<{ sessionId: string }>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Authentication required.' }
+    }
+
+    const title = params.title.trim() || 'Group Focus Sprint'
+    const durationMin = Math.max(5, Math.min(180, params.durationMinutes || 25))
+    const scheduledStart = params.scheduledFor || new Date().toISOString()
+    const scheduledTime = new Date(scheduledStart).getTime()
+    const isNow = scheduledTime <= Date.now() + 2 * 60 * 1000
+    const status = isNow ? 'active' : 'scheduled'
+
+    // Verify user is a member of the group
+    const { data: member } = await supabase
+      .from('study_group_members')
+      .select('id')
+      .eq('group_id', params.groupId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!member) {
+      return { success: false, error: 'You must be a member of this study group.' }
+    }
+
+    const { data: session, error: sessionErr } = await supabase
+      .from('study_group_shared_sessions')
+      .insert({
+        group_id: params.groupId,
+        created_by: user.id,
+        title,
+        duration_min: durationMin,
+        scheduled_start: scheduledStart,
+        status,
+      })
+      .select('id')
+      .single()
+
+    if (sessionErr || !session) {
+      return { success: false, error: sessionErr?.message || 'Failed to create shared session.' }
+    }
+
+    // Automatically join creator to participants
+    await supabase.from('study_group_shared_session_participants').insert({
+      session_id: session.id,
+      user_id: user.id,
+    })
+
+    // Post notification message to study group chat
+    try {
+      await supabase.from('study_group_messages').insert({
+        group_id: params.groupId,
+        user_id: user.id,
+        content: `🎯 started a ${durationMin}m shared focus sprint: "${title}"`,
+      })
+    } catch {
+      // Ignored if messages table has other rules
+    }
+
+    revalidatePath(`/student/study-groups/${params.groupId}`)
+    return { success: true, data: { sessionId: session.id } }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error creating shared session.'
+    return { success: false, error: message }
+  }
+}
+
+/**
+ * Joins or RSVPs to a shared focus sprint session.
+ */
+export async function joinSharedFocusSessionAction(
+  sessionId: string,
+  groupId: string
+): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Authentication required.' }
+    }
+
+    // Verify membership
+    const { data: member } = await supabase
+      .from('study_group_members')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!member) {
+      return { success: false, error: 'You must be a member of this study group.' }
+    }
+
+    const { error: partErr } = await supabase
+      .from('study_group_shared_session_participants')
+      .upsert(
+        {
+          session_id: sessionId,
+          user_id: user.id,
+          joined_at: new Date().toISOString(),
+        },
+        { onConflict: 'session_id,user_id' }
+      )
+
+    if (partErr) {
+      return { success: false, error: partErr.message }
+    }
+
+    return { success: true }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error joining shared session.'
+    return { success: false, error: message }
+  }
+}
+
+/**
+ * Sends a lightweight encouragement reaction to the group study room.
+ * Rate limited to 1 reaction per 30 seconds to prevent noise/spam.
+ */
+export async function sendStudyGroupEncouragementAction(
+  groupId: string,
+  emoji: string
+): Promise<ActionResponse> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Authentication required.' }
+    }
+
+    // Verify membership
+    const { data: member } = await supabase
+      .from('study_group_members')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!member) {
+      return { success: false, error: 'You must be a member of this study group.' }
+    }
+
+    // Soft rate limit: 1 reaction per 30 seconds
+    const thirtySecAgo = new Date(Date.now() - 30 * 1000).toISOString()
+    const { count: recentCount } = await supabase
+      .from('study_group_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('group_id', groupId)
+      .eq('user_id', user.id)
+      .gte('created_at', thirtySecAgo)
+
+    if ((recentCount || 0) > 0) {
+      return { success: false, error: 'Please wait a moment before sending another encouragement.' }
+    }
+
+    const validEmojis = ['👏', '🔥', '🚀', '⚡', '🧠']
+    const safeEmoji = validEmojis.includes(emoji) ? emoji : '👏'
+
+    const { error: insErr } = await supabase.from('study_group_messages').insert({
+      group_id: groupId,
+      user_id: user.id,
+      content: `${safeEmoji} sent focus encouragement!`,
+    })
+
+    if (insErr) {
+      return { success: false, error: insErr.message }
+    }
+
+    return { success: true }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error sending encouragement.'
+    return { success: false, error: message }
+  }
+}
+
 

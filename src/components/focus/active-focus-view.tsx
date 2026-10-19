@@ -61,7 +61,10 @@ import {
   completeFocusSessionAction,
   endFocusSessionAction,
 } from '@/app/student/actions'
-import { heartbeatStudyGroupLiveFocusAction } from '@/app/student/study-groups/actions'
+import {
+  heartbeatStudyGroupLiveFocusAction,
+  leaveStudyGroupLiveFocusAction,
+} from '@/app/student/study-groups/actions'
 import { useFocusMusic } from '@/contexts/focus-music-context'
 
 const FocusBackgroundSelector = dynamic(
@@ -422,6 +425,9 @@ export function ActiveFocusView({
 
     // 1. Instant local rewards & state update
     stopNativeAppBlocking().catch(() => {})
+    if (currentSession.groupId) {
+      leaveStudyGroupLiveFocusAction(currentSession.groupId).catch(() => {})
+    }
     setCompletionRewards({ xp, coins })
     const completed = endFocusSession(currentSession, true, xp, coins)
     setCurrentSession(completed)
@@ -478,12 +484,18 @@ export function ActiveFocusView({
       if (currentSession.dbSessionId) {
         pauseFocusSessionAction(currentSession.dbSessionId, elapsedInPhase, currentSession.groupId).catch(() => {})
       }
+      if (currentSession.groupId) {
+        heartbeatStudyGroupLiveFocusAction(currentSession.groupId, currentSession.subject, true).catch(() => {})
+      }
     } else if (currentSession.status === 'paused') {
       const resumed = resumeFocusSession(currentSession)
       setCurrentSession(resumed)
       onUpdateSession(resumed)
       if (currentSession.dbSessionId) {
         resumeFocusSessionAction(currentSession.dbSessionId, currentSession.groupId).catch(() => {})
+      }
+      if (currentSession.groupId) {
+        heartbeatStudyGroupLiveFocusAction(currentSession.groupId, currentSession.subject, false).catch(() => {})
       }
     }
   }
@@ -499,6 +511,9 @@ export function ActiveFocusView({
 
     // 1. Instant local completion & stop blocker
     stopNativeAppBlocking().catch(() => {})
+    if (currentSession.groupId) {
+      leaveStudyGroupLiveFocusAction(currentSession.groupId).catch(() => {})
+    }
     endFocusSession(currentSession, false, partialXp, 0)
     if (totalFocus > 0) {
       updateLocalFocusStatsOptimistic(totalFocus, currentSession.subject)
@@ -540,6 +555,9 @@ export function ActiveFocusView({
 
     // 1. Immediately clean up local native blockers and audio
     stopNativeAppBlocking().catch(() => {})
+    if (currentSession.groupId) {
+      leaveStudyGroupLiveFocusAction(currentSession.groupId).catch(() => {})
+    }
     stopMusic()
 
     // 2. Clear active session state without awarding completion-only rewards
@@ -631,6 +649,16 @@ export function ActiveFocusView({
               </div>
             </div>
           </div>
+
+          {/* Group Daily Goal Contribution Banner */}
+          {currentSession.groupId && (
+            <div className="p-3 rounded-2xl bg-[#6BEA45]/10 border border-[#6BEA45]/25 text-[#6BEA45] flex items-center justify-center gap-2 text-xs font-bold shadow-xs">
+              <span>🎯</span>
+              <span>
+                +{Math.max(1, Math.floor(currentSession.completedFocusSec / 60) || Math.floor(currentSession.focusDurationSec / 60))}m contributed to {currentSession.groupName || 'Study Group'}&apos;s Daily Goal!
+              </span>
+            </div>
+          )}
 
           <Button
             size="lg"
