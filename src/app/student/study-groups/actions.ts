@@ -688,7 +688,7 @@ export async function getStudyGroupFocusActivityAction(
     }
 
     const activity = await getStudyGroupFocusActivityData(groupId, user.id)
-    return { success: true, data: activity }
+    return { success: true, data: { ...activity, currentUserId: user.id } }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error fetching focus activity.'
     return { success: false, error: message }

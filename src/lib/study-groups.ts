@@ -461,7 +461,7 @@ export async function getStudyGroupDetails(
         joined_at: m.joined_at,
         user: {
           id: m.user_id,
-          full_name: p?.full_name || (m.user_id === userId ? 'You' : 'Student'),
+          full_name: m.user_id === userId ? 'You' : (p?.full_name || 'Student'),
           avatar_url: p?.avatar_url || null,
         },
         weekly_focus_seconds: userFocusMap.get(m.user_id) || 0,
@@ -471,8 +471,14 @@ export async function getStudyGroupDetails(
     const { rankedMembers, tiers } = calculateLeaderboardTiers(members)
     const myMemberRecord = rankedMembers.find((m) => m.user_id === userId) || null
 
-    // 10. Format live users
-    const liveUsers: StudyGroupLiveUser[] = rawLive.map((l) => {
+    // 10. Format live users (deduplicated by user_id)
+    const seenLive = new Set<string>()
+    const dedupedLive = rawLive.filter((l) => {
+      if (seenLive.has(l.user_id)) return false
+      seenLive.add(l.user_id)
+      return true
+    })
+    const liveUsers: StudyGroupLiveUser[] = dedupedLive.map((l) => {
       const p = profilesMap.get(l.user_id)
       const start = new Date(l.started_at).getTime()
       const now = Date.now()
@@ -489,7 +495,7 @@ export async function getStudyGroupDetails(
         duration_seconds: dur,
         user: {
           id: l.user_id,
-          full_name: p?.full_name || (l.user_id === userId ? 'You' : 'Student'),
+          full_name: l.user_id === userId ? 'You' : (p?.full_name || 'Student'),
           avatar_url: p?.avatar_url || null,
         },
       }
@@ -581,6 +587,7 @@ export interface StudyGroupFocusActivityResponse {
   focusing: FocusActivityStudent[]
   idle: FocusActivityStudent[]
   totalMembers: number
+  currentUserId?: string
   goalProgress?: GroupGoalProgress
   sharedSessions?: SharedFocusSession[]
 }
@@ -633,7 +640,7 @@ export async function getStudyGroupFocusActivityData(
 
     for (const uid of memberUserIds) {
       const p = profilesMap.get(uid)
-      const name = p?.full_name || (uid === currentUserId ? 'You' : 'Student')
+      const name = uid === currentUserId ? 'You' : (p?.full_name || 'Student')
       const avatarUrl = p?.avatar_url || null
 
       const liveRecord = liveUserMap.get(uid)
@@ -764,6 +771,7 @@ export async function getStudyGroupFocusActivityData(
       focusing,
       idle,
       totalMembers: memberUserIds.length,
+      currentUserId,
       goalProgress,
       sharedSessions,
     }

@@ -14,6 +14,8 @@ import {
   ArrowLeft,
   LogOut,
   Target,
+  Trophy,
+  MessageSquare,
 } from 'lucide-react'
 import {
   type StudyGroup,
@@ -65,6 +67,7 @@ export function StudyGroupClient({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const [isLeaving, setIsLeaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'live-study' | 'messages'>('leaderboard')
 
   const isMember = !!myRole
   const isPending = myRequestStatus === 'pending'
@@ -231,21 +234,76 @@ export function StudyGroupClient({
         </div>
       </div>
 
-      {/* Grid: Main Left Column (Live Now + Leaderboard) and Right Column (Chat) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left 7 Columns */}
-        <div className="lg:col-span-7 space-y-6">
-          <LiveNowSection liveUsers={liveUsers} onStartFocus={handleStartFocus} />
+      {/* Section Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-gray-200 dark:border-[#293329] pb-3 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('leaderboard')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap min-h-[42px] ${
+            activeTab === 'leaderboard'
+              ? 'bg-[#55C832] text-white shadow-xs'
+              : 'bg-gray-100 hover:bg-gray-200 dark:bg-[#1C261C] dark:hover:bg-[#253325] text-gray-600 dark:text-gray-300'
+          }`}
+        >
+          <Trophy className="h-4 w-4" />
+          <span>Leaderboard</span>
+        </button>
 
+        <button
+          type="button"
+          onClick={() => setActiveTab('live-study')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap min-h-[42px] ${
+            activeTab === 'live-study'
+              ? 'bg-[#55C832] text-white shadow-xs'
+              : 'bg-gray-100 hover:bg-gray-200 dark:bg-[#1C261C] dark:hover:bg-[#253325] text-gray-600 dark:text-gray-300'
+          }`}
+        >
+          <Flame className={`h-4 w-4 ${group.live_focus_count > 0 ? 'text-orange-500 fill-orange-500 animate-pulse' : ''}`} />
+          <span>Live Study</span>
+          {group.live_focus_count > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+              activeTab === 'live-study' ? 'bg-white text-[#318A25]' : 'bg-orange-500 text-white'
+            }`}>
+              {group.live_focus_count}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('messages')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap min-h-[42px] ${
+            activeTab === 'messages'
+              ? 'bg-[#55C832] text-white shadow-xs'
+              : 'bg-gray-100 hover:bg-gray-200 dark:bg-[#1C261C] dark:hover:bg-[#253325] text-gray-600 dark:text-gray-300'
+          }`}
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span>Messages</span>
+        </button>
+      </div>
+
+      {/* Tab 1: Leaderboard (Default) */}
+      <div className={activeTab === 'leaderboard' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+        <div className="max-w-4xl">
           <GroupLeaderboard
             tiers={tiers}
             rankedMembers={rankedMembers}
             currentUserId={currentUserId}
           />
         </div>
+      </div>
 
-        {/* Right 5 Columns */}
-        <div className="lg:col-span-5 space-y-6">
+      {/* Tab 2: Live Study */}
+      <div className={activeTab === 'live-study' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+        <div className="max-w-4xl">
+          <LiveNowSection liveUsers={liveUsers} onStartFocus={handleStartFocus} />
+        </div>
+      </div>
+
+      {/* Tab 3: Messages */}
+      <div className={activeTab === 'messages' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+        <div className="max-w-4xl">
           <GroupChat
             groupId={group.id}
             initialMessages={messages}

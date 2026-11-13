@@ -25,7 +25,6 @@ import {
   WifiOff,
   ShieldAlert,
   Columns2,
-  LifeBuoy,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -121,10 +120,7 @@ export function ActiveFocusView({
   const [restoredBanner, setRestoredBanner] = useState<string | null>(null)
   const [isNativeAndroid, setIsNativeAndroid] = useState<boolean>(false)
   const [isStrictLockedNoticeOpen, setIsStrictLockedNoticeOpen] = useState<boolean>(false)
-  const [isEmergencyExitOpen, setIsEmergencyExitOpen] = useState<boolean>(false)
-  const [emergencyUnlockProgress, setEmergencyUnlockProgress] = useState<number>(0)
-  const [isEmergencyUnlocked, setIsEmergencyUnlocked] = useState<boolean>(false)
-  const [isFocusActivityOpen, setIsFocusActivityOpen] = useState<boolean>(false)
+const [isFocusActivityOpen, setIsFocusActivityOpen] = useState<boolean>(false)
 
   const { isPlaying: isMusicPlaying, currentTrack, toggleMute, isMuted, stop: stopMusic } = useFocusMusic()
 
@@ -290,33 +286,7 @@ export function ActiveFocusView({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [currentSession.isStrict])
 
-  // Deliberate Emergency Exit Protective Delay Loop (3 seconds deliberate delay)
-  useEffect(() => {
-    if (!isEmergencyExitOpen) {
-      setEmergencyUnlockProgress(0)
-      setIsEmergencyUnlocked(false)
-      return
-    }
-
-    setEmergencyUnlockProgress(0)
-    setIsEmergencyUnlocked(false)
-
-    const durationMs = 3000
-    const startTime = Date.now()
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime
-      const progress = Math.min(100, (elapsed / durationMs) * 100)
-      setEmergencyUnlockProgress(progress)
-
-      if (progress >= 100) {
-        setIsEmergencyUnlocked(true)
-        clearInterval(interval)
-      }
-    }, 25)
-
-    return () => clearInterval(interval)
-  }, [isEmergencyExitOpen])
+  
 
   // Right-to-left protective cover animation loop when confirmation dialog opens
   useEffect(() => {
@@ -547,38 +517,7 @@ export function ActiveFocusView({
     setIsEndingConfirmOpen(false)
   }
 
-  // Emergency Exit Handler for Strict Mode (Offline Resilient, 0 Completion Rewards)
-  const handleEmergencyExit = async () => {
-    if (!isEmergencyUnlocked || isProcessing) return
-
-    setIsProcessing(true)
-
-    // 1. Immediately clean up local native blockers and audio
-    stopNativeAppBlocking().catch(() => {})
-    if (currentSession.groupId) {
-      leaveStudyGroupLiveFocusAction(currentSession.groupId).catch(() => {})
-    }
-    stopMusic()
-
-    // 2. Clear active session state without awarding completion-only rewards
-    endFocusSession(currentSession, false, 0, 0)
-
-    // 3. Inform server of abandoned session (if session has db ID)
-    if (currentSession.dbSessionId) {
-      endFocusSessionAction({
-        sessionId: currentSession.dbSessionId,
-        groupId: currentSession.groupId,
-        subject: currentSession.subject,
-        plannedDurationSec: currentSession.focusDurationSec,
-        actualDurationSec: 0,
-      }).catch(() => {})
-    }
-
-    onUpdateSession(null)
-    onExitFocusMode()
-    setIsProcessing(false)
-    setIsEmergencyExitOpen(false)
-  }
+  
 
   // Fullscreen Handler
   const toggleFullscreen = async () => {
@@ -650,15 +589,7 @@ export function ActiveFocusView({
             </div>
           </div>
 
-          {/* Group Daily Goal Contribution Banner */}
-          {currentSession.groupId && (
-            <div className="p-3 rounded-2xl bg-[#6BEA45]/10 border border-[#6BEA45]/25 text-[#6BEA45] flex items-center justify-center gap-2 text-xs font-bold shadow-xs">
-              <span>🎯</span>
-              <span>
-                +{Math.max(1, Math.floor(currentSession.completedFocusSec / 60) || Math.floor(currentSession.focusDurationSec / 60))}m contributed to {currentSession.groupName || 'Study Group'}&apos;s Daily Goal!
-              </span>
-            </div>
-          )}
+          
 
           <Button
             size="lg"
@@ -751,17 +682,7 @@ export function ActiveFocusView({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Emergency Exit Button for Strict Mode */}
-          {currentSession.isStrict && (
-            <button
-              onClick={() => setIsEmergencyExitOpen(true)}
-              className="h-11 px-3.5 rounded-2xl bg-red-950/40 hover:bg-red-900/60 border border-red-500/40 text-red-200 hover:text-white flex items-center gap-1.5 transition-all cursor-pointer text-xs sm:text-sm font-bold min-h-[44px]"
-              title="Discreet Emergency Exit"
-            >
-              <LifeBuoy className="w-4 h-4 text-red-400" />
-              <span>Emergency Exit</span>
-            </button>
-          )}
+          
           {/* Music Player Button in Active Mode */}
           <button
             onClick={() => setIsMusicModalOpen(true)}
@@ -1053,7 +974,7 @@ export function ActiveFocusView({
               You committed to a strict focus session. The standard End Session action is locked until your timer of <strong className="text-white">{formattedTime}</strong> finishes.
             </p>
             <p className="text-xs text-white/60">
-              Need to leave for an urgent medical or critical matter? Use the discreet <strong className="text-white">Emergency Exit</strong> button in the top bar.
+              Your session is locked in Strict Mode to ensure deep uninterrupted focus until the timer completes.
             </p>
             <Button
               size="lg"
@@ -1062,82 +983,6 @@ export function ActiveFocusView({
             >
               Got it, Continue Focusing
             </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Emergency Exit Confirmation Modal (Offline Resilient, Non-Shaming) */}
-      {isEmergencyExitOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="max-w-md w-full p-6 sm:p-7 rounded-3xl bg-[#161D16] border border-red-500/40 shadow-2xl space-y-5 text-white flex flex-col">
-            <div className="space-y-2 text-center">
-              <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto mb-3">
-                <LifeBuoy className="h-6 w-6" />
-              </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                Emergency Exit
-              </h3>
-              <p className="text-xs sm:text-sm text-[#A8B3A5] leading-relaxed">
-                Need to step away? We understand genuine urgent situations happen. Exiting now will terminate your strict session immediately.
-              </p>
-              <div className="p-3 rounded-xl bg-black/40 border border-[#293329] text-xs text-amber-300">
-                Notice: Completion rewards (XP, coins, streaks) are not awarded for early exits.
-              </div>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              {/* Option 1: Stay in session */}
-              <Button
-                size="lg"
-                onClick={() => setIsEmergencyExitOpen(false)}
-                className="w-full h-14 rounded-2xl bg-[#6BEA45] hover:bg-[#58D333] text-[#0B0F0C] font-black text-sm sm:text-base shadow-[0_0_25px_rgba(107,234,69,0.35)] cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Play className="h-4 w-4 fill-current" />
-                <span>Stay in Focus Session</span>
-              </Button>
-
-              {/* Option 2: Confirm Emergency Exit (Deliberate protective release) */}
-              <div className="relative w-full">
-                <button
-                  type="button"
-                  onClick={handleEmergencyExit}
-                  disabled={!isEmergencyUnlocked || isProcessing}
-                  className={`relative w-full h-14 rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2.5 overflow-hidden select-none ${
-                    isEmergencyUnlocked
-                      ? 'bg-red-950/80 hover:bg-red-900 border border-red-500 text-red-100 hover:text-white shadow-[0_0_20px_rgba(239,68,68,0.3)] cursor-pointer'
-                      : 'bg-[#111711] border border-[#293329] text-[#71806F] cursor-not-allowed'
-                  }`}
-                >
-                  {isProcessing ? (
-                    <span className="flex items-center gap-2 text-white">
-                      <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Exiting...</span>
-                    </span>
-                  ) : isEmergencyUnlocked ? (
-                    <>
-                      <X className="h-4 w-4 text-red-400" />
-                      <span className="text-red-200 font-black">Exit Session Now</span>
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Lock className="h-4 w-4 text-[#A8B3A5]" />
-                      <span className="text-xs sm:text-sm font-semibold">Hold on ({Math.max(1, Math.ceil((3.0 * (100 - emergencyUnlockProgress)) / 100))}s)...</span>
-                    </div>
-                  )}
-
-                  {!isEmergencyUnlocked && (
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-                      <div
-                        className="absolute inset-y-0 right-0 bg-gradient-to-l from-[#192419] via-[#213021] to-[#2B3D2B] border-l-2 border-red-500/80 flex items-center justify-end px-3.5 transition-all ease-linear"
-                        style={{
-                          width: `${100 - emergencyUnlockProgress}%`,
-                        }}
-                      />
-                    </div>
-                  )}
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -1206,18 +1051,9 @@ export function ActiveFocusView({
                 )}
               </Button>
 
-              {/* Accessible Emergency / Early Exit Option */}
+              {/* Early Exit Option (Non-strict mode) */}
               <div className="pt-1 flex flex-col items-center gap-1.5">
-                {currentSession.isStrict ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsEmergencyExitOpen(true)}
-                    className="text-xs text-red-400/80 hover:text-red-300 underline cursor-pointer flex items-center gap-1.5 py-1"
-                  >
-                    <LifeBuoy className="h-3.5 w-3.5" />
-                    <span>Urgent emergency? Open Emergency Exit</span>
-                  </button>
-                ) : (
+                {currentSession.isStrict ? null : (
                   <button
                     type="button"
                     onClick={() => setIsEndingConfirmOpen(true)}

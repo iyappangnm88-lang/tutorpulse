@@ -492,22 +492,7 @@ export function FocusSetupView({
             </div>
 
             <div className="space-y-2.5 text-xs text-[#A8B3A5] leading-relaxed">
-              <div className="flex items-start gap-2.5">
-                <div className="h-5 w-5 rounded-full bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-xs font-black">1</span>
-                </div>
-                <p className="text-[#F4F7F2]">
-                  <strong>Locked End Session:</strong> The normal End Session action is disabled until your {getDisplayTime()} timer reaches zero.
-                </p>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="h-5 w-5 rounded-full bg-[#6BEA45]/20 text-[#6BEA45] flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-xs font-black">2</span>
-                </div>
-                <p className="text-[#F4F7F2]">
-                  <strong>Emergency Exit Protected:</strong> If a real emergency happens, an emergency exit is always available offline without awarding completion rewards.
-                </p>
-              </div>
+              
             </div>
 
             <div className="pt-3 border-t border-[#293329] flex items-center justify-end gap-3">
@@ -539,11 +524,6 @@ export function FocusSetupView({
         groupName={selectedGroupName || currentSelectedGroup?.name}
         currentElapsedSeconds={0}
         isSessionRunning={false}
-        onJoinSharedSprint={(durationMin, sprintTitle) => {
-          setFocusMin(durationMin)
-          setSubject(sprintTitle || subject)
-          setIsActivityModalOpen(false)
-        }}
       />
     </div>
   )

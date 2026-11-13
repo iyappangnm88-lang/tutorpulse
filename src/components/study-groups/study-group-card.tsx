@@ -37,13 +37,9 @@ export function StudyGroupCard({
           </div>
 
           <div className="flex items-center gap-1.5">
-            {group.visibility === 'private' ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-[#1C261C] px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-800">
+            {group.visibility === 'private' && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-900/40">
                 <Lock className="h-2.5 w-2.5" /> Private
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-900/40">
-                <Globe className="h-2.5 w-2.5" /> Public
               </span>
             )}
 

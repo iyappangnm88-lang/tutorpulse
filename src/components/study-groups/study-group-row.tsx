@@ -55,22 +55,16 @@ export function StudyGroupRow({
 
         {/* Compact Metadata Row */}
         <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-[#89958C] flex-wrap pt-0.5">
-          {/* Visibility */}
-          <span className="inline-flex items-center gap-1 font-medium">
-            {group.visibility === 'public' ? (
-              <>
-                <Globe className="h-3 w-3 text-emerald-500" />
-                <span>Public</span>
-              </>
-            ) : (
-              <>
-                <Lock className="h-3 w-3 text-amber-500" />
+          {/* Visibility: Only show Private badge when group is private */}
+          {group.visibility === 'private' && (
+            <>
+              <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
+                <Lock className="h-3 w-3" />
                 <span>Private</span>
-              </>
-            )}
-          </span>
-
-          <span>•</span>
+              </span>
+              <span>•</span>
+            </>
+          )}
 
           {/* Member Count */}
           <span className="inline-flex items-center gap-1 font-medium">
