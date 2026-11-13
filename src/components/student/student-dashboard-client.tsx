@@ -38,46 +38,109 @@ export function StudentDashboardClient({
   const queryGroupId = searchParams.get('groupId')
   const queryGroupName = searchParams.get('groupName')
 
-  // Selected Group State with localStorage persistence & URL fallback
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
-    if (queryGroupId) return queryGroupId
+  // Selected Group State with automatic first-group selection & persistence
+  const resolveInitialGroup = (): { id: string | null; name: string | null } => {
+    if (!myStudyGroups || myStudyGroups.length === 0) {
+      return { id: null, name: null }
+    }
+    // 1. URL query param if still a valid member of this group
+    if (queryGroupId) {
+      const q = myStudyGroups.find((g) => g.id === queryGroupId)
+      if (q) return { id: q.id, name: q.name }
+    }
+    // 2. Persisted preference from localStorage if still a valid member
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEY_SELECTED_GROUP)
-      if (saved) return saved
-    }
-    return null
-  })
-
-  const [selectedGroupName, setSelectedGroupName] = useState<string | null>(() => {
-    if (queryGroupName) return queryGroupName
-    if (queryGroupId && myStudyGroups.length > 0) {
-      const found = myStudyGroups.find((g) => g.id === queryGroupId)
-      if (found) return found.name
-    }
-    return null
-  })
-
-  // Synchronize group name whenever myStudyGroups or selectedGroupId changes
-  useEffect(() => {
-    if (selectedGroupId && myStudyGroups.length > 0) {
-      const match = myStudyGroups.find((g) => g.id === selectedGroupId)
-      if (match) {
-        setSelectedGroupName(match.name)
+      if (saved) {
+        const s = myStudyGroups.find((g) => g.id === saved)
+        if (s) return { id: s.id, name: s.name }
       }
-    } else if (!selectedGroupId) {
-      setSelectedGroupName(null)
     }
-  }, [selectedGroupId, myStudyGroups])
+    // 3. Fallback: Automatically select the first eligible joined group
+    const first = myStudyGroups[0]
+    return { id: first.id, name: first.name }
+  }
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => resolveInitialGroup().id)
+  const [selectedGroupName, setSelectedGroupName] = useState<string | null>(() => resolveInitialGroup().name)
+
+  // Synchronize selection, persistence and edge cases (e.g. member left group, new groups loaded)
+  useEffect(() => {
+    if (!myStudyGroups || myStudyGroups.length === 0) {
+      if (selectedGroupId !== null) {
+        setSelectedGroupId(null)
+        setSelectedGroupName(null)
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(STORAGE_KEY_SELECTED_GROUP)
+        }
+      }
+      return
+    }
+
+    // Prioritize URL param if valid
+    if (queryGroupId) {
+      const q = myStudyGroups.find((g) => g.id === queryGroupId)
+      if (q && q.id !== selectedGroupId) {
+        setSelectedGroupId(q.id)
+        setSelectedGroupName(q.name)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(STORAGE_KEY_SELECTED_GROUP, q.id)
+        }
+        return
+      }
+    }
+
+    // Check if current selection is still a valid joined group
+    const currentValid = selectedGroupId ? myStudyGroups.find((g) => g.id === selectedGroupId) : null
+    if (currentValid) {
+      if (selectedGroupName !== currentValid.name) {
+        setSelectedGroupName(currentValid.name)
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY_SELECTED_GROUP, currentValid.id)
+      }
+      return
+    }
+
+    // Check if stored localStorage group is valid
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY_SELECTED_GROUP)
+      if (saved) {
+        const s = myStudyGroups.find((g) => g.id === saved)
+        if (s) {
+          setSelectedGroupId(s.id)
+          setSelectedGroupName(s.name)
+          return
+        }
+      }
+    }
+
+    // First visit or previously selected group no longer accessible:
+    // Automatically select the first eligible joined group
+    const first = myStudyGroups[0]
+    if (first) {
+      setSelectedGroupId(first.id)
+      setSelectedGroupName(first.name)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY_SELECTED_GROUP, first.id)
+      }
+    }
+  }, [myStudyGroups, selectedGroupId, selectedGroupName, queryGroupId])
 
   const handleSelectGroup = useCallback((groupId: string | null, groupName?: string | null) => {
+    if (!groupId) {
+      setSelectedGroupId(null)
+      setSelectedGroupName(null)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY_SELECTED_GROUP)
+      }
+      return
+    }
+
     setSelectedGroupId(groupId)
     setSelectedGroupName(groupName || null)
     if (typeof window !== 'undefined') {
-      if (groupId) {
-        localStorage.setItem(STORAGE_KEY_SELECTED_GROUP, groupId)
-      } else {
-        localStorage.removeItem(STORAGE_KEY_SELECTED_GROUP)
-      }
+      localStorage.setItem(STORAGE_KEY_SELECTED_GROUP, groupId)
     }
   }, [])
 

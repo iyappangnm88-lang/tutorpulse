@@ -210,7 +210,7 @@ export function LiveFocusActivityModal({
                 )}
               </h3>
               <p className="text-[11px] text-white/60">
-                {groupId ? groupName || 'Study Group' : 'Solo Focus Session'}
+                {groupId ? groupName || 'Study Group' : 'Study Group Activity'}
               </p>
             </div>
           </div>
@@ -259,9 +259,9 @@ export function LiveFocusActivityModal({
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-white/5 border border-white/10 text-[#6BEA45]">
                 <Sparkles className="h-7 w-7" />
               </div>
-              <h4 className="text-base font-bold text-white">Solo Focus Session</h4>
+              <h4 className="text-base font-bold text-white">No Study Group Selected</h4>
               <p className="text-xs text-white/65 max-w-sm mx-auto leading-relaxed">
-                You are currently studying solo. Select a <strong>Study Group</strong> from the top bar to study alongside classmates, track daily study goals, and join shared sprints together!
+                Join or select a <strong>Study Group</strong> in the Student Portal to study alongside classmates, track daily study goals, and join shared sprints together!
               </p>
             </div>
           ) : (

@@ -726,17 +726,7 @@ export function ActiveFocusView({
                   <span>{currentSession.groupName || 'Study Group'}</span>
                   <span className="text-[10px] text-[#6BEA45]/80 group-hover:text-white font-medium">• Activity</span>
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsFocusActivityOpen(true)}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-white/70 hover:text-white bg-black/40 hover:bg-black/60 px-2.5 py-1 rounded-full border border-white/20 hover:border-white/40 backdrop-blur-md transition-all cursor-pointer shadow-xs active:scale-95"
-                  title="Focus Activity Details"
-                >
-                  <span>👤</span>
-                  <span>Solo Focus</span>
-                </button>
-              )}
+              ) : null}
               {currentSession.isStrict && (
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-[#6BEA45] bg-black/60 px-3 py-1 rounded-full border border-[#6BEA45]/40 shadow-xs">
                   <Lock className="w-3 h-3 text-[#6BEA45]" />

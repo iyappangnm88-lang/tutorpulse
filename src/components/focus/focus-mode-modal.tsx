@@ -15,8 +15,6 @@ import {
   ChevronRight,
   Lock,
   Columns2,
-  Smartphone,
-  AlertCircle,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
@@ -436,7 +434,7 @@ export function FocusModeModal({
         </div>
 
         {/* 5. BLOCK SPLIT-SCREEN RESTRICTION */}
-        <div className="p-4.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3.5">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3.5">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className={`h-11 w-11 rounded-2xl flex items-center justify-center border shrink-0 transition-colors ${
               blockSplitScreen
@@ -445,27 +443,16 @@ export function FocusModeModal({
             }`}>
               <Columns2 className="h-5.5 w-5.5" />
             </div>
-            <div className="min-w-0 space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm sm:text-base font-bold text-white">Block Split-Screen</span>
-                {isAndroid ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40">
-                    Android Multi-Window
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#293329] text-[#A8B3A5] border border-white/10">
-                    Android Native App
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-[#A8B3A5] leading-relaxed">
-                Detects multi-window or split-screen usage during focus and guides you back to full screen to prevent side-by-side multitasking.
-              </p>
-              {!isAndroid && (
-                <p className="text-[11px] text-[#89958C] flex items-center gap-1 pt-0.5">
-                  <Smartphone className="h-3 w-3 shrink-0 text-[#6BEA45]" />
-                  <span>Enforced on NUZIGO Android. Standard web browsers cannot detect OS split-screen.</span>
-                </p>
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <span className="text-sm sm:text-base font-bold text-white">Block Split-Screen</span>
+              {isAndroid ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40">
+                  Android Multi-Window
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#293329] text-[#A8B3A5] border border-white/10">
+                  Android Native App
+                </span>
               )}
             </div>
           </div>
@@ -489,7 +476,7 @@ export function FocusModeModal({
         </div>
 
         {/* 6. STRICT FOCUS MODE */}
-        <div className="p-4.5 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3.5">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0B0F0C] border border-[#293329] flex items-center justify-between gap-3.5">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className={`h-11 w-11 rounded-2xl flex items-center justify-center border shrink-0 transition-colors ${
               strictMode
@@ -498,22 +485,8 @@ export function FocusModeModal({
             }`}>
               <Lock className="h-5.5 w-5.5" />
             </div>
-            <div className="min-w-0 space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm sm:text-base font-bold text-white">Strict Focus Mode</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/40">
-                  Locked Exit
-                </span>
-              </div>
-              <p className="text-xs text-[#A8B3A5] leading-relaxed">
-                Locks the normal End Session action until your timer completes. A discrete emergency exit is always preserved for urgent needs without awarding completion rewards.
-              </p>
-              {mode === 'stopwatch' && !swTargetMin && (
-                <p className="text-[11px] text-amber-300 flex items-center gap-1 pt-0.5">
-                  <AlertCircle className="h-3 w-3 shrink-0" />
-                  <span>Strict Mode requires a target duration so the finish line is clearly defined.</span>
-                </p>
-              )}
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <span className="text-sm sm:text-base font-bold text-white">Strict Focus Mode</span>
             </div>
           </div>
 

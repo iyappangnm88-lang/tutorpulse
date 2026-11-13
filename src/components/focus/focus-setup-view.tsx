@@ -19,7 +19,6 @@ import {
   AlertTriangle,
   X,
   Users,
-  User,
   ChevronDown,
   Check,
   ExternalLink,
@@ -183,37 +182,24 @@ export function FocusSetupView({
           </div>
 
           {/* Group Selector Dropdown / Pill */}
-          {myStudyGroups.length > 0 ? (
+          {myStudyGroups.length > 0 && selectedGroupId && (
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsGroupDropdownOpen((v) => !v)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full backdrop-blur-md border text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-lg min-h-[38px] sm:min-h-[42px] ${
-                  selectedGroupId
-                    ? 'bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white hover:bg-[#6BEA45]/30'
-                    : 'bg-black/45 hover:bg-black/65 border-white/20 text-white hover:border-[#6BEA45]/50'
-                }`}
+                className="flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full backdrop-blur-md border text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-lg min-h-[38px] sm:min-h-[42px] bg-[#6BEA45]/20 border-[#6BEA45]/60 text-white hover:bg-[#6BEA45]/30"
                 title="Select Study Group to focus with"
               >
-                {selectedGroupId ? (
-                  <>
-                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6BEA45]" />
-                    <span className="max-w-[120px] sm:max-w-[170px] truncate">
-                      {selectedGroupName || currentSelectedGroup?.name || 'Study Group'}
-                    </span>
-                    {currentSelectedGroup?.live_focus_count ? (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#6BEA45] text-[#0B0F0C] text-[10px] font-black">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#0B0F0C] animate-ping" />
-                        {currentSelectedGroup.live_focus_count}
-                      </span>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
-                    <span>Solo Focus</span>
-                  </>
-                )}
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6BEA45]" />
+                <span className="max-w-[120px] sm:max-w-[170px] truncate">
+                  {selectedGroupName || currentSelectedGroup?.name || 'Study Group'}
+                </span>
+                {currentSelectedGroup?.live_focus_count ? (
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#6BEA45] text-[#0B0F0C] text-[10px] font-black">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0B0F0C] animate-ping" />
+                    {currentSelectedGroup.live_focus_count}
+                  </span>
+                ) : null}
                 <ChevronDown className="w-3.5 h-3.5 text-white/70 ml-0.5" />
               </button>
 
@@ -225,32 +211,7 @@ export function FocusSetupView({
                     onClick={() => setIsGroupDropdownOpen(false)}
                   />
                   <div className="absolute left-0 mt-2 z-50 w-72 rounded-2xl bg-[#0F1410] border border-white/20 shadow-2xl p-2 text-white animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="px-2.5 py-1.5 text-[11px] font-bold text-white/50 uppercase tracking-wider">
-                      Study Focus Mode
-                    </div>
-
-                    {/* Solo Option */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelectGroup?.(null, null)
-                        setIsGroupDropdownOpen(false)
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
-                        !selectedGroupId
-                          ? 'bg-[#6BEA45]/20 text-[#6BEA45] border border-[#6BEA45]/30'
-                          : 'hover:bg-white/10 text-white/90'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        <span>Solo Focus</span>
-                      </div>
-                      {!selectedGroupId && <Check className="w-3.5 h-3.5 text-[#6BEA45]" />}
-                    </button>
-
-                    <div className="my-1.5 border-t border-white/10" />
-                    <div className="px-2.5 py-1 text-[11px] font-bold text-white/50 uppercase tracking-wider flex items-center justify-between">
+                    <div className="px-2.5 py-1.5 text-[11px] font-bold text-white/50 uppercase tracking-wider flex items-center justify-between">
                       <span>My Study Groups</span>
                       <Link
                         href="/student/study-groups"
@@ -260,7 +221,7 @@ export function FocusSetupView({
                       </Link>
                     </div>
 
-                    <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                    <div className="max-h-56 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                       {myStudyGroups.map((g) => {
                         const isSelected = selectedGroupId === g.id
                         return (
@@ -299,22 +260,10 @@ export function FocusSetupView({
                 </>
               )}
             </div>
-          ) : (
-            <Link
-              href="/student/study-groups"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md border border-white/20 hover:border-[#6BEA45]/50 text-white text-xs sm:text-sm font-semibold transition-all shadow-lg min-h-[38px] sm:min-h-[42px] group"
-              title="Join a Study Group to focus together"
-            >
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#6BEA45] group-hover:scale-110 transition-transform" />
-              <span>Study with Peers</span>
-              <span className="text-[10px] text-[#6BEA45] bg-[#6BEA45]/15 px-1.5 py-0.5 rounded-full">
-                Join
-              </span>
-            </Link>
           )}
 
           {/* Clickable Live Room Activity Pill Button */}
-          {selectedGroupId && (
+          {myStudyGroups.length > 0 && selectedGroupId && (
             <button
               type="button"
               onClick={() => setIsActivityModalOpen(true)}
